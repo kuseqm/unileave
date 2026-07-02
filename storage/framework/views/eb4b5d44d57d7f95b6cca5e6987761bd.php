@@ -1,0 +1,276 @@
+
+
+<?php $__env->startSection('title', 'Message Details'); ?>
+
+<?php $__env->startSection('content'); ?>
+<div class="container-fluid px-2">
+    <!-- Breadcrumb -->
+    <?php if (isset($component)) { $__componentOriginale19f62b34dfe0bfdf95075badcb45bc2 = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginale19f62b34dfe0bfdf95075badcb45bc2 = $attributes; } ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.breadcrumb','data' => ['items' => [
+        ['name' => 'Messages', 'url' => '#'],
+        ['name' => 'Inbox', 'url' => '#']
+    ]]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('breadcrumb'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes(['items' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute([
+        ['name' => 'Messages', 'url' => '#'],
+        ['name' => 'Inbox', 'url' => '#']
+    ])]); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginale19f62b34dfe0bfdf95075badcb45bc2)): ?>
+<?php $attributes = $__attributesOriginale19f62b34dfe0bfdf95075badcb45bc2; ?>
+<?php unset($__attributesOriginale19f62b34dfe0bfdf95075badcb45bc2); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginale19f62b34dfe0bfdf95075badcb45bc2)): ?>
+<?php $component = $__componentOriginale19f62b34dfe0bfdf95075badcb45bc2; ?>
+<?php unset($__componentOriginale19f62b34dfe0bfdf95075badcb45bc2); ?>
+<?php endif; ?>
+    
+    <?php if (isset($component)) { $__componentOriginalf8d4ea307ab1e58d4e472a43c8548d8e = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginalf8d4ea307ab1e58d4e472a43c8548d8e = $attributes; } ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.page-header','data' => ['title' => 'MESSAGE DETAILS','description' => 'View and respond to message']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('page-header'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes(['title' => 'MESSAGE DETAILS','description' => 'View and respond to message']); ?>
+        <a href="<?php echo e(route('messages.inbox')); ?>" class="btn btn-outline-secondary btn-sm rounded-sm">
+            <i class="ti ti-arrow-left me-1"></i> Back to Inbox
+        </a>
+     <?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginalf8d4ea307ab1e58d4e472a43c8548d8e)): ?>
+<?php $attributes = $__attributesOriginalf8d4ea307ab1e58d4e472a43c8548d8e; ?>
+<?php unset($__attributesOriginalf8d4ea307ab1e58d4e472a43c8548d8e); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginalf8d4ea307ab1e58d4e472a43c8548d8e)): ?>
+<?php $component = $__componentOriginalf8d4ea307ab1e58d4e472a43c8548d8e; ?>
+<?php unset($__componentOriginalf8d4ea307ab1e58d4e472a43c8548d8e); ?>
+<?php endif; ?>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Message Card -->
+            <div class="card rounded-sm mb-3">
+                <div class="card-header py-3 px-3 bg-light">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="mb-1"><?php echo e($message->subject); ?></h5>
+                            <div class="text-muted small">
+                                <i class="ti ti-mail me-1"></i> <?php echo e($message->message_number); ?>
+
+                            </div>
+                        </div>
+                        <div>
+                            <span class="badge bg-<?php echo e($message->priority == 'urgent' ? 'danger' : ($message->priority == 'high' ? 'warning' : 'secondary')); ?> rounded-pill">
+                                <?php echo e(ucfirst($message->priority)); ?>
+
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card-body p-4">
+                    <!-- Sender/Receiver Info -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="avatar-sm rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+                                    <i class="ti ti-user text-primary" style="font-size: 20px;"></i>
+                                </div>
+                                <div>
+                                    <div class="text-muted small">FROM</div>
+                                    <div class="fw-semibold"><?php echo e($message->sender->first_name ?? ''); ?> <?php echo e($message->sender->last_name ?? ''); ?></div>
+                                    <div class="text-muted small"><?php echo e($message->sender->email ?? ''); ?></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="avatar-sm rounded-circle bg-success bg-opacity-10 d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+                                    <i class="ti ti-users text-success" style="font-size: 20px;"></i>
+                                </div>
+                                <div>
+                                    <div class="text-muted small">TO</div>
+                                    <div class="fw-semibold"><?php echo e($message->recipient_names ?? $message->receiver->first_name ?? 'Unknown'); ?></div>
+                                    <div class="text-muted small"><?php echo e($message->receiver->email ?? ''); ?></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Date Info -->
+                    <div class="d-flex gap-3 mb-4 pb-2 border-bottom">
+                        <div class="text-muted small">
+                            <i class="ti ti-calendar me-1"></i> Sent: <?php echo e($message->created_at->format('d M Y, H:i')); ?>
+
+                        </div>
+                        <?php if($message->read_at): ?>
+                            <div class="text-muted small">
+                                <i class="ti ti-eye me-1"></i> Read: <?php echo e($message->read_at->format('d M Y, H:i')); ?>
+
+                            </div>
+                        <?php endif; ?>
+                        <?php if($message->deadline): ?>
+                            <div class="text-muted small">
+                                <i class="ti ti-alarm-clock me-1"></i> Deadline: <?php echo e($message->deadline->format('d M Y')); ?>
+
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                    
+                    <!-- Message Body -->
+                    <div class="mb-4">
+                        <div class="p-3 bg-light rounded" style="line-height: 1.6;">
+                            <?php echo nl2br(e($message->message)); ?>
+
+                        </div>
+                    </div>
+                    
+                    <!-- Attachments -->
+                    <?php if($message->attachments && $message->attachments->count() > 0): ?>
+                        <div class="mb-4">
+                            <div class="fw-semibold mb-2">Attachments</div>
+                            <div class="d-flex gap-2 flex-wrap">
+                                <?php $__currentLoopData = $message->attachments; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $attachment): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <a href="<?php echo e(Storage::url($attachment->file_path)); ?>" target="_blank" class="btn btn-outline-secondary btn-sm rounded-pill">
+                                        <i class="ti ti-paperclip me-1"></i> <?php echo e($attachment->file_name); ?>
+
+                                        <span class="text-muted ms-1">(<?php echo e(number_format($attachment->file_size / 1024, 1)); ?> KB)</span>
+                                    </a>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="card-footer bg-light py-3 px-4">
+                    <div class="d-flex gap-2 flex-wrap">
+                        <a href="<?php echo e(route('messages.create', ['reply_to' => $message->id])); ?>" class="btn btn-primary btn-sm rounded-sm">
+                            <i class="ti ti-corner-up-right me-1"></i> Reply
+                        </a>
+                        <a href="<?php echo e(route('messages.create', ['reply_all' => $message->id])); ?>" class="btn btn-info btn-sm rounded-sm">
+                            <i class="ti ti-users me-1"></i> Reply All
+                        </a>
+                        <a href="<?php echo e(route('messages.create', ['forward' => $message->id])); ?>" class="btn btn-secondary btn-sm rounded-sm">
+                            <i class="ti ti-corner-up-left me-1"></i> Forward
+                        </a>
+                        <button onclick="archiveMessage(<?php echo e($message->id); ?>)" class="btn btn-outline-secondary btn-sm rounded-sm">
+                            <i class="ti ti-archive me-1"></i> Archive
+                        </button>
+                        <button onclick="toggleStar(<?php echo e($message->id); ?>)" class="btn btn-outline-warning btn-sm rounded-sm">
+                            <i class="ti ti-star <?php echo e($message->is_starred ? 'text-warning' : ''); ?>"></i>
+                            <?php echo e($message->is_starred ? 'Unstar' : 'Star'); ?>
+
+                        </button>
+                        
+                        <!-- Delete Button - Using YOUR modal pattern (like staff management) -->
+                        <button type="button" 
+                                onclick="showDeleteModal(<?php echo e($message->id); ?>, '<?php echo e(addslashes($message->subject)); ?>')" 
+                                class="btn btn-outline-danger btn-sm rounded-sm ms-auto">
+                            <i class="ti ti-trash me-1"></i> Delete
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Action Timeline -->
+            <div class="card rounded-sm mb-3">
+                <div class="card-header py-2 bg-light">
+                    <i class="ti ti-activity me-1"></i> Activity Timeline
+                </div>
+                <div class="card-body p-3">
+                    <?php if($message->actions && $message->actions->count() > 0): ?>
+                        <?php $__currentLoopData = $message->actions; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $action): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <div class="d-flex gap-2 mb-3">
+                                <div class="timeline-icon">
+                                    <i class="ti ti-check-circle text-success"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-semibold small"><?php echo e(ucfirst($action->action)); ?></div>
+                                    <div class="text-muted small"><?php echo e($action->user->first_name ?? 'System'); ?> • <?php echo e($action->created_at->diffForHumans()); ?></div>
+                                </div>
+                            </div>
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                    <?php else: ?>
+                        <div class="text-center text-muted py-3">
+                            <i class="ti ti-clock"></i>
+                            <p class="small mb-0">No activity recorded yet</p>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal - EXACTLY like your staff management page -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-sm">
+            <div class="modal-header py-1 px-2">
+                <h5 class="modal-title" style="font-size: 0.8rem;">Confirm Delete</h5>
+                <button type="button" class="btn-close py-0" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body py-2 px-2">
+                <p style="font-size: 0.75rem;">Are you sure you want to delete message <strong id="deleteMessageSubject"></strong>?</p>
+                <p class="text-danger mb-0" style="font-size: 0.7rem;">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer py-1 px-2">
+                <button type="button" class="btn btn-secondary btn-sm rounded-sm" data-bs-dismiss="modal" style="font-size: 0.7rem;">Cancel</button>
+                <a href="#" id="deleteConfirmBtn" class="btn btn-danger btn-sm rounded-sm" style="font-size: 0.7rem;">Delete</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Delete modal function - EXACT pattern from your staff management
+function showDeleteModal(id, subject) {
+    document.getElementById('deleteMessageSubject').innerText = subject;
+    document.getElementById('deleteConfirmBtn').href = '/messages/' + id;
+    new bootstrap.Modal(document.getElementById('deleteModal')).show();
+}
+
+function archiveMessage(id) {
+    fetch(`/messages/${id}/archive`, { 
+        method: 'POST', 
+        headers: { 'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>' } 
+    })
+    .then(() => window.location.reload())
+    .catch(error => console.error('Error:', error));
+}
+
+function toggleStar(id) {
+    fetch(`/messages/${id}/star`, { 
+        method: 'POST', 
+        headers: { 'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>' } 
+    })
+    .then(() => window.location.reload())
+    .catch(error => console.error('Error:', error));
+}
+</script>
+
+<style>
+.avatar-sm {
+    width: 45px;
+    height: 45px;
+}
+.timeline-icon {
+    width: 24px;
+}
+</style>
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.master', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\wamp64\www\unileave\resources\views/shared/messages/show.blade.php ENDPATH**/ ?>

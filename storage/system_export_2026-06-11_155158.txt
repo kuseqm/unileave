@@ -1,0 +1,1940 @@
+=== DATABASE TABLES ===
+
+Table: acting_dvc_assignments
+  - id (bigint unsigned) Null:NO Key:PRI
+  - staff_id (bigint unsigned) Null:NO Key:MUL
+  - role (enum('dvca','dvc-pfa')) Null:NO Key:MUL
+  - start_date (date) Null:NO Key:MUL
+  - end_date (date) Null:NO Key:
+  - reason (varchar(191)) Null:YES Key:
+  - approved_by (bigint unsigned) Null:NO Key:MUL
+  - status (enum('active','expired','cancelled')) Null:NO Key:MUL
+  - created_at (timestamp) Null:YES Key:
+  - updated_at (timestamp) Null:YES Key:
+
+Table: approval_logs
+  - id (bigint unsigned) Null:NO Key:PRI
+  - request_type (enum('leave','permission','admin')) Null:NO Key:MUL
+  - request_id (bigint unsigned) Null:NO Key:
+  - from_role (varchar(50)) Null:NO Key:
+  - to_role (varchar(191)) Null:YES Key:
+  - action (enum('submitted','approved','rejected','forwarded','cancelled','assigned','override_balance')) Null:NO Key:MUL
+  - comment (text) Null:YES Key:
+  - approver_staff_id (bigint unsigned) Null:NO Key:MUL
+  - ip_address (varchar(45)) Null:NO Key:
+  - created_at (timestamp) Null:YES Key:MUL
+  - updated_at (timestamp) Null:YES Key:
+
+Table: audit_logs
+  - id (bigint unsigned) Null:NO Key:PRI
+  - user_id (bigint unsigned) Null:NO Key:MUL
+  - action (varchar(50)) Null:NO Key:MUL
+  - module (varchar(50)) Null:NO Key:MUL
+  - record_id (varchar(50)) Null:YES Key:
+  - old_values (text) Null:YES Key:
+  - new_values (text) Null:YES Key:
+  - ip_address (varchar(45)) Null:YES Key:
+  - user_agent (varchar(191)) Null:YES Key:
+  - created_at (timestamp) Null:YES Key:MUL
+  - updated_at (timestamp) Null:YES Key:
+
+Table: blackout_periods
+  - id (bigint unsigned) Null:NO Key:PRI
+  - university_id (bigint unsigned) Null:NO Key:MUL
+  - name (varchar(191)) Null:NO Key:
+  - start_date (date) Null:NO Key:MUL
+  - end_date (date) Null:NO Key:
+  - restriction_type (enum('hard','soft')) Null:NO Key:
+  - affected_departments (json) Null:YES Key:
+  - affected_leave_types (json) Null:YES Key:
+  - affected_categories (json) Null:YES Key:
+  - override_allowed (tinyint(1)) Null:NO Key:
+  - created_by (bigint unsigned) Null:NO Key:MUL
+  - created_at (timestamp) Null:YES Key:
+  - updated_at (timestamp) Null:YES Key:
+  - status (enum('active','inactive')) Null:NO Key:
+
+Table: cache
+  - key (varchar(191)) Null:NO Key:PRI
+  - value (mediumtext) Null:NO Key:
+  - expiration (bigint) Null:NO Key:MUL
+
+Table: cache_locks
+  - key (varchar(191)) Null:NO Key:PRI
+  - owner (varchar(191)) Null:NO Key:
+  - expiration (bigint) Null:NO Key:MUL
+
+Table: campuses
+  - id (bigint unsigned) Null:NO Key:PRI
+  - tenant_id (bigint unsigned) Null:YES Key:MUL
+  - university_id (bigint unsigned) Null:NO Key:MUL
+  - name (varchar(191)) Null:NO Key:
+  - address (text) Null:YES Key:
+  - gps_lat (decimal(10,8)) Null:YES Key:
+  - gps_lng (decimal(11,8)) Null:YES Key:
+  - code (varchar(50)) Null:YES Key:
+  - status (enum('active','inactive')) Null:NO Key:MUL
+  - created_at (timestamp) Null:YES Key:
+  - updated_at (timestamp) Null:YES Key:
+
+Table: departments
+  - id (bigint unsigned) Null:NO Key:PRI
+  - tenant_id (bigint unsigned) Null:YES Key:MUL
+  - campus_id (bigint unsigned) Null:NO Key:MUL
+  - school_id (bigint unsigned) Null:YES Key:MUL
+  - name (varchar(191)) Null:NO Key:
+  - code (varchar(50)) Null:NO Key:
+  - hod_staff_id (bigint unsigned) Null:YES Key:MUL
+  - unit_head_staff_id (bigint unsigned) Null:YES Key:MUL
+  - description (text) Null:YES Key:
+  - status (enum('active','inactive')) Null:NO Key:
+  - created_at (timestamp) Null:YES Key:
+  - updated_at (timestamp) Null:YES Key:
+
+Table: dependents
+  - id (bigint unsigned) Null:NO Key:PRI
+  - staff_id (bigint unsigned) Null:NO Key:MUL
+  - full_name (varchar(100)) Null:NO Key:
+  - relationship (enum('spouse','child','parent','sibling','other')) Null:NO Key:
+  - date_of_birth (date) Null:YES Key:
+  - phone (varchar(50)) Null:YES Key:
+  - email (varchar(100)) Null:YES Key:
+  - is_emergency_contact (tinyint(1)) Null:NO Key:
+  - is_beneficiary (tinyint(1)) Null:NO Key:
+  - beneficiary_percentage (int) Null:YES Key:
+  - notes (text) Null:YES Key:
+  - status (enum('active','inactive')) Null:NO Key:
+  - created_at (timestamp) Null:YES Key:
+  - updated_at (timestamp) Null:YES Key:
+
+Table: document_categories
+  - id (bigint unsigned) Null:NO Key:PRI
+  - name (varchar(100)) Null:NO Key:
+  - slug (varchar(100)) Null:NO Key:UNI
+  - description (text) Null:YES Key:
+  - icon (varchar(50)) Null:NO Key:
+  - required_for_leave_types (json) Null:YES Key:
+  - max_size_mb (int) Null:NO Key:
+  - allowed_types (json) Null:YES Key:
+  - sort_order (int) Null:NO Key:
+  - is_active (tinyint(1)) Null:NO Key:MUL
+  - created_at (timestamp) Null:YES Key:
+  - updated_at (timestamp) Null:YES Key:
+
+Table: document_verifications
+  - id (bigint unsigned) Null:NO Key:PRI
+  - document_id (bigint unsigned) Null:NO Key:MUL
+  - verification_code (varchar(191)) Null:NO Key:UNI
+  - ip_address (varchar(191)) Null:YES Key:
+  - user_agent (varchar(191)) Null:YES Key:
+  - verification_data (json) Null:YES Key:
+  - created_at (timestamp) Null:YES Key:
+  - updated_at (timestamp) Null:YES Key:
+
+Table: documents
+  - id (bigint unsigned) Null:NO Key:PRI
+  - user_id (bigint unsigned) Null:NO Key:MUL
+  - leave_request_id (bigint unsigned) Null:YES Key:MUL
+  - category_id (bigint unsigned) Null:NO Key:MUL
+  - original_name (varchar(255)) Null:NO Key:
+  - stored_name (varchar(255)) Null:NO Key:
+  - file_path (varchar(500)) Null:NO Key:
+  - file_size (bigint unsigned) Null:YES Key:
+  - mime_type (varchar(100)) Null:YES Key:
+  - file_type (enum('pdf','jpg','png','doc','docx')) Null:NO Key:
+  - description (text) Null:YES Key:
+  - uploaded_by (bigint unsigned) Null:NO Key:MUL
+  - verified_by (bigint unsigned) Null:YES Key:MUL
+  - verified_at (timestamp) Null:YES Key:
+  - verification_status (enum('pending','verified','rejected')) Null:NO Key:MUL
+  - rejection_reason (text) Null:YES Key:
+  - created_at (timestamp) Null:YES Key:
+  - updated_at (timestamp) Null:YES Key:
+
+Table: failed_jobs
+  - id (bigint unsigned) Null:NO Key:PRI
+  - uuid (varchar(191)) Null:NO Key:UNI
+  - connection (text) Null:NO Key:
+  - queue (text) Null:NO Key:
+  - payload (longtext) Null:NO Key:
+  - exception (longtext) Null:NO Key:
+  - failed_at (timestamp) Null:NO Key:
+
+Table: hold_position_histories
+  - id (bigint unsigned) Null:NO Key:PRI
+  - leave_request_id (bigint unsigned) Null:NO Key:MUL
+  - requester_staff_id (bigint unsigned) Null:NO Key:MUL
+  - holder_staff_id (bigint unsigned) Null:NO Key:MUL
+  - status (enum('pending','accepted','declined')) Null:NO Key:MUL
+  - requested_at (timestamp) Null:NO Key:
+  - responded_at (timestamp) Null:YES Key:
+  - token (varchar(191)) Null:NO Key:UNI
+  - comment (text) Null:YES Key:
+  - created_at (timestamp) Null:YES Key:
+  - updated_at (timestamp) Null:YES Key:
+
+Table: import_history
+  - id (bigint unsigned) Null:NO Key:PRI
+  - user_id (bigint unsigned) Null:NO Key:MUL
+  - university_id (bigint unsigned) Null:YES Key:MUL
+  - campus_id (bigint unsigned) Null:YES Key:MUL
+  - school_id (bigint unsigned) Null:YES Key:MUL
+  - department_id (bigint unsigned) Null:YES Key:MUL
+  - role_code (varchar(3)) Null:NO Key:
+  - sequence_number (varchar(20)) Null:NO Key:
+  - operation_type (varchar(20)) Null:NO Key:
+  - original_filename (varchar(255)) Null:NO Key:
+  - stored_filename (varchar(255)) Null:NO Key:
+  - file_size (int) Null:YES Key:
+  - total_rows (int) Null:NO Key:
+  - successful_rows (int) Null:NO Key:
+  - failed_rows (int) Null:NO Key:
+  - errors (json) Null:YES Key:
+  - status (enum('pending','processing','preview','completed','failed')) Null:NO Key:
+  - is_test_mode (tinyint(1)) Null:NO Key:
+  - preview_data (json) Null:YES Key:
+  - error_report_path (varchar(500)) Null:YES Key:
+  - processing_started_at (timestamp) Null:YES Key:
+  - processing_completed_at (timestamp) Null:YES Key:
+  - retention_expiry (date) Null:YES Key:
+  - created_at (timestamp) Null:YES Key:
+  - updated_at (timestamp) Null:YES Key:
+
+Table: import_sequences
+  - id (bigint unsigned) Null:NO Key:PRI
+  - role_code (varchar(3)) Null:NO Key:UNI
+  - last_sequence (int) Null:NO Key:
+  - created_at (timestamp) Null:YES Key:
+  - updated_at (timestamp) Null:YES Key:
+
+Table: job_batches
+  - id (varchar(191)) Null:NO Key:PRI
+  - name (varchar(191)) Null:NO Key:
+  - total_jobs (int) Null:NO Key:
+  - pending_jobs (int) Null:NO Key:
+  - failed_jobs (int) Null:NO Key:
+  - failed_job_ids (longtext) Null:NO Key:
+  - options (mediumtext) Null:YES Key:
+  - cancelled_at (int) Null:YES Key:
+  - created_at (int) Null:NO Key:
+  - finished_at (int) Null:YES Key:
+
+Table: jobs
+  - id (bigint unsigned) Null:NO Key:PRI
+  - queue (varchar(191)) Null:NO Key:MUL
+  - payload (longtext) Null:NO Key:
+  - attempts (smallint unsigned) Null:NO Key:
+  - reserved_at (int unsigned) Null:YES Key:
+  - available_at (int unsigned) Null:NO Key:
+  - created_at (int unsigned) Null:NO Key:
+
+Table: leave_attachments
+  - id (bigint unsigned) Null:NO Key:PRI
+  - leave_request_id (bigint unsigned) Null:NO Key:MUL
+  - file_name (varchar(191)) Null:NO Key:
+  - file_path (varchar(500)) Null:NO Key:
+  - file_type (enum('certificate','letter','other')) Null:NO Key:MUL
+  - mime_type (varchar(100)) Null:NO Key:
+  - size_bytes (int) Null:NO Key:
+  - created_at (timestamp) Null:YES Key:
+  - updated_at (timestamp) Null:YES Key:
+
+Table: leave_balances
+  - id (bigint unsigned) Null:NO Key:PRI
+  - staff_id (bigint unsigned) Null:NO Key:MUL
+  - leave_type_id (bigint unsigned) Null:NO Key:MUL
+  - balance (decimal(10,2)) Null:NO Key:
+  - year (int) Null:NO Key:MUL
+  - carried_forward (decimal(10,2)) Null:NO Key:
+  - adjusted_by (bigint unsigned) Null:YES Key:MUL
+  - adjustment_reason (varchar(191)) Null:YES Key:
+  - created_at (timestamp) Null:YES Key:
+  - updated_at (timestamp) Null:YES Key:
+
+Table: leave_letters
+  - id (bigint unsigned) Null:NO Key:PRI
+  - leave_request_id (bigint unsigned) Null:NO Key:MUL
+  - staff_id (bigint unsigned) Null:NO Key:MUL
+  - letter_number (varchar(191)) Null:YES Key:UNI
+  - secure_code (varchar(191)) Null:YES Key:UNI
+  - title (varchar(191)) Null:YES Key:
+  - content (longtext) Null:NO Key:
+  - type (varchar(191)) Null:NO Key:
+  - generated_by (varchar(191)) Null:YES Key:
+  - generated_by_role (varchar(191)) Null:YES Key:
+  - signatories (json) Null:YES Key:
+  - cc_recipients (json) Null:YES Key:
+  - payment_status (enum('paid','unpaid','partial')) Null:NO Key:
+  - salary_deduction (decimal(10,2)) Null:YES Key:
+  - financial_notes (text) Null:YES Key:
+  - stage (varchar(191)) Null:NO Key:
+  - is_printed (tinyint(1)) Null:NO Key:
+  - printed_at (timestamp) Null:YES Key:
+  - print_count (int) Null:NO Key:
+  - pdf_path (varchar(191)) Null:YES Key:
+  - pdf_size (int) Null:YES Key:
+  - verified_at (timestamp) Null:YES Key:
+  - verified_by (varchar(191)) Null:YES Key:
+  - verification_ip (varchar(45)) Null:YES Key:
+  - metadata (json) Null:YES Key:
+  - created_at (timestamp) Null:YES Key:
+  - updated_at (timestamp) Null:YES Key:
+
+Table: leave_requests
+  - id (bigint unsigned) Null:NO Key:PRI
+  - tenant_id (bigint unsigned) Null:YES Key:MUL
+  - staff_id (bigint unsigned) Null:NO Key:MUL
+  - acting_staff_id (bigint unsigned) Null:YES Key:MUL
+  - leave_type_id (bigint unsigned) Null:NO Key:MUL
+  - start_date (date) Null:NO Key:MUL
+  - end_date (date) Null:NO Key:
+  - days (decimal(5,2)) Null:NO Key:
+  - reason (text) Null:NO Key:
+  - status (enum('draft','pending','approved','rejected','cancelled')) Null:NO Key:MUL
+  - payment_status (enum('paid','partial','unpaid')) Null:NO Key:
+  - payment_percentage (decimal(5,2)) Null:NO Key:
+  - payment_notes (text) Null:YES Key:
+  - payment_decision_at (timestamp) Null:YES Key:
+  - payment_decided_by (bigint unsigned) Null:YES Key:MUL
+  - acting_status (enum('pending','accepted','declined')) Null:NO Key:
+  - current_approval_level (int) Null:YES Key:
+  - acting_requested_at (timestamp) Null:YES Key:
+  - acting_responded_at (timestamp) Null:YES Key:
+  - acting_token (varchar(100)) Null:YES Key:
+  - rejection_reason (varchar(191)) Null:YES Key:
+  - letter_content (text) Null:YES Key:
+  - created_at (timestamp) Null:YES Key:MUL
+  - updated_at (timestamp) Null:YES Key:
+  - contact_number_during_leave (varchar(50)) Null:YES Key:
+  - leave_address (varchar(255)) Null:YES Key:
+  - travel_destination (varchar(255)) Null:YES Key:
+  - expected_return_date (date) Null:YES Key:
+  - actual_return_date (date) Null:YES Key:
+  - late_return_days (int) Null:NO Key:
+  - late_return_penalty (decimal(10,2)) Null:NO Key:
+  - late_return_reason (text) Null:YES Key:
+  - is_paid_leave (tinyint(1)) Null:NO Key:
+  - salary_impact (decimal(10,2)) Null:NO Key:
+  - allowances (text) Null:YES Key:
+  - dependents_count (int) Null:NO Key:
+  - dependents_info (text) Null:YES Key:
+  - half_day (enum('full','morning','afternoon')) Null:NO Key:
+  - emergency_contact_id (bigint unsigned) Null:YES Key:MUL
+  - emergency_contact_name (varchar(100)) Null:YES Key:
+  - emergency_contact_phone (varchar(50)) Null:YES Key:
+  - handover_notes (text) Null:YES Key:
+  - benefit_to_university (text) Null:YES Key:
+  - cost_coverage (enum('organizers_full','organizers_partial','sjut','private')) Null:YES Key:
+  - is_first_time_applicant (tinyint(1)) Null:NO Key:
+
+Table: leave_types
+  - id (bigint unsigned) Null:NO Key:PRI
+  - code (varchar(10)) Null:NO Key:UNI
+  - name (varchar(100)) Null:NO Key:
+  - description (text) Null:YES Key:
+  - days_allowed (int) Null:YES Key:
+  - requires_certificate (tinyint(1)) Null:NO Key:
+  - requires_letter (tinyint(1)) Null:NO Key:
+  - deduct_balance (tinyint(1)) Null:NO Key:
+  - vc_discretion (tinyint(1)) Null:NO Key:
+  - max_consecutive_days (int) Null:YES Key:
+  - is_configurable (tinyint(1)) Null:NO Key:
+  - config_fields (json) Null:YES Key:
+  - status (enum('active','inactive')) Null:NO Key:
+  - sort_order (int) Null:NO Key:
+  - created_at (timestamp) Null:YES Key:
+  - updated_at (timestamp) Null:YES Key:
+
+Table: letter_files
+  - id (bigint unsigned) Null:NO Key:PRI
+  - file_number (varchar(191)) Null:NO Key:UNI
+  - file_name (varchar(191)) Null:NO Key:
+  - reference_format_id (bigint unsigned) Null:NO Key:MUL
+  - start_serial (int) Null:NO Key:
+  - end_serial (int) Null:YES Key:
+  - current_serial (int) Null:NO Key:
+  - is_active (tinyint(1)) Null:NO Key:MUL
+  - physical_location (varchar(191)) Null:YES Key:
+  - cabinet (varchar(191)) Null:YES Key:
+  - shelf (varchar(191)) Null:YES Key:
+  - box_number (varchar(191)) Null:YES Key:
+  - opened_at (timestamp) Null:NO Key:
+  - closed_at (timestamp) Null:YES Key:
+  - created_by (bigint unsigned) Null:NO Key:MUL
+  - notes (text) Null:YES Key:
+  - created_at (timestamp) Null:YES Key:
+  - updated_at (timestamp) Null:YES Key:
+
+Table: letter_settings
+  - id (bigint unsigned) Null:NO Key:PRI
+  - university_id (bigint unsigned) Null:NO Key:MUL
+  - default_file_capacity (int) Null:NO Key:
+  - auto_create_new_file (tinyint(1)) Null:NO Key:
+  - require_approval_for_new_file (tinyint(1)) Null:NO Key:
+  - enable_qr_code (tinyint(1)) Null:NO Key:
+  - enable_secure_code (tinyint(1)) Null:NO Key:
+  - secure_code_length (int) Null:NO Key:
+  - secure_code_prefix (varchar(191)) Null:YES Key:
+  - default_footer_text (varchar(191)) Null:NO Key:
+  - default_header_bg_color (varchar(191)) Null:NO Key:
+  - created_at (timestamp) Null:YES Key:
+  - updated_at (timestamp) Null:YES Key:
+
+Table: letters
+  - id (bigint unsigned) Null:NO Key:PRI
+  - letterable_type (varchar(191)) Null:NO Key:MUL
+  - letterable_id (bigint unsigned) Null:NO Key:
+  - letter_number (varchar(191)) Null:NO Key:UNI
+  - secure_code (varchar(191)) Null:NO Key:UNI
+  - title (varchar(191)) Null:YES Key:
+  - content (longtext) Null:NO Key:
+  - auto_number_paragraphs (tinyint(1)) Null:NO Key:
+  - raw_content (text) Null:YES Key:
+  - type (varchar(191)) Null:NO Key:MUL
+  - sender_id (bigint unsigned) Null:YES Key:MUL
+  - recipient_id (bigint unsigned) Null:NO Key:MUL
+  - recipient_address (text) Null:YES Key:
+  - multiple_recipients (json) Null:YES Key:
+  - has_multiple_recipients (tinyint(1)) Null:NO Key:
+  - use_custom_recipient (tinyint(1)) Null:NO Key:
+  - recipient_name (varchar(191)) Null:YES Key:
+  - recipient_type (varchar(191)) Null:YES Key:
+  - your_ref (varchar(191)) Null:YES Key:
+  - our_ref_format_id (varchar(191)) Null:YES Key:
+  - generated_by (varchar(191)) Null:YES Key:
+  - generated_by_role (varchar(191)) Null:YES Key:
+  - signatories (json) Null:YES Key:
+  - cc_recipients (json) Null:YES Key:
+  - stage (varchar(191)) Null:NO Key:MUL
+  - is_printed (tinyint(1)) Null:NO Key:
+  - print_count (int) Null:NO Key:
+  - pdf_path (varchar(191)) Null:YES Key:
+  - pdf_size (int) Null:YES Key:
+  - verified_at (timestamp) Null:YES Key:
+  - verified_by (varchar(191)) Null:YES Key:
+  - verification_ip (varchar(45)) Null:YES Key:
+  - file_number (varchar(191)) Null:YES Key:
+  - physical_location (varchar(191)) Null:YES Key:
+  - metadata (json) Null:YES Key:
+  - created_at (timestamp) Null:YES Key:
+  - updated_at (timestamp) Null:YES Key:
+  - hod_approved_at (timestamp) Null:YES Key:
+  - hod_approved_by (bigint unsigned) Null:YES Key:
+  - hod_ip_address (varchar(191)) Null:YES Key:
+  - hod_user_agent (varchar(191)) Null:YES Key:
+  - dean_approved_at (timestamp) Null:YES Key:
+  - dean_approved_by (bigint unsigned) Null:YES Key:
+  - dean_ip_address (varchar(191)) Null:YES Key:
+  - dean_user_agent (varchar(191)) Null:YES Key:
+  - dvc_approved_at (timestamp) Null:YES Key:
+  - dvc_approved_by (bigint unsigned) Null:YES Key:
+  - dvc_ip_address (varchar(191)) Null:YES Key:
+  - dvc_user_agent (varchar(191)) Null:YES Key:
+  - vc_signed_at (timestamp) Null:YES Key:
+  - vc_signed_by (bigint unsigned) Null:YES Key:
+  - vc_ip_address (varchar(191)) Null:YES Key:
+  - vc_user_agent (varchar(191)) Null:YES Key:
+  - document_hash (varchar(191)) Null:YES Key:
+  - is_revoked (tinyint(1)) Null:NO Key:
+  - revoked_at (timestamp) Null:YES Key:
+  - revoked_by (varchar(191)) Null:YES Key:
+  - revoked_reason (varchar(191)) Null:YES Key:
+  - approval_comments (json) Null:YES Key:
+
+Table: message_access_requests
+  - id (bigint unsigned) Null:NO Key:PRI
+  - message_id (bigint unsigned) Null:NO Key:MUL
+  - requested_by (bigint unsigned) Null:NO Key:MUL
+  - approved_by (bigint unsigned) Null:YES Key:MUL
+  - reason (text) Null:NO Key:
+  - status (varchar(191)) Null:NO Key:
+  - one_time_code (varchar(191)) Null:YES Key:
+  - code_expires_at (timestamp) Null:YES Key:
+  - viewed_at (timestamp) Null:YES Key:
+  - rejection_reason (text) Null:YES Key:
+  - created_at (timestamp) Null:YES Key:
+  - updated_at (timestamp) Null:YES Key:
+
+Table: message_actions
+  - id (bigint unsigned) Null:NO Key:PRI
+  - message_id (bigint unsigned) Null:NO Key:MUL
+  - user_id (bigint unsigned) Null:NO Key:MUL
+  - action (varchar(191)) Null:NO Key:
+  - notes (text) Null:YES Key:
+  - created_at (timestamp) Null:YES Key:
+  - updated_at (timestamp) Null:YES Key:
+
+Table: message_attachments
+  - id (bigint unsigned) Null:NO Key:PRI
+  - message_id (bigint unsigned) Null:NO Key:MUL
+  - file_name (varchar(191)) Null:NO Key:
+  - file_path (varchar(191)) Null:NO Key:
+  - file_size (int) Null:NO Key:
+  - mime_type (varchar(191)) Null:NO Key:
+  - disk (varchar(191)) Null:NO Key:
+  - created_at (timestamp) Null:YES Key:
+  - updated_at (timestamp) Null:YES Key:
+
+Table: message_audit_logs
+  - id (bigint unsigned) Null:NO Key:PRI
+  - message_id (bigint unsigned) Null:NO Key:MUL
+  - user_id (bigint unsigned) Null:NO Key:MUL
+  - action (varchar(191)) Null:NO Key:
+  - access_method (varchar(191)) Null:YES Key:
+  - one_time_code_used (varchar(191)) Null:YES Key:
+  - ip_address (varchar(45)) Null:YES Key:
+  - user_agent (varchar(191)) Null:YES Key:
+  - created_at (timestamp) Null:YES Key:
+  - updated_at (timestamp) Null:YES Key:
+
+Table: message_conversations
+  - id (bigint unsigned) Null:NO Key:PRI
+  - conversation_number (varchar(191)) Null:YES Key:MUL
+  - leave_request_id (bigint unsigned) Null:YES Key:MUL
+  - initiator_id (bigint unsigned) Null:NO Key:MUL
+  - participant_ids (json) Null:NO Key:
+  - subject (varchar(191)) Null:YES Key:
+  - last_message_at (timestamp) Null:YES Key:
+  - is_active (tinyint(1)) Null:NO Key:MUL
+  - status (enum('active','archived','closed')) Null:NO Key:MUL
+  - created_at (timestamp) Null:YES Key:
+  - updated_at (timestamp) Null:YES Key:
+  - closed_by (bigint unsigned) Null:YES Key:MUL
+  - closed_at (timestamp) Null:YES Key:
+
+Table: message_templates
+  - id (bigint unsigned) Null:NO Key:PRI
+  - name (varchar(191)) Null:NO Key:
+  - slug (varchar(191)) Null:NO Key:UNI
+  - subject_template (varchar(191)) Null:NO Key:
+  - body_template (longtext) Null:NO Key:
+  - category (varchar(191)) Null:NO Key:MUL
+  - placeholders (json) Null:YES Key:
+  - is_active (tinyint(1)) Null:NO Key:
+  - created_at (timestamp) Null:YES Key:
+  - updated_at (timestamp) Null:YES Key:
+
+Table: messages
+  - id (bigint unsigned) Null:NO Key:PRI
+  - message_number (varchar(191)) Null:YES Key:MUL
+  - subject (varchar(191)) Null:YES Key:
+  - conversation_id (bigint unsigned) Null:YES Key:MUL
+  - sender_id (bigint unsigned) Null:NO Key:MUL
+  - receiver_id (bigint unsigned) Null:YES Key:MUL
+  - recipient_ids (json) Null:NO Key:
+  - message (text) Null:NO Key:
+  - message_type (enum('general','minute','approval','task','escalation','notification')) Null:NO Key:
+  - priority (enum('low','normal','high','urgent')) Null:NO Key:
+  - status (enum('draft','sent','delivered','read','replied','actioned')) Null:NO Key:
+  - sent_at (timestamp) Null:YES Key:
+  - is_read (tinyint(1)) Null:NO Key:
+  - is_archived (tinyint(1)) Null:NO Key:
+  - is_starred (tinyint(1)) Null:NO Key:
+  - read_at (timestamp) Null:YES Key:
+  - delivered_at (timestamp) Null:YES Key:
+  - replied_at (timestamp) Null:YES Key:
+  - deadline (timestamp) Null:YES Key:
+  - attachments (json) Null:YES Key:
+  - created_at (timestamp) Null:YES Key:
+  - updated_at (timestamp) Null:YES Key:
+  - parent_message_id (bigint unsigned) Null:YES Key:MUL
+  - leave_request_id (bigint unsigned) Null:YES Key:MUL
+  - related_incoming_mail_id (bigint unsigned) Null:YES Key:
+  - related_outgoing_mail_id (bigint unsigned) Null:YES Key:
+  - related_file_id (bigint unsigned) Null:YES Key:
+  - deleted_at (timestamp) Null:YES Key:
+
+Table: migrations
+  - id (int unsigned) Null:NO Key:PRI
+  - migration (varchar(191)) Null:NO Key:
+  - batch (int) Null:NO Key:
+
+Table: model_has_permissions
+  - permission_id (bigint unsigned) Null:NO Key:PRI
+  - model_type (varchar(191)) Null:NO Key:PRI
+  - model_id (bigint unsigned) Null:NO Key:PRI
+
+Table: model_has_roles
+  - role_id (bigint unsigned) Null:NO Key:PRI
+  - model_type (varchar(191)) Null:NO Key:PRI
+  - model_id (bigint unsigned) Null:NO Key:PRI
+
+Table: notification_preferences
+  - id (bigint unsigned) Null:NO Key:PRI
+  - user_id (bigint unsigned) Null:NO Key:UNI
+  - email_notifications (tinyint(1)) Null:NO Key:
+  - in_app_notifications (tinyint(1)) Null:NO Key:
+  - acting_requests (tinyint(1)) Null:NO Key:
+  - approvals_pending (tinyint(1)) Null:NO Key:
+  - approval_updates (tinyint(1)) Null:NO Key:
+  - document_notifications (tinyint(1)) Null:NO Key:
+  - reminder_notifications (tinyint(1)) Null:NO Key:
+  - created_at (timestamp) Null:YES Key:
+  - updated_at (timestamp) Null:YES Key:
+
+Table: notifications
+  - id (bigint unsigned) Null:NO Key:PRI
+  - user_id (bigint unsigned) Null:NO Key:MUL
+  - type (enum('acting_request','approval_pending','approval_pending_urgent','approval_granted','approval_complete','approval_rejected','hold_accepted','hold_declined','leave_cancelled','document_uploaded','leave_approved_final','balance_updated','reminder','letter_pending_approval','letter_pending_signature','letter_approved','letter_signed','letter_rejected','letter_progress_update','letter_completed')) Null:NO Key:
+  - title (varchar(255)) Null:NO Key:
+  - message (text) Null:NO Key:
+  - data (json) Null:YES Key:
+  - action_url (varchar(255)) Null:YES Key:
+  - action_text (varchar(100)) Null:YES Key:
+  - icon (varchar(50)) Null:YES Key:
+  - icon_color (varchar(30)) Null:YES Key:
+  - is_read (tinyint(1)) Null:NO Key:
+  - read_at (timestamp) Null:YES Key:
+  - sent_at (timestamp) Null:YES Key:
+  - sent_via (varchar(100)) Null:YES Key:
+  - priority (enum('low','medium','high','urgent')) Null:NO Key:
+  - created_at (timestamp) Null:YES Key:
+  - updated_at (timestamp) Null:YES Key:
+
+Table: official_documents
+  - id (bigint unsigned) Null:NO Key:PRI
+  - document_number (varchar(191)) Null:NO Key:UNI
+  - type (varchar(191)) Null:NO Key:MUL
+  - related_type (varchar(191)) Null:NO Key:MUL
+  - related_id (bigint unsigned) Null:NO Key:
+  - generated_by (bigint unsigned) Null:NO Key:MUL
+  - file_path (varchar(191)) Null:NO Key:
+  - qr_code_path (varchar(191)) Null:YES Key:
+  - qr_code_data (text) Null:YES Key:
+  - digital_signature_path (varchar(191)) Null:YES Key:
+  - is_signed (tinyint(1)) Null:NO Key:
+  - signed_at (timestamp) Null:YES Key:
+  - signed_by (varchar(191)) Null:YES Key:
+  - verification_url (text) Null:YES Key:
+  - status (varchar(191)) Null:NO Key:
+  - created_at (timestamp) Null:YES Key:
+  - updated_at (timestamp) Null:YES Key:
+
+Table: password_reset_tokens
+  - email (varchar(191)) Null:NO Key:PRI
+  - token (varchar(191)) Null:NO Key:
+  - created_at (timestamp) Null:YES Key:
+
+Table: permission_requests
+  - id (bigint unsigned) Null:NO Key:PRI
+  - staff_id (bigint unsigned) Null:NO Key:MUL
+  - permission_type (enum('late_arrival','early_departure','short_leave','official_duty','personal','other')) Null:NO Key:MUL
+  - date (date) Null:YES Key:
+  - start_time (datetime) Null:NO Key:MUL
+  - end_time (datetime) Null:NO Key:
+  - hours (int) Null:YES Key:
+  - reason (text) Null:YES Key:
+  - hod_status (enum('pending','approved','rejected')) Null:NO Key:
+  - hr_status (enum('pending','approved','rejected')) Null:NO Key:
+  - hod_comment (text) Null:YES Key:
+  - hod_acted_at (timestamp) Null:YES Key:
+  - hr_acted_at (timestamp) Null:YES Key:
+  - hr_comment (text) Null:YES Key:
+  - duration_hours (decimal(5,2)) Null:NO Key:
+  - destination_address (text) Null:YES Key:
+  - distance_km (decimal(10,2)) Null:YES Key:
+  - purpose (text) Null:NO Key:
+  - status (enum('pending','approved','rejected','cancelled')) Null:NO Key:MUL
+  - rejection_reason (varchar(191)) Null:YES Key:
+  - created_at (timestamp) Null:YES Key:
+  - updated_at (timestamp) Null:YES Key:
+  - hod_id (bigint unsigned) Null:YES Key:MUL
+  - hr_id (bigint unsigned) Null:YES Key:MUL
+
+Table: permissions
+  - id (bigint unsigned) Null:NO Key:PRI
+  - name (varchar(125)) Null:NO Key:MUL
+  - guard_name (varchar(125)) Null:NO Key:
+  - created_at (timestamp) Null:YES Key:
+  - updated_at (timestamp) Null:YES Key:
+
+Table: personal_access_tokens
+  - id (bigint unsigned) Null:NO Key:PRI
+  - tokenable_type (varchar(191)) Null:NO Key:MUL
+  - tokenable_id (bigint unsigned) Null:NO Key:
+  - name (text) Null:NO Key:
+  - token (varchar(64)) Null:NO Key:UNI
+  - abilities (text) Null:YES Key:
+  - last_used_at (timestamp) Null:YES Key:
+  - expires_at (timestamp) Null:YES Key:MUL
+  - created_at (timestamp) Null:YES Key:
+  - updated_at (timestamp) Null:YES Key:
+
+Table: reference_formats
+  - id (bigint unsigned) Null:NO Key:PRI
+  - name (varchar(191)) Null:NO Key:
+  - university_id (bigint unsigned) Null:NO Key:MUL
+  - entity_type (varchar(191)) Null:YES Key:MUL
+  - entity_id (bigint unsigned) Null:YES Key:
+  - document_type (varchar(191)) Null:NO Key:MUL
+  - action_type (varchar(191)) Null:YES Key:
+  - format_pattern (varchar(191)) Null:NO Key:
+  - separator (varchar(191)) Null:NO Key:
+  - serial_length (int) Null:NO Key:
+  - serial_start (int) Null:NO Key:
+  - current_serial (int) Null:NO Key:
+  - file_capacity (int) Null:NO Key:
+  - file_naming_pattern (varchar(191)) Null:NO Key:
+  - auto_create_new_file (tinyint(1)) Null:NO Key:
+  - track_physical_location (tinyint(1)) Null:NO Key:
+  - is_active (tinyint(1)) Null:NO Key:
+  - created_at (timestamp) Null:YES Key:
+  - updated_at (timestamp) Null:YES Key:
+
+Table: report_definitions
+  - id (bigint unsigned) Null:NO Key:PRI
+  - name (varchar(191)) Null:NO Key:
+  - display_name (varchar(191)) Null:NO Key:
+  - description (text) Null:YES Key:
+  - filters (json) Null:YES Key:
+  - columns (json) Null:YES Key:
+  - chart_config (json) Null:YES Key:
+  - permission (varchar(191)) Null:NO Key:
+  - is_active (tinyint(1)) Null:NO Key:
+  - sort_order (int) Null:NO Key:
+  - created_at (timestamp) Null:YES Key:
+  - updated_at (timestamp) Null:YES Key:
+
+Table: report_logs
+  - id (bigint unsigned) Null:NO Key:PRI
+  - verification_code (varchar(8)) Null:YES Key:UNI
+  - user_id (bigint unsigned) Null:NO Key:MUL
+  - report_definition_id (bigint unsigned) Null:NO Key:MUL
+  - format (varchar(191)) Null:NO Key:
+  - filters_applied (json) Null:YES Key:
+  - file_path (varchar(191)) Null:YES Key:
+  - verified_at (timestamp) Null:YES Key:
+  - qr_code (varchar(191)) Null:YES Key:
+  - created_at (timestamp) Null:YES Key:
+  - updated_at (timestamp) Null:YES Key:
+
+Table: role_has_permissions
+  - permission_id (bigint unsigned) Null:NO Key:PRI
+  - role_id (bigint unsigned) Null:NO Key:PRI
+
+Table: roles
+  - id (bigint unsigned) Null:NO Key:PRI
+  - name (varchar(125)) Null:NO Key:MUL
+  - guard_name (varchar(125)) Null:NO Key:
+  - created_at (timestamp) Null:YES Key:
+  - updated_at (timestamp) Null:YES Key:
+
+Table: schools
+  - id (bigint unsigned) Null:NO Key:PRI
+  - tenant_id (bigint unsigned) Null:YES Key:MUL
+  - campus_id (bigint unsigned) Null:NO Key:MUL
+  - name (varchar(255)) Null:NO Key:
+  - code (varchar(50)) Null:NO Key:
+  - dean_staff_id (bigint unsigned) Null:YES Key:MUL
+  - description (text) Null:YES Key:
+  - status (enum('active','inactive')) Null:NO Key:MUL
+  - created_at (timestamp) Null:YES Key:
+  - updated_at (timestamp) Null:YES Key:
+
+Table: sessions
+  - id (varchar(191)) Null:NO Key:PRI
+  - user_id (bigint unsigned) Null:YES Key:MUL
+  - ip_address (varchar(45)) Null:YES Key:
+  - user_agent (text) Null:YES Key:
+  - payload (longtext) Null:NO Key:
+  - last_activity (int) Null:NO Key:MUL
+
+Table: settings
+  - id (bigint unsigned) Null:NO Key:PRI
+  - key (varchar(191)) Null:NO Key:
+  - value (text) Null:YES Key:
+  - type (varchar(191)) Null:NO Key:
+  - group (varchar(191)) Null:NO Key:
+  - label (varchar(191)) Null:YES Key:
+  - description (text) Null:YES Key:
+  - options (json) Null:YES Key:
+  - role (varchar(191)) Null:YES Key:
+  - user_id (bigint unsigned) Null:YES Key:MUL
+  - sort_order (int) Null:NO Key:
+  - is_encrypted (tinyint(1)) Null:NO Key:
+  - created_at (timestamp) Null:YES Key:
+  - updated_at (timestamp) Null:YES Key:
+
+Table: staff
+  - id (bigint unsigned) Null:NO Key:PRI
+  - tenant_id (bigint unsigned) Null:YES Key:MUL
+  - staff_id (varchar(50)) Null:NO Key:UNI
+  - title (varchar(20)) Null:YES Key:
+  - gender (enum('male','female','other')) Null:YES Key:
+  - date_of_birth (date) Null:YES Key:
+  - national_id (varchar(50)) Null:YES Key:
+  - first_name (varchar(100)) Null:NO Key:
+  - middle_name (varchar(100)) Null:YES Key:
+  - last_name (varchar(100)) Null:NO Key:
+  - university_id (bigint unsigned) Null:NO Key:MUL
+  - campus_id (bigint unsigned) Null:NO Key:MUL
+  - school_id (bigint unsigned) Null:YES Key:MUL
+  - department_id (bigint unsigned) Null:NO Key:MUL
+  - reporting_to (bigint unsigned) Null:YES Key:MUL
+  - email (varchar(191)) Null:NO Key:UNI
+  - password (varchar(191)) Null:NO Key:
+  - signature_pin (varchar(191)) Null:YES Key:
+  - staff_category (enum('academic','administrative','supporting')) Null:NO Key:MUL
+  - job_title (varchar(191)) Null:YES Key:
+  - job_grade (varchar(50)) Null:YES Key:
+  - basic_salary (decimal(15,2)) Null:YES Key:
+  - tin_number (varchar(50)) Null:YES Key:
+  - nssf_number (varchar(50)) Null:YES Key:
+  - qualification (varchar(191)) Null:YES Key:
+  - marital_status (enum('single','married','divorced','widowed')) Null:YES Key:
+  - spouse_name (varchar(100)) Null:YES Key:
+  - joining_date (date) Null:NO Key:
+  - contract_type (enum('permanent','contract','temporary','probation')) Null:YES Key:
+  - contract_start_date (date) Null:YES Key:
+  - contract_end_date (date) Null:YES Key:
+  - confirmation_date (date) Null:YES Key:
+  - phone (varchar(50)) Null:YES Key:
+  - status (enum('active','inactive','suspended')) Null:NO Key:MUL
+  - employment_status (enum('active','on_leave','suspended','terminated','retired')) Null:NO Key:
+  - resignation_date (date) Null:YES Key:
+  - resignation_reason (text) Null:YES Key:
+  - password_change_required (tinyint(1)) Null:NO Key:
+  - current_role (varchar(50)) Null:YES Key:
+  - last_login_at (timestamp) Null:YES Key:
+  - last_login_ip (varchar(45)) Null:YES Key:
+  - avatar (varchar(255)) Null:YES Key:
+  - remember_token (varchar(100)) Null:YES Key:
+  - created_at (timestamp) Null:YES Key:
+  - updated_at (timestamp) Null:YES Key:
+
+Table: staff_addresses
+  - id (bigint unsigned) Null:NO Key:PRI
+  - staff_id (bigint unsigned) Null:NO Key:MUL
+  - address_type (enum('permanent','current','postal','emergency')) Null:NO Key:
+  - street (varchar(255)) Null:YES Key:
+  - city (varchar(100)) Null:YES Key:
+  - state (varchar(100)) Null:YES Key:
+  - postal_code (varchar(20)) Null:YES Key:
+  - country (varchar(100)) Null:NO Key:
+  - is_primary (tinyint(1)) Null:NO Key:
+  - created_at (timestamp) Null:YES Key:
+  - updated_at (timestamp) Null:YES Key:
+
+Table: staff_awards
+  - id (bigint unsigned) Null:NO Key:PRI
+  - staff_id (bigint unsigned) Null:NO Key:MUL
+  - award_name (varchar(255)) Null:NO Key:
+  - awarding_body (varchar(255)) Null:YES Key:
+  - award_date (date) Null:YES Key:
+  - award_level (enum('international','national','institutional','departmental')) Null:YES Key:
+  - description (text) Null:YES Key:
+  - certificate_file (varchar(500)) Null:YES Key:
+  - created_at (timestamp) Null:YES Key:
+  - updated_at (timestamp) Null:YES Key:
+
+Table: staff_bank_details
+  - id (bigint unsigned) Null:NO Key:PRI
+  - staff_id (bigint unsigned) Null:NO Key:MUL
+  - bank_name (varchar(100)) Null:NO Key:
+  - account_name (varchar(100)) Null:NO Key:
+  - account_number (varchar(50)) Null:NO Key:
+  - branch (varchar(100)) Null:YES Key:
+  - swift_code (varchar(20)) Null:YES Key:
+  - tin_number (varchar(50)) Null:YES Key:
+  - status (enum('active','inactive')) Null:NO Key:
+  - created_at (timestamp) Null:YES Key:
+  - updated_at (timestamp) Null:YES Key:
+
+Table: staff_certifications
+  - id (bigint unsigned) Null:NO Key:PRI
+  - staff_id (bigint unsigned) Null:NO Key:MUL
+  - certification_name (varchar(255)) Null:NO Key:
+  - issuing_body (varchar(255)) Null:YES Key:
+  - certification_number (varchar(100)) Null:YES Key:
+  - issue_date (date) Null:YES Key:
+  - expiry_date (date) Null:YES Key:
+  - is_renewable (tinyint(1)) Null:NO Key:
+  - certificate_file (varchar(500)) Null:YES Key:
+  - created_at (timestamp) Null:YES Key:
+  - updated_at (timestamp) Null:YES Key:
+
+Table: staff_contracts
+  - id (bigint unsigned) Null:NO Key:PRI
+  - staff_id (bigint unsigned) Null:NO Key:MUL
+  - contract_number (varchar(100)) Null:YES Key:
+  - contract_type (enum('permanent','fixed_term','temporary','probation','consultant')) Null:YES Key:
+  - start_date (date) Null:NO Key:
+  - end_date (date) Null:YES Key:
+  - salary (decimal(15,2)) Null:YES Key:
+  - salary_currency (varchar(3)) Null:NO Key:
+  - file_path (varchar(500)) Null:YES Key:
+  - signed_by (bigint unsigned) Null:YES Key:MUL
+  - is_current (tinyint(1)) Null:NO Key:
+  - remarks (text) Null:YES Key:
+  - created_at (timestamp) Null:YES Key:
+  - updated_at (timestamp) Null:YES Key:
+
+Table: staff_emails
+  - id (bigint unsigned) Null:NO Key:PRI
+  - staff_id (bigint unsigned) Null:NO Key:MUL
+  - email (varchar(255)) Null:NO Key:
+  - email_type (enum('work','personal','alternative')) Null:NO Key:
+  - is_primary (tinyint(1)) Null:NO Key:
+  - created_at (timestamp) Null:YES Key:
+  - updated_at (timestamp) Null:YES Key:
+
+Table: staff_emergency_contacts
+  - id (bigint unsigned) Null:NO Key:PRI
+  - staff_id (bigint unsigned) Null:NO Key:MUL
+  - full_name (varchar(100)) Null:NO Key:
+  - relationship (varchar(50)) Null:NO Key:
+  - phone_primary (varchar(50)) Null:NO Key:
+  - phone_secondary (varchar(50)) Null:YES Key:
+  - email (varchar(100)) Null:YES Key:
+  - address (varchar(255)) Null:YES Key:
+  - priority (int) Null:NO Key:
+  - created_at (timestamp) Null:YES Key:
+  - updated_at (timestamp) Null:YES Key:
+
+Table: staff_languages
+  - id (bigint unsigned) Null:NO Key:PRI
+  - staff_id (bigint unsigned) Null:NO Key:MUL
+  - language_name (varchar(100)) Null:NO Key:
+  - proficiency_read (enum('none','basic','intermediate','fluent','native')) Null:NO Key:
+  - proficiency_write (enum('none','basic','intermediate','fluent','native')) Null:NO Key:
+  - proficiency_speak (enum('none','basic','intermediate','fluent','native')) Null:NO Key:
+  - is_working_language (tinyint(1)) Null:NO Key:
+  - created_at (timestamp) Null:YES Key:
+  - updated_at (timestamp) Null:YES Key:
+
+Table: staff_memberships
+  - id (bigint unsigned) Null:NO Key:PRI
+  - staff_id (bigint unsigned) Null:NO Key:MUL
+  - organization_name (varchar(255)) Null:NO Key:
+  - membership_number (varchar(100)) Null:YES Key:
+  - membership_type (enum('fellow','senior','full','associate','student')) Null:YES Key:
+  - valid_from (date) Null:YES Key:
+  - valid_to (date) Null:YES Key:
+  - is_active (tinyint(1)) Null:NO Key:
+  - certificate_file (varchar(500)) Null:YES Key:
+  - created_at (timestamp) Null:YES Key:
+  - updated_at (timestamp) Null:YES Key:
+
+Table: staff_phones
+  - id (bigint unsigned) Null:NO Key:PRI
+  - staff_id (bigint unsigned) Null:NO Key:MUL
+  - phone_number (varchar(20)) Null:NO Key:
+  - phone_type (enum('mobile','work','home','alternative','emergency')) Null:NO Key:
+  - is_primary (tinyint(1)) Null:NO Key:
+  - created_at (timestamp) Null:YES Key:
+  - updated_at (timestamp) Null:YES Key:
+
+Table: staff_publications
+  - id (bigint unsigned) Null:NO Key:PRI
+  - staff_id (bigint unsigned) Null:NO Key:MUL
+  - publication_title (varchar(500)) Null:NO Key:
+  - publication_type (enum('journal','conference','book','book_chapter','technical_report','thesis')) Null:NO Key:
+  - journal_name (varchar(255)) Null:YES Key:
+  - publisher (varchar(255)) Null:YES Key:
+  - publication_year (year) Null:YES Key:
+  - doi (varchar(100)) Null:YES Key:
+  - url (varchar(500)) Null:YES Key:
+  - is_peer_reviewed (tinyint(1)) Null:NO Key:
+  - authors (json) Null:YES Key:
+  - citations_count (int) Null:NO Key:
+  - file_path (varchar(500)) Null:YES Key:
+  - created_at (timestamp) Null:YES Key:
+  - updated_at (timestamp) Null:YES Key:
+
+Table: staff_qualifications
+  - id (bigint unsigned) Null:NO Key:PRI
+  - staff_id (bigint unsigned) Null:NO Key:MUL
+  - qualification_name (varchar(255)) Null:NO Key:
+  - institution (varchar(255)) Null:YES Key:
+  - country (varchar(100)) Null:YES Key:
+  - year_obtained (year) Null:YES Key:
+  - grade (varchar(50)) Null:YES Key:
+  - qualification_type (enum('phd','masters','bachelors','diploma','certificate','professional')) Null:YES Key:
+  - is_highest (tinyint(1)) Null:NO Key:
+  - certificate_file (varchar(500)) Null:YES Key:
+  - verification_status (enum('pending','verified','rejected')) Null:NO Key:
+  - verified_by (bigint unsigned) Null:YES Key:MUL
+  - verified_at (timestamp) Null:YES Key:
+  - created_at (timestamp) Null:YES Key:
+  - updated_at (timestamp) Null:YES Key:
+
+Table: staff_referees
+  - id (bigint unsigned) Null:NO Key:PRI
+  - staff_id (bigint unsigned) Null:NO Key:MUL
+  - referee_name (varchar(255)) Null:NO Key:
+  - referee_title (varchar(100)) Null:YES Key:
+  - referee_organization (varchar(255)) Null:YES Key:
+  - referee_email (varchar(255)) Null:YES Key:
+  - referee_phone (varchar(20)) Null:YES Key:
+  - relationship (varchar(100)) Null:YES Key:
+  - years_known (int) Null:YES Key:
+  - is_contact_allowed (tinyint(1)) Null:NO Key:
+  - created_at (timestamp) Null:YES Key:
+  - updated_at (timestamp) Null:YES Key:
+
+Table: staff_skills
+  - id (bigint unsigned) Null:NO Key:PRI
+  - staff_id (bigint unsigned) Null:NO Key:MUL
+  - skill_name (varchar(255)) Null:NO Key:
+  - skill_category (enum('technical','soft','artistic','sports','language','other')) Null:YES Key:
+  - proficiency_level (enum('beginner','intermediate','advanced','expert')) Null:NO Key:
+  - years_of_experience (int) Null:NO Key:
+  - description (text) Null:YES Key:
+  - is_verified (tinyint(1)) Null:NO Key:
+  - created_at (timestamp) Null:YES Key:
+  - updated_at (timestamp) Null:YES Key:
+
+Table: staff_trainings
+  - id (bigint unsigned) Null:NO Key:PRI
+  - staff_id (bigint unsigned) Null:NO Key:MUL
+  - training_title (varchar(255)) Null:NO Key:
+  - training_provider (varchar(255)) Null:YES Key:
+  - training_type (enum('internal','external','online','international')) Null:YES Key:
+  - start_date (date) Null:YES Key:
+  - end_date (date) Null:YES Key:
+  - duration_days (int) Null:YES Key:
+  - certificate_file (varchar(500)) Null:YES Key:
+  - created_at (timestamp) Null:YES Key:
+  - updated_at (timestamp) Null:YES Key:
+
+Table: staff_work_experience
+  - id (bigint unsigned) Null:NO Key:PRI
+  - staff_id (bigint unsigned) Null:NO Key:MUL
+  - employer_name (varchar(255)) Null:NO Key:
+  - job_title (varchar(255)) Null:YES Key:
+  - start_date (date) Null:NO Key:
+  - end_date (date) Null:YES Key:
+  - is_current (tinyint(1)) Null:NO Key:
+  - responsibilities (text) Null:YES Key:
+  - reason_for_leaving (text) Null:YES Key:
+  - supervisor_name (varchar(255)) Null:YES Key:
+  - supervisor_contact (varchar(100)) Null:YES Key:
+  - created_at (timestamp) Null:YES Key:
+  - updated_at (timestamp) Null:YES Key:
+
+Table: template_column_mappings
+  - id (bigint unsigned) Null:NO Key:PRI
+  - excel_header (varchar(100)) Null:NO Key:UNI
+  - database_column (varchar(100)) Null:NO Key:
+  - is_required (tinyint(1)) Null:NO Key:
+  - validation_rule (varchar(255)) Null:YES Key:
+  - sort_order (int) Null:NO Key:
+  - is_active (tinyint(1)) Null:NO Key:
+  - created_at (timestamp) Null:YES Key:
+  - updated_at (timestamp) Null:YES Key:
+
+Table: tenants
+  - id (bigint unsigned) Null:NO Key:PRI
+  - name (varchar(191)) Null:NO Key:UNI
+  - domain (varchar(191)) Null:YES Key:UNI
+  - database (varchar(191)) Null:YES Key:UNI
+  - status (varchar(191)) Null:NO Key:
+  - settings (json) Null:YES Key:
+  - created_at (timestamp) Null:YES Key:
+  - updated_at (timestamp) Null:YES Key:
+
+Table: travel_permissions
+  - id (bigint unsigned) Null:NO Key:PRI
+  - staff_id (bigint unsigned) Null:NO Key:MUL
+  - acting_staff_id (bigint unsigned) Null:NO Key:MUL
+  - destination (varchar(255)) Null:NO Key:
+  - start_date (date) Null:NO Key:
+  - end_date (date) Null:NO Key:
+  - days (int) Null:NO Key:
+  - travel_reason (enum('official','personal')) Null:NO Key:
+  - official_benefit (text) Null:YES Key:
+  - personal_description (text) Null:YES Key:
+  - cost_coverage (enum('organizers_full','organizers_partial','university','private')) Null:NO Key:
+  - additional_details (text) Null:YES Key:
+  - acting_status (enum('pending','accepted','declined')) Null:NO Key:
+  - acting_responded_at (timestamp) Null:YES Key:
+  - acting_token (varchar(100)) Null:YES Key:
+  - acting_comment (text) Null:YES Key:
+  - status (enum('pending','approved','rejected')) Null:NO Key:MUL
+  - current_approval_level (varchar(191)) Null:NO Key:MUL
+  - rejection_reason (text) Null:YES Key:
+  - invitation_letter_path (varchar(191)) Null:YES Key:
+  - endorsement_path (varchar(191)) Null:YES Key:
+  - created_at (timestamp) Null:YES Key:
+  - updated_at (timestamp) Null:YES Key:
+
+Table: unified_audit_trails
+  - id (bigint unsigned) Null:NO Key:PRI
+  - auditable_type (varchar(191)) Null:NO Key:MUL
+  - auditable_id (bigint unsigned) Null:NO Key:
+  - event (varchar(191)) Null:NO Key:MUL
+  - action (varchar(191)) Null:NO Key:
+  - user_id (bigint unsigned) Null:NO Key:MUL
+  - user_role (varchar(191)) Null:YES Key:
+  - ip_address (varchar(191)) Null:YES Key:
+  - user_agent (text) Null:YES Key:
+  - old_values (json) Null:YES Key:
+  - new_values (json) Null:YES Key:
+  - metadata (json) Null:YES Key:
+  - created_at (timestamp) Null:YES Key:MUL
+  - updated_at (timestamp) Null:YES Key:
+
+Table: universities
+  - id (bigint unsigned) Null:NO Key:PRI
+  - tenant_id (bigint unsigned) Null:YES Key:MUL
+  - name (varchar(191)) Null:NO Key:
+  - uni_name_font_size (varchar(191)) Null:NO Key:
+  - uni_name_font_weight (varchar(191)) Null:NO Key:
+  - uni_name_color (varchar(191)) Null:NO Key:
+  - office_title (varchar(191)) Null:YES Key:
+  - office_title_font_size (varchar(191)) Null:NO Key:
+  - office_title_font_color (varchar(191)) Null:NO Key:
+  - office_title_font_weight (varchar(191)) Null:NO Key:
+  - code (varchar(50)) Null:NO Key:UNI
+  - gps_lat (decimal(10,8)) Null:YES Key:
+  - gps_lng (decimal(11,8)) Null:YES Key:
+  - timezone (varchar(50)) Null:NO Key:
+  - logo_path (varchar(191)) Null:YES Key:
+  - address (text) Null:YES Key:
+  - postal_box (varchar(191)) Null:YES Key:
+  - city (varchar(191)) Null:YES Key:
+  - country (varchar(191)) Null:NO Key:
+  - motto (varchar(191)) Null:YES Key:
+  - motto_font_size (varchar(191)) Null:NO Key:
+  - motto_font_color (varchar(191)) Null:NO Key:
+  - motto_font_style (varchar(191)) Null:NO Key:
+  - phone (varchar(50)) Null:YES Key:
+  - phone_secondary (varchar(191)) Null:YES Key:
+  - email (varchar(255)) Null:YES Key:
+  - email_secondary (varchar(191)) Null:YES Key:
+  - website (varchar(191)) Null:YES Key:
+  - social_media_1_name (varchar(191)) Null:YES Key:
+  - social_media_1_url (varchar(191)) Null:YES Key:
+  - social_media_2_name (varchar(191)) Null:YES Key:
+  - social_media_2_url (varchar(191)) Null:YES Key:
+  - social_media_3_name (varchar(191)) Null:YES Key:
+  - social_media_3_url (varchar(191)) Null:YES Key:
+  - status (enum('active','inactive')) Null:NO Key:MUL
+  - primary_color (varchar(191)) Null:NO Key:
+  - secondary_color (varchar(191)) Null:NO Key:
+  - header_footer_bg_color (varchar(191)) Null:NO Key:
+  - footer_text (varchar(191)) Null:YES Key:
+  - primary_line_color (varchar(191)) Null:NO Key:
+  - secondary_line_color (varchar(191)) Null:NO Key:
+  - primary_line_thickness (varchar(191)) Null:NO Key:
+  - secondary_line_thickness (varchar(191)) Null:NO Key:
+  - created_at (timestamp) Null:YES Key:
+  - updated_at (timestamp) Null:YES Key:
+
+Table: users
+  - id (bigint unsigned) Null:NO Key:PRI
+  - tenant_id (bigint unsigned) Null:YES Key:MUL
+  - name (varchar(191)) Null:NO Key:
+  - email (varchar(191)) Null:NO Key:UNI
+  - email_verified_at (timestamp) Null:YES Key:
+  - password (varchar(191)) Null:NO Key:
+  - signature_pin (varchar(191)) Null:YES Key:
+  - remember_token (varchar(100)) Null:YES Key:
+  - created_at (timestamp) Null:YES Key:
+  - updated_at (timestamp) Null:YES Key:
+
+
+=== ROUTES ===
+GET|HEAD up → Closure [Middleware: ]
+GET|HEAD / → Closure [Middleware: web]
+GET|HEAD verify → App\Http\Controllers\VerifyController@index [Middleware: web]
+GET|HEAD verify/{code} → App\Http\Controllers\VerifyController@show [Middleware: web]
+GET|HEAD verify/{code}/print → App\Http\Controllers\VerifyController@print [Middleware: web]
+GET|HEAD verify-letter/{code} → App\Http\Controllers\LetterController@verify [Middleware: web]
+GET|HEAD letters/{id}/view → App\Http\Controllers\LetterController@view [Middleware: web]
+GET|HEAD letters/{id}/print → App\Http\Controllers\LetterController@print [Middleware: web, auth]
+GET|HEAD letters/{id}/pdf → App\Http\Controllers\LetterController@downloadPdf [Middleware: web]
+GET|HEAD test-letter/{id} → Closure [Middleware: web]
+GET|HEAD login → App\Http\Controllers\AuthController@showLoginForm [Middleware: web]
+POST login → App\Http\Controllers\AuthController@login [Middleware: web]
+POST logout → App\Http\Controllers\AuthController@logout [Middleware: web]
+GET|HEAD register → Closure [Middleware: web]
+GET|HEAD dashboard → App\Http\Controllers\DashboardController@index [Middleware: web, auth]
+GET|HEAD dashboard/stats → App\Http\Controllers\DashboardController@getStats [Middleware: web, auth]
+GET|HEAD staff → App\Http\Controllers\StaffController@index [Middleware: web, auth]
+GET|HEAD staff/create → App\Http\Controllers\StaffController@create [Middleware: web, auth]
+POST staff → App\Http\Controllers\StaffController@store [Middleware: web, auth]
+GET|HEAD staff/{id} → App\Http\Controllers\StaffController@show [Middleware: web, auth]
+GET|HEAD staff/{id}/edit → App\Http\Controllers\StaffController@edit [Middleware: web, auth]
+PUT staff/{id} → App\Http\Controllers\StaffController@update [Middleware: web, auth]
+DELETE staff/{id} → App\Http\Controllers\StaffController@destroy [Middleware: web, auth]
+GET|HEAD staff/{id}/reset-password → App\Http\Controllers\StaffController@resetPassword [Middleware: web, auth]
+GET|HEAD staff/campuses/{universityId} → App\Http\Controllers\StaffController@getCampusesByUniversity [Middleware: web, auth]
+GET|HEAD staff/schools/{campusId} → App\Http\Controllers\StaffController@getSchoolsByCampus [Middleware: web, auth]
+GET|HEAD staff/departments/{schoolId} → App\Http\Controllers\StaffController@getDepartmentsBySchool [Middleware: web, auth]
+GET|HEAD leave-requests/approvals-history → App\Http\Controllers\LeaveRequestController@approvalsHistory [Middleware: web, auth]
+GET|HEAD leave-requests/my-requests → App\Http\Controllers\LeaveRequestController@myRequests [Middleware: web, auth]
+GET|HEAD leave-requests/create → App\Http\Controllers\LeaveRequestController@create [Middleware: web, auth]
+GET|HEAD leave-requests/pending → App\Http\Controllers\LeaveRequestController@pendingApprovals [Middleware: web, auth]
+GET|HEAD leave-requests/hold-position-for-me → App\Http\Controllers\LeaveRequestController@holdPositionForMe [Middleware: web, auth]
+GET|HEAD leave-requests/i-held-position-for → App\Http\Controllers\LeaveRequestController@iHeldPositionFor [Middleware: web, auth]
+GET|HEAD leave-requests/status → App\Http\Controllers\LeaveRequestController@myRequestStatus [Middleware: web, auth]
+GET|HEAD leave-requests/acting/{token} → App\Http\Controllers\LeaveRequestController@actingResponse [Middleware: web, auth]
+POST leave-requests/acting/{id}/process → App\Http\Controllers\LeaveRequestController@processActingResponse [Middleware: web, auth]
+POST leave-requests → App\Http\Controllers\LeaveRequestController@store [Middleware: web, auth]
+POST leave-requests/{id}/approve → App\Http\Controllers\LeaveRequestController@approve [Middleware: web, auth]
+POST leave-requests/{id}/reject → App\Http\Controllers\LeaveRequestController@reject [Middleware: web, auth]
+POST leave-requests/{id}/cancel → App\Http\Controllers\LeaveRequestController@cancel [Middleware: web, auth]
+GET|HEAD leave-requests/hr-logistics/{id} → App\Http\Controllers\LeaveRequestController@hrLogistics [Middleware: web, auth, role:hr-officer]
+PUT leave-requests/hr-logistics/{id}/process → App\Http\Controllers\LeaveRequestController@processHrLogistics [Middleware: web, auth, role:hr-officer]
+GET|HEAD leave-requests/hr-review/{id} → App\Http\Controllers\LeaveRequestController@hrReview [Middleware: web, auth, role:hr-officer]
+PUT leave-requests/hr-review/{id}/process → App\Http\Controllers\LeaveRequestController@processHrReview [Middleware: web, auth, role:hr-officer]
+GET|HEAD leave-requests/dvc-review/{id} → App\Http\Controllers\LeaveRequestController@dvcReview [Middleware: web, auth]
+PUT leave-requests/dvc-review/{id}/process → App\Http\Controllers\LeaveRequestController@processDvcReview [Middleware: web, auth]
+GET|HEAD leave-requests/{id} → App\Http\Controllers\LeaveRequestController@show [Middleware: web, auth]
+GET|HEAD leave-requests/{id}/letter → App\Http\Controllers\LeaveRequestController@viewLetter [Middleware: web, auth]
+GET|HEAD leave-requests/approval-details/{id} → App\Http\Controllers\LeaveRequestController@approvalDetails [Middleware: web, auth]
+GET|HEAD travel-permissions/my-requests → App\Http\Controllers\TravelPermissionController@myRequests [Middleware: web, auth]
+GET|HEAD travel-permissions/create → App\Http\Controllers\TravelPermissionController@create [Middleware: web, auth]
+POST travel-permissions → App\Http\Controllers\TravelPermissionController@store [Middleware: web, auth]
+GET|HEAD travel-permissions/{id} → App\Http\Controllers\TravelPermissionController@show [Middleware: web, auth]
+GET|HEAD travel-permissions/acting/{token} → App\Http\Controllers\TravelPermissionController@actingResponse [Middleware: web, auth]
+POST travel-permissions/acting/{id}/process → App\Http\Controllers\TravelPermissionController@processActingResponse [Middleware: web, auth]
+GET|HEAD travel-permissions/pending → App\Http\Controllers\TravelPermissionController@pendingApprovals [Middleware: web, auth]
+POST travel-permissions/{id}/approve → App\Http\Controllers\TravelPermissionController@approve [Middleware: web, auth]
+POST travel-permissions/{id}/reject → App\Http\Controllers\TravelPermissionController@reject [Middleware: web, auth]
+GET|HEAD permissions/my-requests → App\Http\Controllers\PermissionRequestController@myRequests [Middleware: web, auth]
+GET|HEAD permissions/create → App\Http\Controllers\PermissionRequestController@create [Middleware: web, auth]
+GET|HEAD permissions/pending → App\Http\Controllers\PermissionRequestController@pendingApprovals [Middleware: web, auth]
+POST permissions → App\Http\Controllers\PermissionRequestController@store [Middleware: web, auth]
+GET|HEAD permissions/{id} → App\Http\Controllers\PermissionRequestController@show [Middleware: web, auth]
+POST permissions/{id}/cancel → App\Http\Controllers\PermissionRequestController@cancel [Middleware: web, auth]
+POST permissions/hod/{id}/approve → App\Http\Controllers\PermissionRequestController@hodApprove [Middleware: web, auth]
+POST permissions/hod/{id}/reject → App\Http\Controllers\PermissionRequestController@hodReject [Middleware: web, auth]
+POST permissions/hr/{id}/approve → App\Http\Controllers\PermissionRequestController@hrApprove [Middleware: web, auth]
+POST permissions/hr/{id}/reject → App\Http\Controllers\PermissionRequestController@hrReject [Middleware: web, auth]
+GET|HEAD blackout/create → App\Http\Controllers\BlackoutController@create [Middleware: web, auth]
+POST blackout → App\Http\Controllers\BlackoutController@store [Middleware: web, auth]
+GET|HEAD blackout/check-date → App\Http\Controllers\BlackoutController@checkDate [Middleware: web, auth]
+GET|HEAD blackout → App\Http\Controllers\BlackoutController@index [Middleware: web, auth]
+GET|HEAD blackout/{id} → App\Http\Controllers\BlackoutController@show [Middleware: web, auth]
+GET|HEAD blackout/{id}/edit → App\Http\Controllers\BlackoutController@edit [Middleware: web, auth]
+PUT blackout/{id} → App\Http\Controllers\BlackoutController@update [Middleware: web, auth]
+DELETE blackout/{id} → App\Http\Controllers\BlackoutController@destroy [Middleware: web, auth]
+GET|HEAD profile → App\Http\Controllers\ProfileController@show [Middleware: web, auth]
+PUT profile → App\Http\Controllers\ProfileController@update [Middleware: web, auth]
+PUT profile/password → App\Http\Controllers\ProfileController@updatePassword [Middleware: web, auth]
+POST profile/avatar → App\Http\Controllers\ProfileController@updateAvatar [Middleware: web, auth]
+POST profile/phones → App\Http\Controllers\ProfileController@storePhone [Middleware: web, auth]
+DELETE profile/phones/{id} → App\Http\Controllers\ProfileController@destroyPhone [Middleware: web, auth]
+POST profile/emails → App\Http\Controllers\ProfileController@storeEmail [Middleware: web, auth]
+DELETE profile/emails/{id} → App\Http\Controllers\ProfileController@destroyEmail [Middleware: web, auth]
+POST profile/dependents → App\Http\Controllers\ProfileController@storeDependent [Middleware: web, auth]
+DELETE profile/dependents/{id} → App\Http\Controllers\ProfileController@destroyDependent [Middleware: web, auth]
+POST profile/addresses → App\Http\Controllers\ProfileController@storeAddress [Middleware: web, auth]
+DELETE profile/addresses/{id} → App\Http\Controllers\ProfileController@destroyAddress [Middleware: web, auth]
+PUT profile/bank → App\Http\Controllers\ProfileController@updateBankDetails [Middleware: web, auth]
+POST profile/bank-accounts → App\Http\Controllers\ProfileController@storeBankAccount [Middleware: web, auth]
+DELETE profile/bank-accounts/{id} → App\Http\Controllers\ProfileController@destroyBankAccount [Middleware: web, auth]
+GET|HEAD profile/bank-accounts/{id}/json → App\Http\Controllers\ProfileController@getBankJson [Middleware: web, auth]
+POST profile/emergency → App\Http\Controllers\ProfileController@storeEmergencyContact [Middleware: web, auth]
+DELETE profile/emergency/{id} → App\Http\Controllers\ProfileController@destroyEmergencyContact [Middleware: web, auth]
+POST profile/qualifications → App\Http\Controllers\ProfileController@storeQualification [Middleware: web, auth]
+DELETE profile/qualifications/{id} → App\Http\Controllers\ProfileController@destroyQualification [Middleware: web, auth]
+POST profile/skills → App\Http\Controllers\ProfileController@storeSkill [Middleware: web, auth]
+DELETE profile/skills/{id} → App\Http\Controllers\ProfileController@destroySkill [Middleware: web, auth]
+POST profile/languages → App\Http\Controllers\ProfileController@storeLanguage [Middleware: web, auth]
+DELETE profile/languages/{id} → App\Http\Controllers\ProfileController@destroyLanguage [Middleware: web, auth]
+POST profile/certifications → App\Http\Controllers\ProfileController@storeCertification [Middleware: web, auth]
+DELETE profile/certifications/{id} → App\Http\Controllers\ProfileController@destroyCertification [Middleware: web, auth]
+POST profile/awards → App\Http\Controllers\ProfileController@storeAward [Middleware: web, auth]
+DELETE profile/awards/{id} → App\Http\Controllers\ProfileController@destroyAward [Middleware: web, auth]
+POST profile/work-experience → App\Http\Controllers\ProfileController@storeWorkExperience [Middleware: web, auth]
+DELETE profile/work-experience/{id} → App\Http\Controllers\ProfileController@destroyWorkExperience [Middleware: web, auth]
+GET|HEAD profile/settings → App\Http\Controllers\ProfileController@settings [Middleware: web, auth]
+PUT profile/settings → App\Http\Controllers\ProfileController@updateSettings [Middleware: web, auth]
+GET|HEAD profile/notifications → App\Http\Controllers\ProfileController@notificationSettings [Middleware: web, auth]
+PUT profile/notifications → App\Http\Controllers\ProfileController@updateNotificationSettings [Middleware: web, auth]
+GET|HEAD profile/dependents/{id}/json → App\Http\Controllers\ProfileController@getDependentJson [Middleware: web, auth]
+GET|HEAD profile/addresses/{id}/json → App\Http\Controllers\ProfileController@getAddressJson [Middleware: web, auth]
+GET|HEAD profile/emergency/{id}/json → App\Http\Controllers\ProfileController@getEmergencyJson [Middleware: web, auth]
+GET|HEAD profile/qualifications/{id}/json → App\Http\Controllers\ProfileController@getQualificationJson [Middleware: web, auth]
+GET|HEAD profile/skills/{id}/json → App\Http\Controllers\ProfileController@getSkillJson [Middleware: web, auth]
+GET|HEAD profile/languages/{id}/json → App\Http\Controllers\ProfileController@getLanguageJson [Middleware: web, auth]
+GET|HEAD notifications/unread-count → App\Http\Controllers\NotificationController@unreadCount [Middleware: web, auth]
+GET|HEAD notifications/list → App\Http\Controllers\NotificationController@list [Middleware: web, auth]
+GET|HEAD notifications → App\Http\Controllers\NotificationController@index [Middleware: web, auth]
+POST notifications/{id}/read → App\Http\Controllers\NotificationController@markAsRead [Middleware: web, auth]
+POST notifications/mark-all-read → App\Http\Controllers\NotificationController@markAllAsRead [Middleware: web, auth]
+DELETE notifications/{id} → App\Http\Controllers\NotificationController@destroy [Middleware: web, auth]
+GET|HEAD approvals → Closure [Middleware: web, auth]
+GET|HEAD approvals/leave-requests → App\Http\Controllers\ApprovalController@leaveRequests [Middleware: web, auth]
+GET|HEAD approvals/permission-requests → App\Http\Controllers\ApprovalController@permissionRequests [Middleware: web, auth]
+POST approvals/bulk-approve → App\Http\Controllers\ApprovalController@bulkApprove [Middleware: web, auth]
+GET|HEAD approvals/statistics → App\Http\Controllers\ApprovalController@statistics [Middleware: web, auth]
+GET|HEAD messages/inbox → App\Http\Controllers\MessageController@inbox [Middleware: web, auth, auth]
+GET|HEAD messages/sent → App\Http\Controllers\MessageController@sent [Middleware: web, auth, auth]
+GET|HEAD messages/drafts → App\Http\Controllers\MessageController@drafts [Middleware: web, auth, auth]
+GET|HEAD messages/create → App\Http\Controllers\MessageController@create [Middleware: web, auth, auth]
+POST messages → App\Http\Controllers\MessageController@store [Middleware: web, auth, auth]
+GET|HEAD messages/admin-list → App\Http\Controllers\MessageAccessController@messageList [Middleware: web, auth, auth]
+GET|HEAD messages/access-requests → App\Http\Controllers\MessageAccessController@pendingRequests [Middleware: web, auth, auth]
+GET|HEAD messages/unread-count → App\Http\Controllers\MessageController@getUnreadCount [Middleware: web, auth, auth]
+GET|HEAD messages/users/search → App\Http\Controllers\MessageController@searchUsers [Middleware: web, auth, auth]
+GET|HEAD messages/access-requests/count → App\Http\Controllers\MessageAccessController@pendingCount [Middleware: web, auth, auth]
+GET|HEAD messages/search → App\Http\Controllers\MessageController@search [Middleware: web, auth, auth]
+POST messages/bulk-delete → App\Http\Controllers\MessageController@bulkDelete [Middleware: web, auth, auth]
+GET|HEAD messages/user/{userId} → App\Http\Controllers\MessageController@showForUser [Middleware: web, auth, auth]
+GET|HEAD messages/leave-request/{leaveRequestId} → App\Http\Controllers\MessageController@showForLeaveRequest [Middleware: web, auth, auth]
+GET|HEAD messages → App\Http\Controllers\MessageController@inbox [Middleware: web, auth, auth]
+GET|HEAD messages/{id}/metadata → App\Http\Controllers\MessageAccessController@metadata [Middleware: web, auth, auth]
+GET|HEAD messages/{id} → App\Http\Controllers\MessageController@show [Middleware: web, auth, auth]
+POST messages/{id}/reply → App\Http\Controllers\MessageController@reply [Middleware: web, auth, auth]
+DELETE messages/{id} → App\Http\Controllers\MessageController@destroy [Middleware: web, auth, auth]
+POST messages/{id}/archive → App\Http\Controllers\MessageController@archive [Middleware: web, auth, auth]
+POST messages/{id}/star → App\Http\Controllers\MessageController@toggleStar [Middleware: web, auth, auth]
+POST messages/{id}/unread → App\Http\Controllers\MessageController@markUnread [Middleware: web, auth, auth]
+POST messages/{id}/read → App\Http\Controllers\MessageController@markAsRead [Middleware: web, auth, auth]
+GET|HEAD messages/{id}/secure-content → App\Http\Controllers\MessageAccessController@secureContent [Middleware: web, auth, auth]
+GET|HEAD messages/{id}/audit-trail → App\Http\Controllers\MessageAccessController@auditTrail [Middleware: web, auth, auth]
+POST messages/{id}/restore → App\Http\Controllers\MessageAccessController@restoreMessage [Middleware: web, auth, auth]
+POST messages/{id}/request-access → App\Http\Controllers\MessageAccessController@requestAccess [Middleware: web, auth, auth]
+POST messages/{id}/view-with-code → App\Http\Controllers\MessageAccessController@viewWithCode [Middleware: web, auth, auth]
+POST messages/access-requests/{id}/approve → App\Http\Controllers\MessageAccessController@approveRequest [Middleware: web, auth, auth]
+POST messages/access-requests/{id}/reject → App\Http\Controllers\MessageAccessController@rejectRequest [Middleware: web, auth, auth]
+GET|HEAD audit-trail → App\Http\Controllers\AuditTrailController@index [Middleware: web, auth, auth]
+GET|HEAD audit-trail/export → App\Http\Controllers\AuditTrailController@export [Middleware: web, auth, auth]
+GET|HEAD audit-trail/{id} → App\Http\Controllers\AuditTrailController@show [Middleware: web, auth, auth]
+GET|HEAD reports → App\Http\Controllers\ReportController@index [Middleware: web, auth]
+GET|HEAD reports/{slug} → App\Http\Controllers\ReportController@show [Middleware: web, auth]
+GET|HEAD reports/{slug}/pdf → App\Http\Controllers\ReportController@exportPdf [Middleware: web, auth]
+GET|HEAD reports/{slug}/excel → App\Http\Controllers\ReportController@exportExcel [Middleware: web, auth]
+GET|HEAD audit-logs → App\Http\Controllers\AuditLogController@index [Middleware: web, auth]
+GET|HEAD audit-logs/export → App\Http\Controllers\AuditLogController@export [Middleware: web, auth]
+GET|HEAD audit-logs/user/{userId} → App\Http\Controllers\AuditLogController@user [Middleware: web, auth]
+GET|HEAD settings → App\Http\Controllers\SettingsController@index [Middleware: web, auth, role:admin]
+GET|HEAD settings/create → App\Http\Controllers\SettingsController@create [Middleware: web, auth, role:admin]
+POST settings → App\Http\Controllers\SettingsController@store [Middleware: web, auth, role:admin]
+GET|HEAD settings/{id} → App\Http\Controllers\SettingsController@show [Middleware: web, auth, role:admin]
+GET|HEAD settings/{id}/edit → App\Http\Controllers\SettingsController@edit [Middleware: web, auth, role:admin]
+PUT settings/{id} → App\Http\Controllers\SettingsController@update [Middleware: web, auth, role:admin]
+DELETE settings/{id} → App\Http\Controllers\SettingsController@destroy [Middleware: web, auth, role:admin]
+PUT settings/bulk-update → App\Http\Controllers\SettingsController@bulkUpdate [Middleware: web, auth, role:admin]
+GET|HEAD settings/department → App\Http\Controllers\SettingsController@departmentSettings [Middleware: web, auth, role:admin]
+PUT settings/department → App\Http\Controllers\SettingsController@updateDepartmentSettings [Middleware: web, auth, role:admin]
+GET|HEAD settings/approvals → App\Http\Controllers\SettingsController@approvalSettings [Middleware: web, auth, role:admin]
+PUT settings/approvals → App\Http\Controllers\SettingsController@updateApprovalSettings [Middleware: web, auth, role:admin]
+GET|HEAD settings/faculty → App\Http\Controllers\SettingsController@facultySettings [Middleware: web, auth, role:admin]
+PUT settings/faculty → App\Http\Controllers\SettingsController@updateFacultySettings [Middleware: web, auth, role:admin]
+GET|HEAD settings/deputy → App\Http\Controllers\SettingsController@deputySettings [Middleware: web, auth, role:admin]
+PUT settings/deputy → App\Http\Controllers\SettingsController@updateDeputySettings [Middleware: web, auth, role:admin]
+GET|HEAD settings/secretary → App\Http\Controllers\SettingsController@secretarySettings [Middleware: web, auth, role:admin]
+PUT settings/secretary → App\Http\Controllers\SettingsController@updateSecretarySettings [Middleware: web, auth, role:admin]
+GET|HEAD settings/hr → App\Http\Controllers\HrSettingsController@index [Middleware: web, auth, role:hr-officer|admin]
+PUT settings/hr → App\Http\Controllers\HrSettingsController@update [Middleware: web, auth, role:hr-officer|admin]
+GET|HEAD settings/policies → App\Http\Controllers\HrSettingsController@policies [Middleware: web, auth, role:hr-officer|admin]
+POST backup/create → App\Http\Controllers\BackupController@create [Middleware: web, auth]
+GET|HEAD backup/download/{filename} → App\Http\Controllers\BackupController@download [Middleware: web, auth]
+DELETE backup/delete/{filename} → App\Http\Controllers\BackupController@delete [Middleware: web, auth]
+GET|HEAD backup/restore/{filename} → App\Http\Controllers\BackupController@restore [Middleware: web, auth]
+GET|HEAD admin-api/dashboard/stats → App\Http\Controllers\AdminDashboardController@getStats [Middleware: web, auth]
+GET|HEAD vc/dashboard → App\Http\Controllers\VcDashboardController@index [Middleware: web, auth, role:vice-chancellor]
+GET|HEAD vc/reports/monthly → App\Http\Controllers\VcDashboardController@exportMonthlyReport [Middleware: web, auth, role:vice-chancellor]
+GET|HEAD vc/reports/excel → App\Http\Controllers\VcDashboardController@exportExcel [Middleware: web, auth, role:vice-chancellor]
+GET|HEAD vc/reports/pdf → App\Http\Controllers\VcDashboardController@exportPdf [Middleware: web, auth, role:vice-chancellor]
+GET|HEAD auditor/settings → App\Http\Controllers\SettingsController@auditorSettings [Middleware: web, auth, role:internal-auditor]
+PUT auditor/settings → App\Http\Controllers\SettingsController@updateAuditorSettings [Middleware: web, auth, role:internal-auditor]
+GET|HEAD admin/import/staff → App\Http\Controllers\Admin\ImportController@index [Middleware: web, auth, role:admin]
+POST admin/import/staff/upload → App\Http\Controllers\Admin\ImportController@upload [Middleware: web, auth, role:admin]
+GET|HEAD admin/import/staff/template → App\Http\Controllers\Admin\ImportController@downloadTemplate [Middleware: web, auth, role:admin]
+GET|HEAD admin/import/progress/{id} → App\Http\Controllers\Admin\ImportController@progress [Middleware: web, auth, role:admin]
+GET|HEAD admin/import/download-error/{id} → App\Http\Controllers\Admin\ImportController@downloadErrorReport [Middleware: web, auth, role:admin]
+GET|HEAD admin/import/campuses/{universityId} → App\Http\Controllers\Admin\ImportController@getCampuses [Middleware: web, auth, role:admin]
+GET|HEAD admin/import/schools/{campusId} → App\Http\Controllers\Admin\ImportController@getSchools [Middleware: web, auth, role:admin]
+GET|HEAD admin/import/departments/{campusId} → App\Http\Controllers\Admin\ImportController@getDepartments [Middleware: web, auth, role:admin]
+GET|HEAD admin/import/departments-by-school/{schoolId} → App\Http\Controllers\Admin\ImportController@getDepartmentsBySchool [Middleware: web, auth, role:admin]
+GET|HEAD admin/import/universities → Closure [Middleware: web, auth, role:admin]
+GET|HEAD admin/import/quarterly-report → App\Http\Controllers\Admin\ImportController@quarterlyReport [Middleware: web, auth, role:admin]
+GET|HEAD admin/import/details/{id} → App\Http\Controllers\Admin\ImportController@getDetails [Middleware: web, auth, role:admin]
+DELETE admin/import/delete/{id} → App\Http\Controllers\Admin\ImportController@deleteImport [Middleware: web, auth, role:admin]
+GET|HEAD admin/universities → App\Http\Controllers\Admin\UniversityController@index [Middleware: web, auth, role:admin]
+GET|HEAD admin/universities/create → App\Http\Controllers\Admin\UniversityController@create [Middleware: web, auth, role:admin]
+POST admin/universities → App\Http\Controllers\Admin\UniversityController@store [Middleware: web, auth, role:admin]
+GET|HEAD admin/universities/{university}/edit → App\Http\Controllers\Admin\UniversityController@edit [Middleware: web, auth, role:admin]
+PUT|PATCH admin/universities/{university} → App\Http\Controllers\Admin\UniversityController@update [Middleware: web, auth, role:admin]
+DELETE admin/universities/{university} → App\Http\Controllers\Admin\UniversityController@destroy [Middleware: web, auth, role:admin]
+GET|HEAD admin/campuses → App\Http\Controllers\Admin\CampusController@index [Middleware: web, auth, role:admin]
+GET|HEAD admin/campuses/create → App\Http\Controllers\Admin\CampusController@create [Middleware: web, auth, role:admin]
+POST admin/campuses → App\Http\Controllers\Admin\CampusController@store [Middleware: web, auth, role:admin]
+GET|HEAD admin/campuses/{campus}/edit → App\Http\Controllers\Admin\CampusController@edit [Middleware: web, auth, role:admin]
+PUT|PATCH admin/campuses/{campus} → App\Http\Controllers\Admin\CampusController@update [Middleware: web, auth, role:admin]
+DELETE admin/campuses/{campus} → App\Http\Controllers\Admin\CampusController@destroy [Middleware: web, auth, role:admin]
+GET|HEAD admin/schools → App\Http\Controllers\Admin\SchoolController@index [Middleware: web, auth, role:admin]
+GET|HEAD admin/schools/create → App\Http\Controllers\Admin\SchoolController@create [Middleware: web, auth, role:admin]
+POST admin/schools → App\Http\Controllers\Admin\SchoolController@store [Middleware: web, auth, role:admin]
+GET|HEAD admin/schools/{school}/edit → App\Http\Controllers\Admin\SchoolController@edit [Middleware: web, auth, role:admin]
+PUT|PATCH admin/schools/{school} → App\Http\Controllers\Admin\SchoolController@update [Middleware: web, auth, role:admin]
+DELETE admin/schools/{school} → App\Http\Controllers\Admin\SchoolController@destroy [Middleware: web, auth, role:admin]
+GET|HEAD admin/departments → App\Http\Controllers\Admin\DepartmentController@index [Middleware: web, auth, role:admin]
+GET|HEAD admin/departments/create → App\Http\Controllers\Admin\DepartmentController@create [Middleware: web, auth, role:admin]
+POST admin/departments → App\Http\Controllers\Admin\DepartmentController@store [Middleware: web, auth, role:admin]
+GET|HEAD admin/departments/{department} → App\Http\Controllers\Admin\DepartmentController@show [Middleware: web, auth, role:admin]
+GET|HEAD admin/departments/{department}/edit → App\Http\Controllers\Admin\DepartmentController@edit [Middleware: web, auth, role:admin]
+PUT|PATCH admin/departments/{department} → App\Http\Controllers\Admin\DepartmentController@update [Middleware: web, auth, role:admin]
+DELETE admin/departments/{department} → App\Http\Controllers\Admin\DepartmentController@destroy [Middleware: web, auth, role:admin]
+GET|HEAD admin/leave-types → App\Http\Controllers\Admin\LeaveTypeController@index [Middleware: web, auth, role:admin]
+GET|HEAD admin/leave-types/create → App\Http\Controllers\Admin\LeaveTypeController@create [Middleware: web, auth, role:admin]
+POST admin/leave-types → App\Http\Controllers\Admin\LeaveTypeController@store [Middleware: web, auth, role:admin]
+GET|HEAD admin/leave-types/{leave_type} → App\Http\Controllers\Admin\LeaveTypeController@show [Middleware: web, auth, role:admin]
+GET|HEAD admin/leave-types/{leave_type}/edit → App\Http\Controllers\Admin\LeaveTypeController@edit [Middleware: web, auth, role:admin]
+PUT|PATCH admin/leave-types/{leave_type} → App\Http\Controllers\Admin\LeaveTypeController@update [Middleware: web, auth, role:admin]
+DELETE admin/leave-types/{leave_type} → App\Http\Controllers\Admin\LeaveTypeController@destroy [Middleware: web, auth, role:admin]
+GET|HEAD admin/roles → App\Http\Controllers\Admin\RoleController@index [Middleware: web, auth, role:admin]
+GET|HEAD admin/roles/assign → App\Http\Controllers\Admin\RoleController@assignForm [Middleware: web, auth, role:admin]
+POST admin/roles/assign → App\Http\Controllers\Admin\RoleController@assignRole [Middleware: web, auth, role:admin]
+DELETE admin/roles/remove/{userId}/{roleName} → App\Http\Controllers\Admin\RoleController@removeRole [Middleware: web, auth, role:admin]
+GET|HEAD admin/roles/create → App\Http\Controllers\Admin\RoleController@createForm [Middleware: web, auth, role:admin]
+POST admin/roles/create → App\Http\Controllers\Admin\RoleController@storeRole [Middleware: web, auth, role:admin]
+GET|HEAD admin/roles/edit/{id} → App\Http\Controllers\Admin\RoleController@editRole [Middleware: web, auth, role:admin]
+PUT admin/roles/edit/{id} → App\Http\Controllers\Admin\RoleController@updateRole [Middleware: web, auth, role:admin]
+DELETE admin/roles/delete/{id} → App\Http\Controllers\Admin\RoleController@deleteRole [Middleware: web, auth, role:admin]
+GET|HEAD admin/roles/permissions → App\Http\Controllers\Admin\RoleController@permissions [Middleware: web, auth, role:admin]
+GET|HEAD admin/settings/letterhead → App\Http\Controllers\Admin\LetterheadController@index [Middleware: web, auth, role:admin]
+PUT admin/settings/letterhead → App\Http\Controllers\Admin\LetterheadController@update [Middleware: web, auth, role:admin]
+POST admin/settings/letterhead/preview → App\Http\Controllers\Admin\LetterheadController@preview [Middleware: web, auth, role:admin]
+GET|HEAD admin/acting-dvc → App\Http\Controllers\Admin\ActingDvcAssignmentController@index [Middleware: web, auth, role:admin]
+GET|HEAD admin/acting-dvc/create → App\Http\Controllers\Admin\ActingDvcAssignmentController@create [Middleware: web, auth, role:admin]
+POST admin/acting-dvc → App\Http\Controllers\Admin\ActingDvcAssignmentController@store [Middleware: web, auth, role:admin]
+GET|HEAD admin/acting-dvc/{acting_dvc} → App\Http\Controllers\Admin\ActingDvcAssignmentController@show [Middleware: web, auth, role:admin]
+GET|HEAD admin/acting-dvc/{acting_dvc}/edit → App\Http\Controllers\Admin\ActingDvcAssignmentController@edit [Middleware: web, auth, role:admin]
+PUT|PATCH admin/acting-dvc/{acting_dvc} → App\Http\Controllers\Admin\ActingDvcAssignmentController@update [Middleware: web, auth, role:admin]
+DELETE admin/acting-dvc/{acting_dvc} → App\Http\Controllers\Admin\ActingDvcAssignmentController@destroy [Middleware: web, auth, role:admin]
+GET|HEAD admin/departments/by-school/{schoolId} → App\Http\Controllers\Admin\DepartmentController@getBySchool [Middleware: web, auth, role:admin]
+GET|HEAD admin/departments/schools-by-campus/{campusId} → App\Http\Controllers\Admin\DepartmentController@getSchoolsByCampus [Middleware: web, auth, role:admin]
+GET|HEAD admin/departments/all-json → App\Http\Controllers\Admin\DepartmentController@getAllJson [Middleware: web, auth, role:admin]
+POST admin/departments/bulk-update → App\Http\Controllers\Admin\DepartmentController@bulkUpdate [Middleware: web, auth, role:admin]
+PATCH admin/departments/{id}/toggle-status → App\Http\Controllers\Admin\DepartmentController@toggleStatus [Middleware: web, auth, role:admin]
+GET|HEAD admin/departments/export → App\Http\Controllers\Admin\DepartmentController@export [Middleware: web, auth, role:admin]
+GET|HEAD admin/departments/export/pdf → App\Http\Controllers\Admin\DepartmentController@exportPdf [Middleware: web, auth, role:admin]
+GET|HEAD admin/database-schema → App\Http\Controllers\Admin\DatabaseSchemaController@index [Middleware: web, auth, role:admin]
+GET|HEAD admin/database-schema/table/{tableName} → App\Http\Controllers\Admin\DatabaseSchemaController@getTableDetails [Middleware: web, auth, role:admin]
+GET|HEAD admin/database-schema/export/json → App\Http\Controllers\Admin\DatabaseSchemaController@exportJson [Middleware: web, auth, role:admin]
+GET|HEAD admin/tenants → App\Http\Controllers\Admin\TenantSettingsController@index [Middleware: web, auth, role:super-admin]
+GET|HEAD admin/tenants/create → App\Http\Controllers\Admin\TenantSettingsController@create [Middleware: web, auth, role:super-admin]
+POST admin/tenants → App\Http\Controllers\Admin\TenantSettingsController@store [Middleware: web, auth, role:super-admin]
+GET|HEAD admin/tenants/{tenant} → App\Http\Controllers\Admin\TenantSettingsController@show [Middleware: web, auth, role:super-admin]
+GET|HEAD admin/tenants/{tenant}/edit → App\Http\Controllers\Admin\TenantSettingsController@edit [Middleware: web, auth, role:super-admin]
+PUT|PATCH admin/tenants/{tenant} → App\Http\Controllers\Admin\TenantSettingsController@update [Middleware: web, auth, role:super-admin]
+DELETE admin/tenants/{tenant} → App\Http\Controllers\Admin\TenantSettingsController@destroy [Middleware: web, auth, role:super-admin]
+GET|HEAD admin/tenants/{id}/settings → App\Http\Controllers\Admin\TenantSettingsController@settings [Middleware: web, auth, role:super-admin]
+PUT admin/tenants/{id}/settings → App\Http\Controllers\Admin\TenantSettingsController@updateSettings [Middleware: web, auth, role:super-admin]
+GET|HEAD letters → App\Http\Controllers\LetterController@index [Middleware: web, auth]
+GET|HEAD letters/create → App\Http\Controllers\LetterController@create [Middleware: web, auth]
+POST letters → App\Http\Controllers\LetterController@store [Middleware: web, auth]
+GET|HEAD letters/{id} → App\Http\Controllers\LetterController@show [Middleware: web, auth]
+GET|HEAD letters/{id}/edit → App\Http\Controllers\LetterController@edit [Middleware: web, auth]
+PUT letters/{id} → App\Http\Controllers\LetterController@update [Middleware: web, auth]
+DELETE letters/{id} → App\Http\Controllers\LetterController@destroy [Middleware: web, auth]
+POST letters/{id}/submit → App\Http\Controllers\LetterController@submit [Middleware: web, auth]
+POST letters/{id}/hod-approve → App\Http\Controllers\LetterController@hodApprove [Middleware: web, auth]
+POST letters/{id}/dean-approve → App\Http\Controllers\LetterController@deanApprove [Middleware: web, auth]
+POST letters/{id}/dvc-approve → App\Http\Controllers\LetterController@dvcApprove [Middleware: web, auth]
+POST letters/{id}/vc-sign → App\Http\Controllers\LetterController@vcSign [Middleware: web, auth]
+POST letters/{id}/reject → App\Http\Controllers\LetterController@reject [Middleware: web, auth]
+GET|HEAD letters/pending/approval → App\Http\Controllers\LetterController@pendingApproval [Middleware: web, auth]
+GET|HEAD letters/pending/signature → App\Http\Controllers\LetterController@pendingSignature [Middleware: web, auth]
+GET|HEAD leave-letters → App\Http\Controllers\LeaveLetterController@index [Middleware: web, auth]
+GET|HEAD leave-letters/{id} → App\Http\Controllers\LeaveLetterController@show [Middleware: web, auth]
+GET|HEAD leave-letters/{id}/print → App\Http\Controllers\LeaveLetterController@print [Middleware: web, auth]
+GET|HEAD leave-letters/{id}/download-pdf → App\Http\Controllers\LeaveLetterController@downloadPdf [Middleware: web, auth]
+GET|HEAD registry/formats → App\Http\Controllers\Registry\ReferenceFormatController@index [Middleware: web, auth, role:admin|registry-officer]
+GET|HEAD registry/formats/create → App\Http\Controllers\Registry\ReferenceFormatController@create [Middleware: web, auth, role:admin|registry-officer]
+POST registry/formats → App\Http\Controllers\Registry\ReferenceFormatController@store [Middleware: web, auth, role:admin|registry-officer]
+GET|HEAD registry/formats/{format} → App\Http\Controllers\Registry\ReferenceFormatController@show [Middleware: web, auth, role:admin|registry-officer]
+GET|HEAD registry/formats/{format}/edit → App\Http\Controllers\Registry\ReferenceFormatController@edit [Middleware: web, auth, role:admin|registry-officer]
+PUT|PATCH registry/formats/{format} → App\Http\Controllers\Registry\ReferenceFormatController@update [Middleware: web, auth, role:admin|registry-officer]
+DELETE registry/formats/{format} → App\Http\Controllers\Registry\ReferenceFormatController@destroy [Middleware: web, auth, role:admin|registry-officer]
+GET|HEAD registry/reference-formats/entities → App\Http\Controllers\Registry\ReferenceFormatController@getEntities [Middleware: web, auth, role:admin|registry-officer]
+POST registry/reference-formats/preview → App\Http\Controllers\Registry\ReferenceFormatController@preview [Middleware: web, auth, role:admin|registry-officer]
+GET|HEAD registry/files → App\Http\Controllers\Registry\LetterFileController@index [Middleware: web, auth, role:admin|registry-officer]
+GET|HEAD registry/files/create → App\Http\Controllers\Registry\LetterFileController@create [Middleware: web, auth, role:admin|registry-officer]
+POST registry/files → App\Http\Controllers\Registry\LetterFileController@store [Middleware: web, auth, role:admin|registry-officer]
+GET|HEAD registry/files/{file} → App\Http\Controllers\Registry\LetterFileController@show [Middleware: web, auth, role:admin|registry-officer]
+GET|HEAD registry/files/{file}/edit → App\Http\Controllers\Registry\LetterFileController@edit [Middleware: web, auth, role:admin|registry-officer]
+PUT|PATCH registry/files/{file} → App\Http\Controllers\Registry\LetterFileController@update [Middleware: web, auth, role:admin|registry-officer]
+DELETE registry/files/{file} → App\Http\Controllers\Registry\LetterFileController@destroy [Middleware: web, auth, role:admin|registry-officer]
+PUT registry/files/{id}/close → App\Http\Controllers\Registry\LetterFileController@close [Middleware: web, auth, role:admin|registry-officer]
+PUT registry/files/{id}/reopen → App\Http\Controllers\Registry\LetterFileController@reopen [Middleware: web, auth, role:admin|registry-officer]
+GET|HEAD registry/files/next-file-number → App\Http\Controllers\Registry\LetterFileController@getNextFileNumber [Middleware: web, auth, role:admin|registry-officer]
+GET|HEAD registry/files/{id}/stats → App\Http\Controllers\Registry\LetterFileController@getStats [Middleware: web, auth, role:admin|registry-officer]
+GET|HEAD registry/settings → App\Http\Controllers\Registry\LetterSettingController@index [Middleware: web, auth, role:admin|registry-officer]
+PUT registry/settings → App\Http\Controllers\Registry\LetterSettingController@update [Middleware: web, auth, role:admin|registry-officer]
+POST registry/settings/reset → App\Http\Controllers\Registry\LetterSettingController@reset [Middleware: web, auth, role:admin|registry-officer]
+POST registry/settings/preview-secure-code → App\Http\Controllers\Registry\LetterSettingController@previewSecureCode [Middleware: web, auth, role:admin|registry-officer]
+GET|HEAD registry/settings/{universityId} → App\Http\Controllers\Registry\LetterSettingController@getSettings [Middleware: web, auth, role:admin|registry-officer]
+POST registry/settings/test-verification-url → App\Http\Controllers\Registry\LetterSettingController@testVerificationUrl [Middleware: web, auth, role:admin|registry-officer]
+GET|HEAD api/users/search → App\Http\Controllers\MessageController@searchUsers [Middleware: web, auth]
+GET|HEAD dev/project-state → App\Http\Controllers\DevController@exportState [Middleware: web]
+GET|HEAD dev/clear-cache → App\Http\Controllers\DevController@clearCache [Middleware: web]
+GET|HEAD dev/routes → App\Http\Controllers\DevController@listRoutes [Middleware: web]
+GET|HEAD test-hold → Closure [Middleware: web]
+GET|HEAD test-approvals → App\Http\Controllers\LeaveRequestController@approvalsHistory [Middleware: web]
+GET|HEAD test-schema → Closure [Middleware: web]
+GET|HEAD test-permission-debug → Closure [Middleware: web]
+GET|HEAD {fallbackPlaceholder} → Closure [Middleware: web]
+GET|HEAD test-messages → Closure [Middleware: web]
+GET|HEAD storage/{path} → Closure [Middleware: ]
+PUT storage/{path} → Closure [Middleware: ]
+
+
+=== CONTROLLERS ===
+- AdminDashboardController.php
+- Admin\ActingDvcAssignmentController.php
+- Admin\CampusController.php
+- Admin\DatabaseSchemaController.php
+- Admin\DepartmentController.php
+- Admin\ImportController.php
+- Admin\LeaveTypeController.php
+- Admin\LetterheadController.php
+- Admin\RoleController.php
+- Admin\SchoolController.php
+- Admin\TenantSettingsController.php
+- Admin\UniversityController.php
+- ApprovalController.php
+- AuditLogController.php
+- AuditTrailController.php
+- AuthController.php
+- Auth\AuthenticatedSessionController.php
+- Auth\ConfirmablePasswordController.php
+- Auth\EmailVerificationNotificationController.php
+- Auth\EmailVerificationPromptController.php
+- Auth\NewPasswordController.php
+- Auth\PasswordController.php
+- Auth\PasswordResetLinkController.php
+- Auth\RegisteredUserController.php
+- Auth\VerifyEmailController.php
+- BackupController.php
+- BlackoutController.php
+- Controller.php
+- DashboardController.php
+- DevController.php
+- HrSettingsController.php
+- LeaveLetterController.php
+- LeaveRequestController.php
+- LetterController.php
+- MessageAccessController.php
+- MessageController.php
+- NotificationController.php
+- PermissionRequestController.php
+- ProfileController.php
+- Registry\LetterFileController.php
+- Registry\LetterSettingController.php
+- Registry\ReferenceFormatController.php
+- ReportController.php
+- Requests\LoginRequest.php
+- SettingController.php
+- SettingsController.php
+- StaffController.php
+- Staff\DashboardController.php
+- TravelPermissionController.php
+- VcDashboardController.php
+- VerifyController.php
+
+
+=== MODELS ===
+- ActingDvcAssignment.php
+- ApprovalLog.php
+- AuditLog.php
+- BlackoutPeriod.php
+- Campus.php
+- Department.php
+- Dependent.php
+- Document.php
+- DocumentVerification.php
+- HoldPositionHistory.php
+- ImportHistory.php
+- ImportSequence.php
+- LeaveAttachment.php
+- LeaveBalance.php
+- LeaveLetter.php
+- LeaveRequest.php
+- LeaveType.php
+- Letter.php
+- LetterFile.php
+- LetterSetting.php
+- Message.php
+- MessageAccessRequest.php
+- MessageAction.php
+- MessageAttachment.php
+- MessageAuditLog.php
+- MessageConversation.php
+- MessageTemplate.php
+- Notification.php
+- OfficialDocument.php
+- PermissionRequest.php
+- ReferenceFormat.php
+- ReportDefinition.php
+- ReportLog.php
+- RoleController.php
+- School.php
+- Session.php
+- Setting.php
+- StaffAddress.php
+- StaffAward.php
+- StaffBankDetail.php
+- StaffCertification.php
+- StaffContract.php
+- StaffEmail.php
+- StaffEmergencyContact.php
+- StaffLanguage.php
+- StaffMembership.php
+- StaffPhone.php
+- StaffPublication.php
+- StaffQualification.php
+- StaffReferee.php
+- StaffSkill.php
+- StaffTraining.php
+- StaffWorkExperience.php
+- Tenant.php
+- TravelPermission.php
+- UnifiedAuditTrail.php
+- University.php
+- User.php
+
+
+=== VIEWS ===
+- admin\Profile\show.blade.php
+- admin\Schools\create.blade.php
+- admin\Schools\edit.blade.php
+- admin\Schools\index.blade.php
+- admin\acting-dvc\create.blade.php
+- admin\acting-dvc\edit.blade.php
+- admin\acting-dvc\index.blade.php
+- admin\acting-dvc\show.blade.php
+- admin\approvals.blade.php
+- admin\campuses\create.blade.php
+- admin\campuses\edit.blade.php
+- admin\campuses\index.blade.php
+- admin\dashboard.blade.php
+- admin\database-schema\index.blade.php
+- admin\departments\create.blade.php
+- admin\departments\edit.blade.php
+- admin\departments\index.blade.php
+- admin\departments\show.blade.php
+- admin\imports\index.blade.php
+- admin\leave-requests\acting-response.blade.php
+- admin\leave-requests\create.blade.php
+- admin\leave-requests\hold-position-for-me.blade.php
+- admin\leave-requests\i-held-position-for.blade.php
+- admin\leave-requests\my-requests.blade.php
+- admin\leave-requests\pending-approvals.blade.php
+- admin\leave-requests\show.blade.php
+- admin\leave-types\create.blade.php
+- admin\leave-types\edit.blade.php
+- admin\leave-types\index.blade.php
+- admin\leave-types\show.blade.php
+- admin\profile.blade.php
+- admin\reports\index.blade.php
+- admin\roles\assign.blade.php
+- admin\roles\create.blade.php
+- admin\roles\edit.blade.php
+- admin\roles\index.blade.php
+- admin\settings\letterhead.blade.php
+- admin\staff-create.blade.php
+- admin\staff-edit.blade.php
+- admin\staff-import.blade.php
+- admin\staff.blade.php.bak
+- admin\staff\create.blade.php
+- admin\staff\edit.blade.php
+- admin\staff\index.blade.php
+- admin\staff\show.blade.php
+- admin\tenants\index.blade.php
+- admin\universities\create.blade.php
+- admin\universities\edit.blade.php
+- admin\universities\index.blade.php
+- auth\confirm-password.blade.php
+- auth\forgot-password.blade.php
+- auth\login.blade.php
+- auth\register.blade.php
+- auth\reset-password.blade.php
+- auth\verify-email.blade.php
+- components\acting-response-modal.blade.php
+- components\action-buttons.blade.php
+- components\application-logo.blade.php
+- components\approval-tracker-full.blade.php
+- components\approval-tracker-mini.blade.php
+- components\approval-tracker.blade.php
+- components\auth-session-status.blade.php
+- components\breadcrumb.blade.php
+- components\color-picker.blade.php
+- components\danger-button.blade.php
+- components\delete-modal.blade.php
+- components\dropdown-link.blade.php
+- components\dropdown.blade.php
+- components\input-error.blade.php
+- components\input-label.blade.php
+- components\layout-selector.blade.php
+- components\leave-counter.blade.php
+- components\letter\footer.blade.php
+- components\letter\header.blade.php
+- components\letter\layout.blade.php
+- components\letter\leave-approval.blade.php
+- components\letter\leave-body.blade.php
+- components\letter\recall-body.blade.php
+- components\letter\recipient.blade.php
+- components\letter\reference.blade.php
+- components\letter\signature.blade.php
+- components\letter\simple-body.blade.php
+- components\letter\subject.blade.php
+- components\modal.blade.php
+- components\nav-link.blade.php
+- components\notification-toast.blade.php
+- components\page-header.blade.php
+- components\pagination.blade.php
+- components\primary-button.blade.php
+- components\quick-actions.blade.php
+- components\responsive-nav-link.blade.php
+- components\search-card.blade.php
+- components\secondary-button.blade.php
+- components\settings-panel.blade.php
+- components\sidebar-footer.blade.php
+- components\sidebar-user.blade.php
+- components\staff-dossier.blade.php
+- components\stats-card.blade.php
+- components\text-input.blade.php
+- components\theme-switcher.blade.php
+- components\topbar.blade.php
+- components\travel-acting-response-modal.blade.php
+- dashboard.blade.php
+- errors\404.blade.php
+- index.blade.php
+- landing.blade.php
+- layouts\app.blade.php
+- layouts\guest.blade.php
+- layouts\master.blade.php
+- layouts\navigation.blade.php
+- layouts\partials\sidebar.blade.php
+- layouts\staff.blade.php
+- leave-letters\index.blade.php
+- leave-letters\print.blade.php
+- leave-letters\show.blade.php
+- letters\create.blade.php
+- letters\edit.blade.php
+- letters\index.blade.php
+- letters\partials\status-badge.blade.php
+- letters\pending-approval.blade.php
+- letters\pending-signature.blade.php
+- letters\print.blade.php
+- letters\show.blade.php
+- profile\edit.blade.php
+- profile\notifications.blade.php
+- profile\partials\delete-user-form.blade.php
+- profile\partials\notifications.blade.php
+- profile\partials\update-password-form.blade.php
+- profile\partials\update-profile-information-form.blade.php
+- profile\settings.blade.php
+- profile\show.blade.php
+- registry\files\create.blade.php
+- registry\files\edit.blade.php
+- registry\files\index.blade.php
+- registry\files\show.blade.php
+- registry\formats\create.blade.php
+- registry\formats\edit.blade.php
+- registry\formats\index.blade.php
+- registry\formats\show.blade.php
+- registry\settings.blade.php
+- reports\index.blade.php
+- reports\pdf.blade.php
+- reports\show.blade.php
+- settings\create.blade.php
+- settings\edit.blade.php
+- settings\hr\index.blade.php
+- settings\hr\policies.blade.php
+- settings\index.blade.php
+- settings\show.blade.php
+- shared\audit-logs\index.blade.php
+- shared\audit-trail\index.blade.php
+- shared\audit-trail\show.blade.php
+- shared\blackout\create.blade.php
+- shared\blackout\edit.blade.php
+- shared\blackout\index.blade.php
+- shared\blackout\show.blade.php
+- shared\dashboard.blade.php
+- shared\leave-requests\acting-response.blade.php
+- shared\leave-requests\approval-details.blade.php
+- shared\leave-requests\approvals-history.blade.php
+- shared\leave-requests\create.blade.php
+- shared\leave-requests\details.blade.php
+- shared\leave-requests\dvc-review.blade.php
+- shared\leave-requests\hold-position-for-me.blade.php
+- shared\leave-requests\hr-logistics.blade.php
+- shared\leave-requests\hr-review.blade.php
+- shared\leave-requests\i-held-position-for.blade.php
+- shared\leave-requests\my-requests.blade.php
+- shared\leave-requests\pending-approvals.blade.php
+- shared\leave-requests\show.blade.php
+- shared\leave-requests\status.blade.php
+- shared\messages\access-requests.blade.php
+- shared\messages\admin-list.blade.php
+- shared\messages\audit-trail.blade.php
+- shared\messages\compose.blade.php
+- shared\messages\conversation.blade.php
+- shared\messages\drafts.blade.php
+- shared\messages\inbox.blade.php
+- shared\messages\index.blade.php
+- shared\messages\metadata.blade.php
+- shared\messages\search.blade.php
+- shared\messages\secure-message-content.blade.php
+- shared\messages\secure-view.blade.php
+- shared\messages\sent.blade.php
+- shared\messages\show.blade.php
+- shared\permissions\create.blade.php
+- shared\permissions\details.blade.php
+- shared\permissions\my-requests.blade.php
+- shared\permissions\pending-approvals.blade.php
+- shared\permissions\show.blade.php
+- shared\profile.blade.php
+- shared\reports\index.blade.php
+- shared\reports\leave-balances.blade.php
+- shared\reports\leave-summary.blade.php
+- shared\reports\staff.blade.php
+- shared\travel-permissions\acting-response.blade.php
+- shared\travel-permissions\create.blade.php
+- shared\travel-permissions\my-requests.blade.php
+- shared\travel-permissions\pending-approvals.blade.php
+- shared\travel-permissions\show.blade.php
+- vc\dashboard.blade.php
+- vc\pdf.blade.php
+- verify\index.blade.php
+- verify\not-found.blade.php
+- verify\print.blade.php
+- verify\public-show.blade.php
+- verify\show.blade.php
+- welcome.blade.php
+
+
+=== MIGRATIONS ===
+- 0001_01_01_000000_create_users_table.php
+- 0001_01_01_000001_create_cache_table.php
+- 0001_01_01_000002_create_jobs_table.php
+- 2026_04_30_093747_create_universities_table.php
+- 2026_04_30_093824_create_campuses_table.php
+- 2026_04_30_093828_create_departments_table.php
+- 2026_04_30_093831_create_staff_table.php
+- 2026_04_30_093834_create_leave_types_table.php
+- 2026_04_30_093839_create_leave_balances_table.php
+- 2026_04_30_093847_create_leave_requests_table.php
+- 2026_04_30_093852_create_leave_attachments_table.php
+- 2026_04_30_093855_create_permission_requests_table.php
+- 2026_04_30_093859_create_approval_logs_table.php
+- 2026_04_30_093903_create_acting_dvc_assignments_table.php
+- 2026_04_30_093908_create_blackout_periods_table.php
+- 2026_05_04_084359_create_personal_access_tokens_table.php
+- 2026_05_04_143209_create_permission_tables.php
+- 2026_05_05_123827_create_import_sequences_table.php.php
+- 2026_05_05_123931_create_import_history_table.php.php
+- 2026_05_05_124138_create_template_column_mappings_table.php.php
+- 2026_05_05_153532_create_schools_table.php.php
+- 2026_05_05_195303_add_stored_filename_to_import_history_table.php
+- 2026_05_12_202739_add_acting_and_approval_fields_to_leave_requests.php
+- 2026_05_14_173950_create_hold_position_histories_table.php
+- 2026_05_15_184620_fix_approval_level_enum.php
+- 2026_05_15_194156_create_notifications_table.php
+- 2026_05_15_194157_create_document_categories_table.php
+- 2026_05_15_194157_create_notification_preferences_table.php
+- 2026_05_15_194158_create_documents_table.php
+- 2026_05_15_194159_create_messages_table.php
+- 2026_05_15_200319_create_message_conversations_table.php
+- 2026_05_17_175851_add_unit_head_staff_id_to_departments_table.php
+- 2026_05_17_201345_add_emergency_fields_to_leave_requests.php
+- 2026_05_17_222723_add_fields_to_notifications_table.php
+- 2026_05_18_085445_add_marital_fields_to_staff_table.php
+- 2026_05_18_085838_add_travel_fields_to_leave_requests_table.php
+- 2026_05_18_104020_add_fields_to_permission_requests_table.php
+- 2026_05_18_115122_create_travel_permissions_table.php
+- 2026_05_18_150826_add_status_to_blackout_periods_table.php
+- 2026_05_18_205210_create_audit_logs_table.php
+- 2026_05_19_185731_add_school_id_to_staff_table.php
+- 2026_05_19_204052_add_location_columns_to_import_history_table.php
+- 2026_05_20_135621_create_tenants_table.php
+- 2026_05_20_135622_add_tenant_id_to_existing_tables.php
+- 2026_05_20_135623_create_report_definitions_table.php
+- 2026_05_20_135624_create_report_logs_table.php
+- 2026_05_20_135627_create_document_verifications_table.php
+- 2026_05_20_141022_create_official_documents_table.php
+- 2026_05_20_202316_add_verification_code_to_report_logs_table.php
+- 2026_05_21_084800_add_gender_to_staff_table.php
+- 2026_05_21_102633_add_hr_fields_to_staff_table.php
+- 2026_05_21_102634_create_staff_phones_table.php
+- 2026_05_21_102635_create_staff_emails_table.php
+- 2026_05_21_102638_create_staff_qualifications_table.php
+- 2026_05_21_102639_create_staff_certifications_table.php
+- 2026_05_21_102639_create_staff_languages_table.php
+- 2026_05_21_102640_create_staff_skills_table.php
+- 2026_05_21_102641_create_staff_awards_table.php
+- 2026_05_21_102641_create_staff_memberships_table.php
+- 2026_05_21_102642_create_staff_publications_table.php
+- 2026_05_21_102642_create_staff_trainings_table.php
+- 2026_05_21_102643_create_staff_work_experience_table.php
+- 2026_05_21_102644_create_staff_referees_table.php
+- 2026_05_21_102647_create_staff_contracts_table.php
+- 2026_05_22_123724_add_new_roles_to_permission_table.php
+- 2026_05_24_115508_make_to_role_nullable_in_approval_logs.php
+- 2026_05_24_122911_fix_current_approval_level_to_integer.php
+- 2026_05_24_123624_fix_approval_level_column_type.php
+- 2026_05_24_143507_add_notification_types.php
+- 2026_05_24_153855_make_current_approval_level_nullable.php
+- 2026_05_26_131935_create_leave_letters_table.php
+- 2026_05_26_141843_add_letterhead_fields_to_universities_table.php
+- 2026_05_26_150935_add_line_colors_to_universities_table.php
+- 2026_05_27_100640_add_header_footer_settings_to_universities_table.php
+- 2026_05_27_100802_create_letters_table.php
+- 2026_05_27_100855_create_reference_formats_table.php
+- 2026_05_27_101019_create_letter_settings_table.php
+- 2026_05_27_123428_add_auto_numbering_to_letters_table.php
+- 2026_05_27_131833_add_multi_level_approval_to_letters_table.php
+- 2026_05_27_132626_add_signature_pin_to_users_table.php
+- 2026_05_27_135834_add_signature_pin_to_staff_table.php
+- 2026_05_27_145959_add_letter_notification_types_to_notifications_table.php
+- 2026_05_27_165330_create_letter_files_table.php
+- 2026_05_27_174353_add_recipient_fields_to_letters_table.php
+- 2026_05_27_180250_add_multiple_recipients_to_letters_table.php
+- 2026_05_28_131728_add_return_and_financial_fields_to_leave_requests_table.php
+- 2026_05_28_155325_add_staff_id_to_leave_letters_table.php
+- 2026_05_28_173720_update_permission_type_enum_in_permission_requests.php
+- 2026_05_29_115019_add_payment_fields_to_leave_requests_table.php
+- 2026_05_31_101400_add_columns_to_messages_table.php
+- 2026_05_31_101536_add_columns_to_message_conversations_table.php
+- 2026_05_31_101558_create_message_attachments_table.php
+- 2026_05_31_101608_create_message_actions_table.php
+- 2026_05_31_101618_create_message_templates_table.php
+- 2026_05_31_112755_add_multiple_recipients_to_messages_table.php
+- 2026_05_31_122605_add_missing_columns_to_messages_table.php
+- 2026_05_31_123005_make_conversation_id_nullable_in_messages_table.php
+- 2026_05_31_202328_add_soft_deletes_to_messages_table.php
+- 2026_05_31_202359_create_message_access_requests_table.php
+- 2026_05_31_202423_create_message_audit_logs_table.php
+- 2026_06_01_134232_create_unified_audit_trails_table.php
+
+
+=== SEEDERS ===
+- ActingDvcAssignmentSeeder.php
+- AdditionalReportsSeeder.php
+- AdminSettingsSeeder.php
+- BlackoutPeriodSeeder.php
+- CampusSeeder.php
+- DatabaseSeeder copy.php
+- DatabaseSeeder.php
+- DepartmentRosterReportSeeder.php
+- DepartmentSeeder.php
+- HodSetupSeeder.php
+- LeaveBalanceSeeder.php
+- LeaveTypeSeeder.php
+- ReportDefinitionsSeeder.php
+- RoleAndPermissionSeeder.php
+- RoleAssignmentSeeder.php
+- RoleSettingsSeeder.php
+- SchoolSeeder.php
+- SettingsTableSeeder.php
+- StaffSeeder.php
+- TestApprovalFlowSeeder.php
+- UnitHeadSeeder.php
+- UniversitySeeder.php
+- UserPreferencesSeeder.php
+
+
+=== ENVIRONMENT ===
+Laravel Version: 13.7.0
+PHP Version: 8.4.15
+DB Connection: mysql
+App Environment: local

@@ -1,0 +1,193 @@
+/* ============================================
+   EMBER SYSTEM STANDARDS
+   One place to control ALL styling
+   ============================================ */
+
+/* Root variables for easy customization */
+:root {
+    /* Border Radius Standards */
+    --radius-card: 0.2rem;      /* Cards, modals, tables */
+    --radius-button: 0.2rem;    /* Buttons */
+    --radius-badge: 0.2rem;     /* Badges */
+    --radius-input: 0.2rem;     /* Inputs, selects */
+    
+    /* Font Size Standards */
+    --font-xs: 0.7rem;    /* 11.2px - labels, badges */
+    --font-sm: 0.75rem;   /* 12px - secondary text, table data */
+    --font-base: 0.8rem;  /* 12.8px - body text */
+    --font-md: 0.85rem;   /* 13.6px - card headers */
+    --font-lg: 0.95rem;   /* 15.2px - section titles */
+    --font-xl: 1.1rem;    /* 17.6px - card numbers */
+    --font-xxl: 1.25rem;  /* 20px - page titles */
+    
+    /* Card Padding Standards */
+    --card-padding-y: 0.5rem;
+    --card-padding-x: 0.75rem;
+    
+    /* Table Padding Standards */
+    --table-cell-padding-y: 0.35rem;
+    --table-cell-padding-x: 0.5rem;
+}
+
+/* Apply border radius standards */
+.card,
+.modal-content,
+.alert,
+.list-group-item,
+.table thead th:first-child,
+.table tbody td:first-child {
+    border-radius: var(--radius-card) !important;
+}
+
+.btn {
+    border-radius: var(--radius-button) !important;
+}
+
+.badge,
+.badge.rounded-pill {
+    border-radius: var(--radius-badge) !important;
+}
+
+.form-control,
+.form-select,
+.input-group-text {
+    border-radius: var(--radius-input) !important;
+}
+
+/* Apply font size standards */
+body,
+p,
+span,
+div:not(.stat-number) {
+    font-size: var(--font-base) !important;
+}
+
+/* Card headers */
+.card-header {
+    font-size: var(--font-md) !important;
+    font-weight: 600 !important;
+    padding: var(--card-padding-y) var(--card-padding-x) !important;
+}
+
+/* Card body */
+.card-body {
+    padding: var(--card-padding-y) var(--card-padding-x) !important;
+}
+
+/* Card footer */
+.card-footer {
+    padding: calc(var(--card-padding-y) * 0.8) var(--card-padding-x) !important;
+    font-size: var(--font-sm) !important;
+}
+
+/* Table cells */
+.table td,
+.table th {
+    padding: var(--table-cell-padding-y) var(--table-cell-padding-x) !important;
+    font-size: var(--font-sm) !important;
+    vertical-align: middle !important;
+}
+
+/* Table headers */
+.table th {
+    font-weight: 600 !important;
+    font-size: var(--font-xs) !important;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+/* Buttons */
+.btn {
+    font-size: var(--font-sm) !important;
+    padding: 0.25rem 0.6rem !important;
+}
+
+.btn-sm {
+    font-size: var(--font-xs) !important;
+    padding: 0.2rem 0.4rem !important;
+}
+
+/* Form labels */
+.form-label {
+    font-size: var(--font-xs) !important;
+    margin-bottom: 0.2rem !important;
+}
+
+/* Form inputs */
+.form-control,
+.form-select {
+    font-size: var(--font-sm) !important;
+    padding: 0.3rem 0.5rem !important;
+}
+
+/* Badges */
+.badge {
+    font-size: var(--font-xs) !important;
+    padding: 0.2rem 0.5rem !important;
+    font-weight: 500 !important;
+}
+
+/* Page titles */
+h1, .h1, .h2, .h3 {
+    font-size: var(--font-xxl) !important;
+    font-weight: 700 !important;
+}
+
+h4, .h4 {
+    font-size: var(--font-xl) !important;
+}
+
+/* Stat card numbers */
+.stat-number,
+.card .text-primary.fw-bold,
+.card .text-success.fw-bold,
+.card .text-danger.fw-bold,
+.card .text-warning.fw-bold {
+    font-size: var(--font-xl) !important;
+}
+
+/* Breadcrumb */
+.breadcrumb {
+    font-size: var(--font-xs) !important;
+}
+
+.breadcrumb-item {
+    font-size: var(--font-xs) !important;
+}
+
+/* Alert messages */
+.alert {
+    font-size: var(--font-sm) !important;
+    padding: 0.4rem 0.75rem !important;
+}
+
+/* Modal headers */
+.modal-header {
+    padding: 0.5rem 0.75rem !important;
+}
+
+.modal-title {
+    font-size: var(--font-md) !important;
+}
+
+/* List group items */
+.list-group-item {
+    padding: 0.35rem 0.75rem !important;
+    font-size: var(--font-sm) !important;
+}
+
+/* Progress bar text */
+.progress-bar {
+    font-size: var(--font-xs) !important;
+}
+
+/* Small text utility */
+small, .small, .text-muted {
+    font-size: var(--font-xs) !important;
+}
+
+/* Dropdown items */
+.dropdown-item {
+    font-size: var(--font-sm) !important;
+    padding: 0.25rem 0.75rem !important;
+}

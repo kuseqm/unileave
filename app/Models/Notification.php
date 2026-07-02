@@ -1,0 +1,228 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+
+class Notification extends Model
+{
+    use HasFactory;
+
+    protected $table = 'notifications';
+
+    protected $fillable = [
+        'user_id', 
+        'type', 
+        'title', 
+        'message', 
+        'data', 
+        'action_url', 
+        'action_text', 
+        'icon',
+        'icon_color',
+        'is_read', 
+        'read_at',
+        'sent_at',
+        'sent_via',
+        'priority'  // low, medium, high, urgent
+    ];
+
+    protected $casts = [
+        'data' => 'array',
+        'is_read' => 'boolean',
+        'read_at' => 'datetime',
+        'sent_at' => 'datetime',
+    ];
+
+    // ============================================
+    // RELATIONSHIPS
+    // ============================================
+    
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
+    // ============================================
+    // SCOPES
+    // ============================================
+    
+    public function scopeUnread($query)
+    {
+        return $query->where('is_read', false);
+    }
+
+    public function scopeForUser($query, $userId)
+    {
+        return $query->where('user_id', $userId);
+    }
+    
+    public function scopeUrgent($query)
+    {
+        return $query->where('priority', 'urgent');
+    }
+    
+    public function scopeHighPriority($query)
+    {
+        return $query->whereIn('priority', ['high', 'urgent']);
+    }
+    
+    public function scopeUnsent($query)
+    {
+        return $query->whereNull('sent_at');
+    }
+
+    // ============================================
+    // HELPER METHODS
+    // ============================================
+    
+    /**
+     * Mark notification as read
+     */
+    public function markAsRead()
+    {
+        $this->update(['is_read' => true, 'read_at' => now()]);
+    }
+    
+    /**
+     * Mark notification as unread
+     */
+    public function markAsUnread()
+    {
+        $this->update(['is_read' => false, 'read_at' => null]);
+    }
+    
+    /**
+     * Check if notification is read
+     */
+    public function isRead()
+    {
+        return $this->is_read === true;
+    }
+    
+    /**
+     * Check if notification is unread
+     */
+    public function isUnread()
+    {
+        return $this->is_read === false;
+    }
+    
+    /**
+     * Get time ago in human readable format
+     */
+    public function getTimeAgoAttribute()
+    {
+        return $this->created_at ? $this->created_at->diffForHumans() : null;
+    }
+    
+    /**
+     * Get formatted created date
+     */
+    public function getFormattedDateAttribute()
+    {
+        return $this->created_at ? $this->created_at->format('d M Y H:i') : null;
+    }
+    
+    /**
+     * Get priority badge class
+     */
+    public function getPriorityBadgeAttribute()
+    {
+        $badges = [
+            'urgent' => 'bg-danger text-white',
+            'high' => 'bg-warning text-dark',
+            'medium' => 'bg-info text-white',
+            'low' => 'bg-secondary text-white',
+        ];
+        
+        return $badges[$this->priority] ?? 'bg-secondary text-white';
+    }
+    
+    /**
+     * Get icon based on notification type
+     */
+    public function getTypeIconAttribute()
+    {
+        $icons = [
+            'acting_request' => 'user-check',
+            'acting_accepted' => 'user-check',
+            'acting_declined' => 'user-x',
+            'hold_accepted' => 'check-circle',
+            'hold_declined' => 'x-circle',
+            'approval_pending' => 'clock',
+            'approval_pending_urgent' => 'alert-triangle',
+            'approval_granted' => 'check-circle',
+            'approval_rejected' => 'x-circle',
+            'escalated_unresponsive' => 'alert-circle',
+            'leave_exceeded' => 'calendar-off',
+            'staff_leave_exceeded' => 'users',
+            'document_uploaded' => 'file',
+            'document_verified' => 'file-check',
+            'message_received' => 'message',
+        ];
+        
+        return $icons[$this->type] ?? 'bell';
+    }
+    
+    /**
+     * Get icon color based on notification type
+     */
+    public function getTypeColorAttribute()
+    {
+        $colors = [
+            'acting_request' => 'text-warning',
+            'acting_accepted' => 'text-success',
+            'acting_declined' => 'text-danger',
+            'hold_accepted' => 'text-success',
+            'hold_declined' => 'text-danger',
+            'approval_pending' => 'text-warning',
+            'approval_pending_urgent' => 'text-danger',
+            'approval_granted' => 'text-success',
+            'approval_rejected' => 'text-danger',
+            'escalated_unresponsive' => 'text-danger',
+            'leave_exceeded' => 'text-danger',
+            'staff_leave_exceeded' => 'text-warning',
+            'document_uploaded' => 'text-info',
+            'document_verified' => 'text-success',
+            'message_received' => 'text-primary',
+        ];
+        
+        return $colors[$this->type] ?? 'text-secondary';
+    }
+    
+    /**
+     * Send email notification (optional)
+     */
+    public function sendEmail()
+    {
+        // This will be implemented when email system is ready
+        if ($this->sent_via && in_array('email', explode(',', $this->sent_via))) {
+            // Mail::to($this->user->email)->send(new NotificationMail($this));
+        }
+        
+        $this->update(['sent_at' => now()]);
+    }
+    
+    /**
+     * Get notification summary for API
+     */
+    public function toArray()
+    {
+        return [
+            'id' => $this->id,
+            'type' => $this->type,
+            'title' => $this->title,
+            'message' => $this->message,
+            'action_url' => $this->action_url,
+            'action_text' => $this->action_text,
+            'icon' => $this->getTypeIconAttribute(),
+            'icon_color' => $this->getTypeColorAttribute(),
+            'is_read' => $this->is_read,
+            'time_ago' => $this->getTimeAgoAttribute(),
+            'priority' => $this->priority,
+            'created_at' => $this->getFormattedDateAttribute(),
+        ];
+    }
+}
