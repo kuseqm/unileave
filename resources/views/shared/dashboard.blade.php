@@ -234,9 +234,12 @@
             </div>
             @endhasanyrole
             
-            <!-- Unresponsive Acting Staff Widget -->
+            <!-- ============================================================ -->
+            <!-- FIXED: Unresponsive Acting Staff Widget                        -->
+            <!-- ============================================================ -->
             @hasanyrole('hod|hr-officer|admin')
             @php
+                // Count acting requests that are pending and over 48 hours old
                 $unresponsiveCount = App\Models\LeaveRequest::where('acting_status', 'pending')
                     ->where('created_at', '<', now()->subHours(48))
                     ->count();
@@ -251,12 +254,13 @@
                     </div>
                 </div>
                 <div class="card-body p-2">
-                    <div class="alert alert-danger py-1 px-2 mb-0 rounded-sm" style="font-size: 0.65rem; cursor: pointer;" onclick="window.location='{{ route('leave-requests.pending') }}'">
+                    <div class="alert alert-danger py-1 px-2 mb-0 rounded-sm" style="font-size: 0.65rem; cursor: pointer;" 
+                         onclick="window.location='{{ route('leave-requests.hold-position-for-me') }}'">
                         <i class="ti ti-clock me-1"></i>
                         <strong>{{ $unresponsiveCount }}</strong> leave request(s) have been waiting for acting staff response for over 48 hours.
                         <div class="mt-1">
                             <span class="text-danger fw-semibold" style="font-size: 0.65rem;">
-                                Click to review pending requests →
+                                Click to review pending acting requests →
                             </span>
                         </div>
                     </div>
@@ -264,6 +268,9 @@
             </div>
             @endif
             @endhasanyrole
+            <!-- ============================================================ -->
+            <!-- END FIXED: Unresponsive Acting Staff Widget                   -->
+            <!-- ============================================================ -->
             
             <!-- Active Blackouts - Clickable Rows -->
             <div class="card mt-2">

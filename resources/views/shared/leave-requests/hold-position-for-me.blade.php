@@ -20,7 +20,7 @@
     <!-- Stats Cards -->
     @php
         $stats = [
-            'total' => $holdHistories->total(),
+            'total' => $holdHistories->total() ?? 0,
             'pending' => $holdHistories->where('status', 'pending')->count(),
             'accepted' => $holdHistories->where('status', 'accepted')->count(),
             'declined' => $holdHistories->where('status', 'declined')->count(),

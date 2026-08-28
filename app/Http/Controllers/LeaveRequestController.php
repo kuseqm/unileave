@@ -61,194 +61,191 @@ class LeaveRequestController extends Controller
         return view('shared.leave-requests.create', compact('leaveTypes', 'colleagues'));
     }
 
-  /**
- * Staff - Store Request
- */
-public function store(Request $request)
-{
-    try {
-        $request->validate([
-            'leave_type_id' => 'required|exists:leave_types,id',
-            'start_date' => 'required|date|after_or_equal:today',
-            'end_date' => 'required|date|after_or_equal:start_date',
-            'reason' => 'required|string|min:10',
-            'acting_staff_id' => 'required|exists:staff,id|different:staff_id',
-            'half_day' => 'nullable|in:full,morning,afternoon',
-            'expected_return_date' => 'nullable|date|after_or_equal:end_date',
-            'emergency_contact_name' => 'nullable|string|max:100',
-            'emergency_contact_phone' => 'nullable|string|max:20',
-            'contact_number_during_leave' => 'nullable|string|max:20',
-            'leave_address' => 'nullable|string|max:255',
-            'travel_destination' => 'nullable|string|max:255',
-            'handover_notes' => 'nullable|string',
-            'supporting_documents.*' => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:5120',
-            'benefit_to_university' => 'nullable|string',
-            'cost_coverage' => 'nullable|in:organizers_full,organizers_partial,university,private',
-            'is_first_time_applicant' => 'nullable|boolean',
-            'letter_content' => 'nullable|string', // Add validation for letter content
-        ]);
-
-        // BLACKOUT PERIOD CHECK
-        $blackout = \App\Models\BlackoutPeriod::where('start_date', '<=', $request->end_date)
-            ->where('end_date', '>=', $request->start_date)
-            ->where('status', 'active')
-            ->first();
-
-        if ($blackout && $blackout->restriction_type == 'hard') {
-            return redirect()->back()
-                ->with('error', "Cannot apply for leave during blackout period: {$blackout->name} (From {$blackout->start_date} to {$blackout->end_date})")
-                ->withInput();
-        }
-
-        $startDate = \Carbon\Carbon::parse($request->start_date);
-        $endDate = \Carbon\Carbon::parse($request->end_date);
-        
-        $days = $startDate->diffInWeekdays($endDate) + 1;
-        $halfDay = $request->half_day ?? 'full';
-        
-        if ($halfDay !== 'full') {
-            $days = $days - 0.5;
-        }
-
-        DB::beginTransaction();
-        
-        // After acting staff approves, go to HOD (numeric level 1)
-        $nextLevel = LeaveRequest::LEVEL_HOD;
-        
-        $leaveRequest = LeaveRequest::create([
-            'staff_id' => auth()->id(),
-            'acting_staff_id' => $request->acting_staff_id,
-            'leave_type_id' => $request->leave_type_id,
-            'start_date' => $request->start_date,
-            'end_date' => $request->end_date,
-            'days' => $days,
-            'reason' => $request->reason,
-            'status' => 'pending',
-            'acting_status' => 'pending',
-            'acting_token' => Str::random(60),
-            'current_approval_level' => $nextLevel,
-            'letter_content' => $request->letter_content,
-            'half_day' => $halfDay,
-            'expected_return_date' => $request->expected_return_date,
-            'emergency_contact_id' => $request->emergency_contact_id,
-            'emergency_contact_name' => $request->emergency_contact_name,
-            'emergency_contact_phone' => $request->emergency_contact_phone,
-            'contact_number_during_leave' => $request->contact_number_during_leave,
-            'leave_address' => $request->leave_address,
-            'travel_destination' => $request->travel_destination,
-            'handover_notes' => $request->handover_notes,
-            'benefit_to_university' => $request->benefit_to_university,
-            'cost_coverage' => $request->cost_coverage,
-            'is_first_time_applicant' => $request->has('is_first_time_applicant'),
-        ]);
-
-        // ============================================
-        // CREATE A DRAFT LETTER IN THE LETTERS SYSTEM
-        // ============================================
-        if ($request->filled('letter_content')) {
+    /**
+     * Staff - Store Request
+     */
+    public function store(Request $request)
+    {
         try {
-        $year = date('Y');
-        $lastLetter = \App\Models\LeaveLetter::whereYear('created_at', $year)->count();
-        $letterNumber = 'LTR/' . $year . '/' . str_pad($lastLetter + 1, 4, '0', STR_PAD_LEFT);
-        
-        $letter = \App\Models\LeaveLetter::create([
-            'leave_request_id' => $leaveRequest->id,
-            'staff_id' => auth()->id(),
-            'letter_number' => $letterNumber,
-            'secure_code' => 'SMU-LTR-' . strtoupper(substr(md5($leaveRequest->id . now()), 0, 8)),
-            'title' => 'Leave Approval Letter - ' . ($leaveRequest->leaveType->name ?? 'Leave Request'),
-            'content' => $request->letter_content,
-            'type' => 'approval',
-            'stage' => 'draft',
-            'generated_by' => auth()->user()->full_name,
-            'generated_by_role' => auth()->user()->getRoleNames()->first(),
-            'payment_status' => 'paid', // default
-            'signatories' => json_encode([]),
-            'cc_recipients' => json_encode([]),
-            'metadata' => json_encode([
-                'leave_type' => $leaveRequest->leaveType->name ?? null,
-                'days' => $days,
+            $request->validate([
+                'leave_type_id' => 'required|exists:leave_types,id',
+                'start_date' => 'required|date|after_or_equal:today',
+                'end_date' => 'required|date|after_or_equal:start_date',
+                'reason' => 'required|string|min:10',
+                'acting_staff_id' => 'required|exists:staff,id|different:staff_id',
+                'half_day' => 'nullable|in:full,morning,afternoon',
+                'expected_return_date' => 'nullable|date|after_or_equal:end_date',
+                'emergency_contact_name' => 'nullable|string|max:100',
+                'emergency_contact_phone' => 'nullable|string|max:20',
+                'contact_number_during_leave' => 'nullable|string|max:20',
+                'leave_address' => 'nullable|string|max:255',
+                'travel_destination' => 'nullable|string|max:255',
+                'handover_notes' => 'nullable|string',
+                'supporting_documents.*' => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:5120',
+                'benefit_to_university' => 'nullable|string',
+                'cost_coverage' => 'nullable|in:organizers_full,organizers_partial,university,private',
+                'is_first_time_applicant' => 'nullable|boolean',
+                'letter_content' => 'nullable|string',
+            ]);
+
+            // BLACKOUT PERIOD CHECK
+            $blackout = \App\Models\BlackoutPeriod::where('start_date', '<=', $request->end_date)
+                ->where('end_date', '>=', $request->start_date)
+                ->where('status', 'active')
+                ->first();
+
+            if ($blackout && $blackout->restriction_type == 'hard') {
+                return redirect()->back()
+                    ->with('error', "Cannot apply for leave during blackout period: {$blackout->name} (From {$blackout->start_date} to {$blackout->end_date})")
+                    ->withInput();
+            }
+
+            $startDate = \Carbon\Carbon::parse($request->start_date);
+            $endDate = \Carbon\Carbon::parse($request->end_date);
+            
+            $days = $startDate->diffInWeekdays($endDate) + 1;
+            $halfDay = $request->half_day ?? 'full';
+            
+            if ($halfDay !== 'full') {
+                $days = $days - 0.5;
+            }
+
+            DB::beginTransaction();
+            
+            $nextLevel = LeaveRequest::LEVEL_HOD;
+            
+            $leaveRequest = LeaveRequest::create([
+                'staff_id' => auth()->id(),
+                'acting_staff_id' => $request->acting_staff_id,
+                'leave_type_id' => $request->leave_type_id,
                 'start_date' => $request->start_date,
                 'end_date' => $request->end_date,
-            ]),
-        ]);
-        
-        \Log::info('Draft leave letter created', [
-            'leave_request_id' => $leaveRequest->id,
-            'letter_id' => $letter->id,
-            'letter_number' => $letterNumber
-        ]);
-        
-    } catch (\Exception $e) {
-        \Log::error('Failed to create draft letter: ' . $e->getMessage());
-    }
-}
+                'days' => $days,
+                'reason' => $request->reason,
+                'status' => 'pending',
+                'acting_status' => 'pending',
+                'acting_token' => Str::random(60),
+                'current_approval_level' => $nextLevel,
+                'letter_content' => $request->letter_content,
+                'half_day' => $halfDay,
+                'expected_return_date' => $request->expected_return_date,
+                'emergency_contact_id' => $request->emergency_contact_id,
+                'emergency_contact_name' => $request->emergency_contact_name,
+                'emergency_contact_phone' => $request->emergency_contact_phone,
+                'contact_number_during_leave' => $request->contact_number_during_leave,
+                'leave_address' => $request->leave_address,
+                'travel_destination' => $request->travel_destination,
+                'handover_notes' => $request->handover_notes,
+                'benefit_to_university' => $request->benefit_to_university,
+                'cost_coverage' => $request->cost_coverage,
+                'is_first_time_applicant' => $request->has('is_first_time_applicant'),
+            ]);
 
-        AuditLogHelper::log('create', 'leave', $leaveRequest->id, null, $leaveRequest->toArray());
-
-        HoldPositionHistory::create([
-            'leave_request_id' => $leaveRequest->id,
-            'requester_staff_id' => auth()->id(),
-            'holder_staff_id' => $request->acting_staff_id,
-            'status' => 'pending',
-            'requested_at' => now(),
-            'token' => $leaveRequest->acting_token,
-        ]);
-
-        if ($request->hasFile('supporting_documents')) {
-            foreach ($request->file('supporting_documents') as $file) {
-                $path = $file->store('leave_documents/' . $leaveRequest->id, 'public');
-                
-                Document::create([
-                    'user_id' => auth()->id(),
-                    'leave_request_id' => $leaveRequest->id,
-                    'category_id' => null,
-                    'file_name' => $file->getClientOriginalName(),
-                    'file_path' => $path,
-                    'file_type' => $file->getMimeType(),
-                    'file_size' => $file->getSize(),
-                    'is_verified' => false,
-                ]);
+            // Create draft letter
+            if ($request->filled('letter_content')) {
+                try {
+                    $year = date('Y');
+                    $lastLetter = \App\Models\LeaveLetter::whereYear('created_at', $year)->count();
+                    $letterNumber = 'LTR/' . $year . '/' . str_pad($lastLetter + 1, 4, '0', STR_PAD_LEFT);
+                    
+                    $letter = \App\Models\LeaveLetter::create([
+                        'leave_request_id' => $leaveRequest->id,
+                        'staff_id' => auth()->id(),
+                        'letter_number' => $letterNumber,
+                        'secure_code' => 'SMU-LTR-' . strtoupper(substr(md5($leaveRequest->id . now()), 0, 8)),
+                        'title' => 'Leave Approval Letter - ' . ($leaveRequest->leaveType->name ?? 'Leave Request'),
+                        'content' => $request->letter_content,
+                        'type' => 'approval',
+                        'stage' => 'draft',
+                        'generated_by' => auth()->user()->full_name,
+                        'generated_by_role' => auth()->user()->getRoleNames()->first(),
+                        'payment_status' => 'paid',
+                        'signatories' => json_encode([]),
+                        'cc_recipients' => json_encode([]),
+                        'metadata' => json_encode([
+                            'leave_type' => $leaveRequest->leaveType->name ?? null,
+                            'days' => $days,
+                            'start_date' => $request->start_date,
+                            'end_date' => $request->end_date,
+                        ]),
+                    ]);
+                    
+                    \Log::info('Draft leave letter created', [
+                        'leave_request_id' => $leaveRequest->id,
+                        'letter_id' => $letter->id,
+                        'letter_number' => $letterNumber
+                    ]);
+                    
+                } catch (\Exception $e) {
+                    \Log::error('Failed to create draft letter: ' . $e->getMessage());
+                }
             }
+
+            AuditLogHelper::log('create', 'leave', $leaveRequest->id, null, $leaveRequest->toArray());
+
+            HoldPositionHistory::create([
+                'leave_request_id' => $leaveRequest->id,
+                'requester_staff_id' => auth()->id(),
+                'holder_staff_id' => $request->acting_staff_id,
+                'status' => 'pending',
+                'requested_at' => now(),
+                'token' => $leaveRequest->acting_token,
+            ]);
+
+            if ($request->hasFile('supporting_documents')) {
+                foreach ($request->file('supporting_documents') as $file) {
+                    $path = $file->store('leave_documents/' . $leaveRequest->id, 'public');
+                    
+                    Document::create([
+                        'user_id' => auth()->id(),
+                        'leave_request_id' => $leaveRequest->id,
+                        'category_id' => null,
+                        'file_name' => $file->getClientOriginalName(),
+                        'file_path' => $path,
+                        'file_type' => $file->getMimeType(),
+                        'file_size' => $file->getSize(),
+                        'is_verified' => false,
+                    ]);
+                }
+            }
+
+            $actingStaff = $leaveRequest->actingStaff;
+            $requester = $leaveRequest->staff;
+            
+            \App\Models\Notification::create([
+                'user_id' => $actingStaff->id,
+                'type' => 'acting_request',
+                'title' => 'Hold Position Request',
+                'message' => "{$requester->first_name} {$requester->last_name} has requested you to hold their position during leave from " . 
+                    \Carbon\Carbon::parse($leaveRequest->start_date)->format('d M Y') . " to " . 
+                    \Carbon\Carbon::parse($leaveRequest->end_date)->format('d M Y'),
+                'action_url' => route('leave-requests.acting.response', $leaveRequest->acting_token),
+                'action_text' => 'Review Request',
+                'is_read' => false,
+            ]);
+            
+            DB::commit();
+
+            $successMessage = 'Leave request submitted successfully! Waiting for acting staff approval.';
+            if ($request->filled('letter_content')) {
+                $successMessage .= ' Your letter draft has been saved.';
+            }
+            
+            return redirect()->route('leave-requests.my-requests')
+                ->with('success', $successMessage);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return redirect()->back()->withErrors($e->errors())->withInput();
+            
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Leave request submission failed: ' . $e->getMessage());
+            return redirect()->back()
+                ->with('error', 'Failed to submit request: ' . $e->getMessage())
+                ->withInput();
         }
-
-        $actingStaff = $leaveRequest->actingStaff;
-        $requester = $leaveRequest->staff;
-        
-        \App\Models\Notification::create([
-            'user_id' => $actingStaff->id,
-            'type' => 'acting_request',
-            'title' => 'Hold Position Request',
-            'message' => "{$requester->first_name} {$requester->last_name} has requested you to hold their position during leave from " . 
-                \Carbon\Carbon::parse($leaveRequest->start_date)->format('d M Y') . " to " . 
-                \Carbon\Carbon::parse($leaveRequest->end_date)->format('d M Y'),
-            'action_url' => route('leave-requests.acting.response', $leaveRequest->acting_token),
-            'action_text' => 'Review Request',
-            'is_read' => false,
-        ]);
-        
-        DB::commit();
-
-        // Add success message with letter info if created
-        $successMessage = 'Leave request submitted successfully! Waiting for acting staff approval.';
-        if ($request->filled('letter_content')) {
-            $successMessage .= ' Your letter draft has been saved.';
-        }
-        
-        return redirect()->route('leave-requests.my-requests')
-            ->with('success', $successMessage);
-
-    } catch (\Illuminate\Validation\ValidationException $e) {
-        return redirect()->back()->withErrors($e->errors())->withInput();
-        
-    } catch (\Exception $e) {
-        DB::rollBack();
-        \Log::error('Leave request submission failed: ' . $e->getMessage());
-        return redirect()->back()
-            ->with('error', 'Failed to submit request: ' . $e->getMessage())
-            ->withInput();
     }
-}
+
     /**
      * Staff - Show Request Details (Comprehensive view with timeline)
      */
@@ -257,7 +254,6 @@ public function store(Request $request)
         $user = auth()->user();
         $role = $user->getRoleNames()->first();
         
-        // Roles that can view any leave request
         $authorizedRoles = ['admin', 'vice-chancellor', 'hod', 'dean', 'hr-officer', 'dvca', 'dvc-pfa'];
         
         $query = LeaveRequest::with([
@@ -269,18 +265,15 @@ public function store(Request $request)
             'letters'
         ]);
         
-        // If user has authorized role, no restrictions
         if (in_array($role, $authorizedRoles)) {
             $leaveRequest = $query->findOrFail($id);
         } else {
-            // Otherwise, restrict to requester or acting staff
             $leaveRequest = $query->where(function($q) use ($user) {
                 $q->where('staff_id', $user->id)
                   ->orWhere('acting_staff_id', $user->id);
             })->findOrFail($id);
         }
         
-        // Calculate total approval time
         $approvalLogs = $leaveRequest->approvalLogs;
         $totalApprovalTime = null;
         
@@ -309,7 +302,6 @@ public function store(Request $request)
     {
         $leaveRequest = LeaveRequest::with(['staff', 'leaveType', 'actingStaff', 'letters'])->findOrFail($id);
         
-        // Check permission
         $user = auth()->user();
         $role = $user->getRoleNames()->first();
         $authorizedRoles = ['admin', 'vice-chancellor', 'hod', 'dean', 'hr-officer', 'dvca', 'dvc-pfa'];
@@ -318,13 +310,11 @@ public function store(Request $request)
             abort(403, 'You do not have permission to view this letter.');
         }
         
-        // Check if leave is approved
         if ($leaveRequest->status !== 'approved') {
             return redirect()->route('leave-requests.show', $leaveRequest->id)
                 ->with('error', 'Letter is only available after the leave request is approved.');
         }
         
-        // Get the latest letter
         $letter = $leaveRequest->letters()->latest()->first();
         
         if (!$letter) {
@@ -637,7 +627,6 @@ public function store(Request $request)
             return redirect()->back()->with('success', 'Leave request approved and forwarded to ' . $this->getLevelName($nextLevel) . '.');
             
         } else {
-            // DVC approved - now goes to HR Logistics for final processing
             return redirect()->back()->with('success', 'Leave request approved by DVC. Awaiting HR Logistics final processing.');
         }
     }
@@ -670,13 +659,11 @@ public function store(Request $request)
         DB::beginTransaction();
         
         try {
-            // Final approval - completed
             $leaveRequest->update([
                 'status' => 'approved',
                 'current_approval_level' => null,
             ]);
             
-            // Add HR comment to approval log
             ApprovalLog::create([
                 'request_type' => 'leave',
                 'request_id' => $leaveRequest->id,
@@ -693,7 +680,6 @@ public function store(Request $request)
                 ['status' => 'approved']
             );
             
-            // Send notification to staff
             \App\Models\Notification::create([
                 'user_id' => $leaveRequest->staff_id,
                 'type' => 'approval_complete',
@@ -990,7 +976,6 @@ public function store(Request $request)
         ])
         ->where('staff_id', auth()->id());
         
-        // Apply filter based on URL parameter
         $filter = $request->get('filter', 'all');
         
         switch ($filter) {
@@ -1008,13 +993,11 @@ public function store(Request $request)
                 break;
             case 'all':
             default:
-                // No filter - show all statuses
                 break;
         }
         
         $leaveRequests = $query->orderBy('created_at', 'desc')->paginate($perPage);
         
-        // Get counts for all statuses (these are used for the stats cards, unfiltered)
         $stats = [
             'total' => LeaveRequest::where('staff_id', auth()->id())->count(),
             'pending' => LeaveRequest::where('staff_id', auth()->id())->where('status', 'pending')->count(),
@@ -1023,7 +1006,6 @@ public function store(Request $request)
             'cancelled' => LeaveRequest::where('staff_id', auth()->id())->where('status', 'cancelled')->count(),
         ];
         
-        // Pass the current filter to the view for highlighting active filter
         $currentFilter = $filter;
         
         return view('shared.leave-requests.status', compact('leaveRequests', 'stats', 'currentFilter'));
@@ -1056,13 +1038,18 @@ public function store(Request $request)
     }
 
     // ============================================
-    // HOLD POSITION HISTORY METHODS
+    // HOLD POSITION HISTORY METHODS (UPDATED)
     // ============================================
 
+    /**
+     * Display hold position requests where user is the requester
+     * UPDATED: Now shows from HoldPositionHistory but with better data
+     */
     public function holdPositionForMe(Request $request)
     {
         $perPage = $this->getPerPage($request, 10);
         
+        // Get hold histories where user is the requester
         $holdHistories = HoldPositionHistory::with(['holder', 'leaveRequest.leaveType', 'leaveRequest.documents'])
             ->where('requester_staff_id', auth()->id())
             ->orderBy('requested_at', 'desc')
@@ -1071,16 +1058,40 @@ public function store(Request $request)
         return view('shared.leave-requests.hold-position-for-me', compact('holdHistories'));
     }
 
+    /**
+     * Display hold position requests where user is the holder (acting staff)
+     * UPDATED: Shows pending acting requests from LeaveRequest directly
+     */
     public function iHeldPositionFor(Request $request)
     {
         $perPage = $this->getPerPage($request, 10);
         
-        $holdHistories = HoldPositionHistory::with(['requester', 'leaveRequest.leaveType', 'leaveRequest.documents'])
-            ->where('holder_staff_id', auth()->id())
-            ->orderBy('requested_at', 'desc')
+        // Get leave requests where this user is the acting staff and status is pending
+        $actingRequests = LeaveRequest::where('acting_staff_id', auth()->id())
+            ->where('acting_status', 'pending')
+            ->with(['staff', 'leaveType', 'staff.department', 'documents'])
+            ->orderBy('created_at', 'desc')
             ->paginate($perPage);
         
-        return view('shared.leave-requests.i-held-position-for', compact('holdHistories'));
+        // Count unresponsive ones (over 48 hours)
+        $unresponsiveCount = LeaveRequest::where('acting_staff_id', auth()->id())
+            ->where('acting_status', 'pending')
+            ->where('created_at', '<', now()->subHours(48))
+            ->count();
+        
+        // Get hold histories where user is the holder (for history/archive)
+        $holdHistories = HoldPositionHistory::with(['requester', 'leaveRequest.leaveType'])
+            ->where('holder_staff_id', auth()->id())
+            ->where('status', '!=', 'pending')
+            ->orderBy('requested_at', 'desc')
+            ->limit(10)
+            ->get();
+        
+        return view('shared.leave-requests.i-held-position-for', compact(
+            'actingRequests', 
+            'holdHistories',
+            'unresponsiveCount'
+        ));
     }
 
     /**
@@ -1098,17 +1109,14 @@ public function store(Request $request)
         ->where('current_approval_level', LeaveRequest::LEVEL_HR)
         ->findOrFail($id);
         
-        // Get staff leave history (last 12 months)
         $staffLeaveHistory = LeaveRequest::where('staff_id', $leaveRequest->staff_id)
             ->where('created_at', '>=', now()->subMonths(12))
             ->with('leaveType')
             ->orderBy('created_at', 'desc')
             ->get();
         
-        // Get leave balances
         $leaveBalances = LeaveBalance::where('staff_id', $leaveRequest->staff_id)->get();
         
-        // Get department staff on leave during same period
         $departmentStaffOnLeave = LeaveRequest::where('status', 'approved')
             ->where('staff_id', '!=', $leaveRequest->staff_id)
             ->whereHas('staff', function($q) use ($leaveRequest) {
@@ -1121,20 +1129,17 @@ public function store(Request $request)
             ->with('staff')
             ->get();
         
-        // Check for blackout periods
         $blackoutPeriod = \App\Models\BlackoutPeriod::where('start_date', '<=', $leaveRequest->end_date)
             ->where('end_date', '>=', $leaveRequest->start_date)
             ->where('status', 'active')
             ->first();
         
-        // Get acting history (staff acted for others)
         $actedForOthers = HoldPositionHistory::where('holder_staff_id', $leaveRequest->staff_id)
             ->with('leaveRequest')
             ->orderBy('created_at', 'desc')
             ->limit(5)
             ->get();
         
-        // Get hold history (others acted for staff)
         $othersActedFor = HoldPositionHistory::where('requester_staff_id', $leaveRequest->staff_id)
             ->with('holder')
             ->orderBy('created_at', 'desc')
@@ -1152,133 +1157,127 @@ public function store(Request $request)
         ));
     }
 
-  /**
- * Process HR Review
- */
-public function processHrReview(Request $request, $id)
-{
-    $leaveRequest = LeaveRequest::findOrFail($id);
-    
-    $request->validate([
-        'action' => 'required|in:approve,reject,request_info,draft',
-        'adjusted_days' => 'nullable|numeric|min:0.5|max:365',
-        'adjustment_reason' => 'nullable|string|max:255',
-        'hr_comment' => 'nullable|string|max:1000',
-        'conditions' => 'nullable|string|max:500',
-        'payment_status' => 'required|in:paid,partial,unpaid',
-        'payment_percentage' => 'required_if:payment_status,partial|nullable|numeric|min:0|max:100',
-        'payment_notes' => 'required_if:payment_status,partial,unpaid|nullable|string|max:500',
-    ]);
-    
-    DB::beginTransaction();
-    
-    try {
-        // Update payment information
-        $paymentNote = "";
-        if ($request->payment_status == 'unpaid') {
-            $paymentNote = "\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n⚠️ **PAYMENT NOTICE:** This leave is **UNPAID**.\n**Reason:** " . ($request->payment_notes ?? 'Not specified') . "\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━";
-        } elseif ($request->payment_status == 'partial') {
-            $paymentNote = "\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n⚠️ **PAYMENT NOTICE:** This leave is **PARTIALLY PAID** at {$request->payment_percentage}%.\n**Reason:** " . ($request->payment_notes ?? 'Not specified') . "\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━";
-        }
+    /**
+     * Process HR Review
+     */
+    public function processHrReview(Request $request, $id)
+    {
+        $leaveRequest = LeaveRequest::findOrFail($id);
         
-        // Update leave request with payment info
-        $leaveRequest->update([
-            'payment_status' => $request->payment_status,
-            'payment_percentage' => $request->payment_percentage ?? 100,
-            'payment_notes' => $request->payment_notes,
-            'payment_decision_at' => now(),
-            'payment_decided_by' => auth()->id(),
+        $request->validate([
+            'action' => 'required|in:approve,reject,request_info,draft',
+            'adjusted_days' => 'nullable|numeric|min:0.5|max:365',
+            'adjustment_reason' => 'nullable|string|max:255',
+            'hr_comment' => 'nullable|string|max:1000',
+            'conditions' => 'nullable|string|max:500',
+            'payment_status' => 'required|in:paid,partial,unpaid',
+            'payment_percentage' => 'required_if:payment_status,partial|nullable|numeric|min:0|max:100',
+            'payment_notes' => 'required_if:payment_status,partial,unpaid|nullable|string|max:500',
         ]);
         
-        if ($request->action == 'reject') {
+        DB::beginTransaction();
+        
+        try {
+            $paymentNote = "";
+            if ($request->payment_status == 'unpaid') {
+                $paymentNote = "\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n⚠️ **PAYMENT NOTICE:** This leave is **UNPAID**.\n**Reason:** " . ($request->payment_notes ?? 'Not specified') . "\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━";
+            } elseif ($request->payment_status == 'partial') {
+                $paymentNote = "\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n⚠️ **PAYMENT NOTICE:** This leave is **PARTIALLY PAID** at {$request->payment_percentage}%.\n**Reason:** " . ($request->payment_notes ?? 'Not specified') . "\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━";
+            }
+            
             $leaveRequest->update([
-                'status' => 'rejected',
-                'rejection_reason' => $request->hr_comment ?? 'Rejected by HR',
-                'current_approval_level' => null,
+                'payment_status' => $request->payment_status,
+                'payment_percentage' => $request->payment_percentage ?? 100,
+                'payment_notes' => $request->payment_notes,
+                'payment_decision_at' => now(),
+                'payment_decided_by' => auth()->id(),
             ]);
             
-            $message = 'Leave request rejected.';
-            
-        } elseif ($request->action == 'request_info') {
-            $leaveRequest->update([
-                'status' => 'pending',
-                'rejection_reason' => $request->hr_comment ?? 'Additional information requested by HR',
-            ]);
-            
-            \App\Models\Notification::create([
-                'user_id' => $leaveRequest->staff_id,
-                'type' => 'info_requested',
-                'title' => 'Additional Information Required',
-                'message' => 'HR has requested additional information regarding your leave request.',
-                'action_url' => route('leave-requests.show', $leaveRequest->id),
-                'action_text' => 'View Request',
-                'is_read' => false,
-            ]);
-            
-            $message = 'Additional information requested from staff.';
-            
-        } elseif ($request->action == 'draft') {
-            $message = 'HR review saved as draft.';
-            
-        } else {
-            // Approve - update days if adjusted
-            $adjustedDays = $request->adjusted_days ?? $leaveRequest->days;
-            $adjustmentReason = $request->adjustment_reason ?? null;
-            
-            if ($adjustedDays != $leaveRequest->days) {
+            if ($request->action == 'reject') {
                 $leaveRequest->update([
-                    'days' => $adjustedDays,
+                    'status' => 'rejected',
+                    'rejection_reason' => $request->hr_comment ?? 'Rejected by HR',
+                    'current_approval_level' => null,
                 ]);
+                
+                $message = 'Leave request rejected.';
+                
+            } elseif ($request->action == 'request_info') {
+                $leaveRequest->update([
+                    'status' => 'pending',
+                    'rejection_reason' => $request->hr_comment ?? 'Additional information requested by HR',
+                ]);
+                
+                \App\Models\Notification::create([
+                    'user_id' => $leaveRequest->staff_id,
+                    'type' => 'info_requested',
+                    'title' => 'Additional Information Required',
+                    'message' => 'HR has requested additional information regarding your leave request.',
+                    'action_url' => route('leave-requests.show', $leaveRequest->id),
+                    'action_text' => 'View Request',
+                    'is_read' => false,
+                ]);
+                
+                $message = 'Additional information requested from staff.';
+                
+            } elseif ($request->action == 'draft') {
+                $message = 'HR review saved as draft.';
+                
+            } else {
+                $adjustedDays = $request->adjusted_days ?? $leaveRequest->days;
+                $adjustmentReason = $request->adjustment_reason ?? null;
+                
+                if ($adjustedDays != $leaveRequest->days) {
+                    $leaveRequest->update([
+                        'days' => $adjustedDays,
+                    ]);
+                }
+                
+                $nextLevel = LeaveRequest::LEVEL_DVC;
+                $leaveRequest->update([
+                    'current_approval_level' => $nextLevel,
+                ]);
+                
+                $hrComment = $request->hr_comment;
+                if ($adjustmentReason) {
+                    $hrComment = ($hrComment ? $hrComment . "\n\n" : '') . "📅 Day Adjustment: {$leaveRequest->days} → {$adjustedDays} days. Reason: {$adjustmentReason}";
+                }
+                if ($request->conditions) {
+                    $hrComment = ($hrComment ? $hrComment . "\n\n" : '') . "📋 Conditions: " . $request->conditions;
+                }
+                $hrComment .= $paymentNote;
+                
+                ApprovalLog::create([
+                    'request_type' => 'leave',
+                    'request_id' => $leaveRequest->id,
+                    'from_role' => 'HR',
+                    'to_role' => 'DVC',
+                    'action' => 'approved',
+                    'comment' => $hrComment,
+                    'approver_staff_id' => auth()->id(),
+                    'ip_address' => $request->ip(),
+                ]);
+                
+                $this->notifyNextApprover($leaveRequest, $nextLevel);
+                
+                $message = 'Leave request approved and forwarded to DVC.';
             }
             
-            // Move to DVC level
-            $nextLevel = LeaveRequest::LEVEL_DVC;
-            $leaveRequest->update([
-                'current_approval_level' => $nextLevel,
-            ]);
+            DB::commit();
             
-            // Build HR comment with adjustment reason and payment info
-            $hrComment = $request->hr_comment;
-            if ($adjustmentReason) {
-                $hrComment = ($hrComment ? $hrComment . "\n\n" : '') . "📅 Day Adjustment: {$leaveRequest->days} → {$adjustedDays} days. Reason: {$adjustmentReason}";
+            if ($request->action == 'draft') {
+                return redirect()->back()->with('info', $message);
             }
-            if ($request->conditions) {
-                $hrComment = ($hrComment ? $hrComment . "\n\n" : '') . "📋 Conditions: " . $request->conditions;
-            }
-            $hrComment .= $paymentNote;
             
-            // Add HR comment to approval log
-            ApprovalLog::create([
-                'request_type' => 'leave',
-                'request_id' => $leaveRequest->id,
-                'from_role' => 'HR',
-                'to_role' => 'DVC',
-                'action' => 'approved',
-                'comment' => $hrComment,
-                'approver_staff_id' => auth()->id(),
-                'ip_address' => $request->ip(),
-            ]);
+            return redirect()->route('leave-requests.pending')
+                ->with('success', $message);
             
-            // Notify DVC about payment decision
-            $this->notifyNextApprover($leaveRequest, $nextLevel);
-            
-            $message = 'Leave request approved and forwarded to DVC.';
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Failed to process: ' . $e->getMessage());
         }
-        
-        DB::commit();
-        
-        if ($request->action == 'draft') {
-            return redirect()->back()->with('info', $message);
-        }
-        
-        return redirect()->route('leave-requests.pending')
-            ->with('success', $message);
-        
-    } catch (\Exception $e) {
-        DB::rollBack();
-        return redirect()->back()->with('error', 'Failed to process: ' . $e->getMessage());
     }
-}
+
     /**
      * DVC Review Page - Level 4 (DVC reviews after HR)
      */
@@ -1287,7 +1286,6 @@ public function processHrReview(Request $request, $id)
         $user = auth()->user();
         $role = $user->getRoleNames()->first();
         
-        // Allow admin, dvca, and dvc-pfa roles
         if (!in_array($role, ['admin', 'dvca', 'dvc-pfa'])) {
             abort(403, 'You do not have permission to view this page.');
         }
@@ -1302,13 +1300,11 @@ public function processHrReview(Request $request, $id)
         ->where('current_approval_level', LeaveRequest::LEVEL_DVC)
         ->findOrFail($id);
         
-        // Get HR's approval log (the one that sent it to DVC)
         $hrLog = ApprovalLog::where('request_id', $leaveRequest->id)
             ->where('from_role', 'HR')
             ->where('action', 'approved')
             ->first();
         
-        // Get staff leave history
         $staffLeaveHistory = LeaveRequest::where('staff_id', $leaveRequest->staff_id)
             ->where('created_at', '>=', now()->subMonths(12))
             ->with('leaveType')
@@ -1316,7 +1312,6 @@ public function processHrReview(Request $request, $id)
             ->limit(10)
             ->get();
         
-        // Get department staff on leave during same period
         $departmentStaffOnLeave = LeaveRequest::where('status', 'approved')
             ->where('staff_id', '!=', $leaveRequest->staff_id)
             ->whereHas('staff', function($q) use ($leaveRequest) {
@@ -1345,7 +1340,6 @@ public function processHrReview(Request $request, $id)
         $user = auth()->user();
         $role = $user->getRoleNames()->first();
         
-        // Allow admin, dvca, and dvc-pfa roles
         if (!in_array($role, ['admin', 'dvca', 'dvc-pfa'])) {
             abort(403, 'You do not have permission to perform this action.');
         }
@@ -1370,13 +1364,11 @@ public function processHrReview(Request $request, $id)
                 $message = 'Leave request rejected.';
                 
             } else {
-                // Approve - move to HR Logistics
                 $nextLevel = LeaveRequest::LEVEL_HR_LOGISTICS;
                 $leaveRequest->update([
                     'current_approval_level' => $nextLevel,
                 ]);
                 
-                // Add DVC comment to approval log
                 ApprovalLog::create([
                     'request_type' => 'leave',
                     'request_id' => $leaveRequest->id,
@@ -1388,7 +1380,6 @@ public function processHrReview(Request $request, $id)
                     'ip_address' => $request->ip(),
                 ]);
                 
-                // Notify HR Logistics
                 $this->notifyNextApprover($leaveRequest, $nextLevel);
                 
                 $message = 'Leave request approved. Forwarded to HR Logistics for final processing.';
@@ -1406,7 +1397,7 @@ public function processHrReview(Request $request, $id)
     }
 
     /**
-     * Display approval history for the logged-in approver (HOD, Dean, HR, DVC, Admin)
+     * Display approval history for the logged-in approver
      */
     public function approvalsHistory(Request $request)
     {
@@ -1414,13 +1405,11 @@ public function processHrReview(Request $request, $id)
         $user = auth()->user();
         $role = $user->getRoleNames()->first();
         
-        // Build query for approvals where user was the approver
         $query = ApprovalLog::with(['leaveRequest.staff', 'leaveRequest.leaveType'])
             ->where('approver_staff_id', $user->id)
             ->where('request_type', 'leave')
             ->orderBy('created_at', 'desc');
         
-        // Apply filters
         if ($request->has('action') && $request->action) {
             $query->where('action', $request->action);
         }
@@ -1444,33 +1433,32 @@ public function processHrReview(Request $request, $id)
         return view('shared.leave-requests.approvals-history', compact('approvals', 'stats', 'role'));
     }
 
-   /**
- * Display approval details page with letter
- */
-public function approvalDetails($id)
-{
-    $leaveRequest = LeaveRequest::with([
-        'staff', 
-        'leaveType', 
-        'actingStaff', 
-        'approvalLogs.approver',
-        'documents',
-        'letters'
-    ])->findOrFail($id);
-    
-    // Check if user is authorized to view this approval
-    $user = auth()->user();
-    $userActionRecord = ApprovalLog::where('request_id', $leaveRequest->id)
-        ->where('approver_staff_id', $user->id)
-        ->first();
-    
-    if (!$userActionRecord && !$user->hasAnyRole(['admin', 'vice-chancellor'])) {
-        abort(403, 'You are not authorized to view this approval details.');
+    /**
+     * Display approval details page with letter
+     */
+    public function approvalDetails($id)
+    {
+        $leaveRequest = LeaveRequest::with([
+            'staff', 
+            'leaveType', 
+            'actingStaff', 
+            'approvalLogs.approver',
+            'documents',
+            'letters'
+        ])->findOrFail($id);
+        
+        $user = auth()->user();
+        $userActionRecord = ApprovalLog::where('request_id', $leaveRequest->id)
+            ->where('approver_staff_id', $user->id)
+            ->first();
+        
+        if (!$userActionRecord && !$user->hasAnyRole(['admin', 'vice-chancellor'])) {
+            abort(403, 'You are not authorized to view this approval details.');
+        }
+        
+        $userAction = $userActionRecord ? ucfirst($userActionRecord->action) : 'Viewed';
+        $userActionDate = $userActionRecord ? $userActionRecord->created_at : $leaveRequest->updated_at;
+        
+        return view('shared.leave-requests.approval-details', compact('leaveRequest', 'userAction', 'userActionDate'));
     }
-    
-    $userAction = $userActionRecord ? ucfirst($userActionRecord->action) : 'Viewed';
-    $userActionDate = $userActionRecord ? $userActionRecord->created_at : $leaveRequest->updated_at;
-    
-    return view('shared.leave-requests.approval-details', compact('leaveRequest', 'userAction', 'userActionDate'));
-}
 }
