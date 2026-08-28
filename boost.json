@@ -1,0 +1,14 @@
+{
+    "agents": [
+        "cursor"
+    ],
+    "cloud": false,
+    "packages": [
+        "spatie/laravel-permission"
+    ],
+    "skills": [
+        "laravel-best-practices",
+        "tailwindcss-development",
+        "laravel-permission-development"
+    ]
+}
