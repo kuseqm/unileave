@@ -25,9 +25,9 @@
             </form>
             @endif
             @if($studentGraduation->import_review_status !== 'rejected')
-            <form action="{{ route('students.import.updates.reject', $studentGraduation->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Reject this update? Every field it changed will be restored to its previous value.');">
+            <form action="{{ route('students.import.updates.reject', $studentGraduation->id) }}" method="POST" class="d-inline">
                 @csrf
-                <button type="submit" class="btn btn-outline-danger btn-sm rounded-sm" style="font-size: 0.7rem; padding: 0.2rem 0.5rem;">
+                <button type="button" class="btn btn-outline-danger btn-sm rounded-sm" style="font-size: 0.7rem; padding: 0.2rem 0.5rem;" onclick="confirmSubmit(this, 'Reject this update? Every field it changed will be restored to its previous value.', {danger: true, title: 'Reject Update', confirmText: 'Reject'})">
                     <i class="ti ti-x me-1"></i> Reject
                 </button>
             </form>
