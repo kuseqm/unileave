@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use App\Models\School;
 use App\Models\Campus;
+use App\Models\School;
+use Illuminate\Database\Seeder;
 
 class SchoolSeeder extends Seeder
 {
@@ -14,8 +14,9 @@ class SchoolSeeder extends Seeder
         $mainCampus = Campus::where('name', 'Main Campus - Dodoma')->first();
         $kampalaCampus = Campus::where('name', 'Kampala Campus')->first();
 
-        if (!$mainCampus) {
+        if (! $mainCampus) {
             $this->command->error('Main Campus not found. Run CampusSeeder first.');
+
             return;
         }
 
@@ -25,25 +26,25 @@ class SchoolSeeder extends Seeder
                 'campus_id' => $mainCampus->id,
                 'name' => 'School of Business and Economics',
                 'code' => 'SBE',
-                'status' => 'active'
+                'status' => 'active',
             ],
             [
                 'campus_id' => $mainCampus->id,
                 'name' => 'School of Law',
                 'code' => 'LAW',
-                'status' => 'active'
+                'status' => 'active',
             ],
             [
                 'campus_id' => $mainCampus->id,
                 'name' => 'School of Science and Technology',
                 'code' => 'SST',
-                'status' => 'active'
+                'status' => 'active',
             ],
             [
                 'campus_id' => $mainCampus->id,
                 'name' => 'School of Education',
                 'code' => 'EDU',
-                'status' => 'active'
+                'status' => 'active',
             ],
         ];
 
@@ -53,7 +54,7 @@ class SchoolSeeder extends Seeder
                 'campus_id' => $kampalaCampus->id,
                 'name' => 'School of Health Sciences',
                 'code' => 'SHS',
-                'status' => 'active'
+                'status' => 'active',
             ];
         }
 
@@ -61,14 +62,14 @@ class SchoolSeeder extends Seeder
             $school = School::updateOrCreate(
                 [
                     'campus_id' => $schoolData['campus_id'],
-                    'name' => $schoolData['name']
+                    'name' => $schoolData['name'],
                 ],
                 [
                     'code' => $schoolData['code'],
-                    'status' => $schoolData['status']
+                    'status' => $schoolData['status'],
                 ]
             );
-            $this->command->info('✓ School created: ' . $school->name);
+            $this->command->info('✓ School created: '.$school->name);
         }
     }
 }

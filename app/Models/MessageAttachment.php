@@ -23,7 +23,7 @@ class MessageAttachment extends Model
 
     public function getFileUrlAttribute(): string
     {
-        return asset('storage/' . $this->file_path);
+        return asset('storage/'.$this->file_path);
     }
 
     public function getFileSizeFormattedAttribute(): string
@@ -35,6 +35,7 @@ class MessageAttachment extends Model
             $bytes /= 1024;
             $i++;
         }
-        return round($bytes, 2) . ' ' . $units[$i];
+
+        return round($bytes, 2).' '.$units[$i];
     }
 }

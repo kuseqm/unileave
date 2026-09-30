@@ -88,7 +88,7 @@
                     @if($letter->pdf_path)
                     <div class="mt-2">
                         <div class="text-muted" style="font-size: 0.6rem;">Attached Document</div>
-                        <a href="{{ asset('storage/' . $letter->pdf_path) }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-sm mt-1" style="font-size: 0.65rem; padding: 0.15rem 0.4rem;">
+                        <a href="{{ route('registry.incoming.download', $letter->id) }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-sm mt-1" style="font-size: 0.65rem; padding: 0.15rem 0.4rem;">
                             <i class="ti ti-file-pdf me-1"></i> View PDF
                         </a>
                     </div>

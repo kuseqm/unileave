@@ -18,16 +18,15 @@
     </x-page-header>
     
     @if($errors->any())
-    <div class="alert alert-danger alert-dismissible fade show py-1 px-2 mb-2 rounded-sm" style="font-size: 0.7rem;" role="alert">
-        <i class="ti ti-alert-circle me-1"></i>
-        <strong>Please fix the following errors:</strong>
+    <x-alert-danger :session="false">
+    <strong>Please fix the following errors:</strong>
         <ul class="mb-0 mt-1 ps-3">
             @foreach($errors->all() as $error)
                 <li>{{ $error }}</li>
             @endforeach
         </ul>
         <button type="button" class="btn-close py-0" style="font-size: 0.6rem;" data-bs-dismiss="alert"></button>
-    </div>
+</x-alert-danger>
     @endif
     
     <div class="row g-2">
@@ -58,6 +57,8 @@
                                     <option value="travel" {{ $format->document_type == 'travel' ? 'selected' : '' }}>Travel Permission</option>
                                     <option value="contract" {{ $format->document_type == 'contract' ? 'selected' : '' }}>Staff Contract</option>
                                     <option value="general" {{ $format->document_type == 'general' ? 'selected' : '' }}>General Correspondence</option>
+                                    <option value="graduation" {{ $format->document_type == 'graduation' ? 'selected' : '' }}>Graduation Confirmation Letter</option>
+                                    <option value="verification" {{ $format->document_type == 'verification' ? 'selected' : '' }}>Certificate / Transcript Verification Letter</option>
                                 </select>
                             </div>
                         </div>
@@ -178,6 +179,11 @@
                                 <small class="text-muted" style="font-size: 0.55rem;">0 = unlimited, otherwise creates new file when reached</small>
                             </div>
                             <div class="col-md-6">
+                                <label class="form-label" style="font-size: 0.65rem;">Starting Volume</label>
+                                <input type="number" min="1" name="volume_start" class="form-control form-control-sm rounded-sm" value="{{ old('volume_start', $format->volume_start ?? 1) }}" style="font-size: 0.7rem;">
+                                <small class="text-muted" style="font-size: 0.55rem;">For {volume} numbering: the volume the file is on now (4 = VOL IV)</small>
+                            </div>
+                            <div class="col-md-6">
                                 <label class="form-label" style="font-size: 0.65rem;">File Naming Pattern</label>
                                 <input type="text" name="file_naming_pattern" class="form-control form-control-sm rounded-sm" value="{{ old('file_naming_pattern', $format->file_naming_pattern) }}" style="font-size: 0.7rem;">
                                 <small class="text-muted" style="font-size: 0.55rem;">Placeholders: {prefix}, {number:03d}</small>
@@ -226,8 +232,8 @@
                     <span style="font-weight: 600;">Format Pattern Guide</span>
                 </div>
                 <div class="card-body py-2 px-2">
-                    <div class="alert alert-light border mb-2 py-1 px-2 rounded-sm">
-                        <strong class="d-block mb-1" style="font-size: 0.7rem;">Available Placeholders:</strong>
+                    <x-alert-secondary>
+    <strong class="d-block mb-1" style="font-size: 0.7rem;">Available Placeholders:</strong>
                         <ul class="mb-0" style="font-size: 0.65rem;">
                             <li><code>{university_code}</code> - University code (e.g., SJUT, MU, UDSM)</li>
                             <li><code>{entity_code}</code> - Department/School code (e.g., SVAC, COMPSCI)</li>
@@ -238,13 +244,15 @@
                             <li><code>{volume}</code> - Volume number (VOL I, VOL II)</li>
                             <li><code>{action_type}</code> - Action type (APR, REJ, CAN)</li>
                         </ul>
-                    </div>
+</x-alert-secondary>
                     
-                    <div class="alert alert-light border mb-0 py-1 px-2 rounded-sm">
+                    <x-alert-light class="mb-0 py-1 px-2 rounded-sm">
+
                         <strong class="d-block mb-1" style="font-size: 0.7rem;">Example:</strong>
                         <code class="small">{university_code}/{entity_code}/{year}/{type_code}/VOL {volume}/{serial}</code>
                         <div class="text-muted mt-1 small">→ SJUT/SVAC/2026/013/VOL I/0001</div>
-                    </div>
+                    
+</x-alert-light>
                 </div>
             </div>
             
@@ -254,23 +262,23 @@
                     <span style="font-weight: 600;">Usage Statistics</span>
                 </div>
                 <div class="card-body py-2 px-2">
-                    <div class="alert alert-light border mb-2 py-1 px-2 rounded-sm">
-                        <strong class="d-block" style="font-size: 0.7rem;">Total Letters Generated:</strong>
+                    <x-alert-secondary>
+    <strong class="d-block" style="font-size: 0.7rem;">Total Letters Generated:</strong>
                         <span class="fs-4 fw-bold text-primary">{{ number_format($format->current_serial) }}</span>
-                    </div>
-                    <div class="alert alert-light border mb-2 py-1 px-2 rounded-sm">
-                        <strong class="d-block" style="font-size: 0.7rem;">Active File:</strong>
+</x-alert-secondary>
+                    <x-alert-secondary>
+    <strong class="d-block" style="font-size: 0.7rem;">Active File:</strong>
                         @if($format->activeFile)
                             <span>{{ $format->activeFile->file_number }}</span>
                             <span class="text-muted">({{ number_format($format->activeFile->current_serial) }} / {{ $format->file_capacity == 0 ? '∞' : number_format($format->file_capacity) }})</span>
                         @else
                             <span class="text-muted">No active file</span>
                         @endif
-                    </div>
-                    <div class="alert alert-light border mb-0 py-1 px-2 rounded-sm">
-                        <strong class="d-block" style="font-size: 0.7rem;">Total Files:</strong>
+</x-alert-secondary>
+                    <x-alert-secondary>
+    <strong class="d-block" style="font-size: 0.7rem;">Total Files:</strong>
                         <span>{{ number_format($format->letterFiles->count()) }}</span>
-                    </div>
+</x-alert-secondary>
                 </div>
             </div>
         </div>

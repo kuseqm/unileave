@@ -101,36 +101,15 @@
         </div>
         
         <!-- Stats Row -->
+        @php
+            $trustColor = $trustScore >= 80 ? 'success' : ($trustScore >= 50 ? 'warning' : 'danger');
+            $complianceColor = $complianceScore >= 80 ? 'success' : 'warning';
+        @endphp
         <div class="row g-2 mb-3">
-            <div class="col-md-3">
-                <div class="p-2 bg-light rounded-sm text-center">
-                    <div class="text-muted" style="font-size: 0.6rem;">Total Leave Taken (12m)</div>
-                    <div class="fw-semibold" style="font-size: 1rem;">{{ $leaveHistory->where('status', 'approved')->sum('days') }} days</div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="p-2 bg-light rounded-sm text-center">
-                    <div class="text-muted" style="font-size: 0.6rem;">Current Balance</div>
-                    <div class="fw-semibold" style="font-size: 1rem;">{{ number_format($leaveBalances->sum('balance'), 1) }} days</div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="p-2 bg-light rounded-sm text-center">
-                    <div class="text-muted" style="font-size: 0.6rem;">Trust Score</div>
-                    <div class="fw-semibold" style="font-size: 1rem; color: {{ $trustScore >= 80 ? '#10B981' : ($trustScore >= 50 ? '#F59E0B' : '#EF4444') }}">
-                        {{ $trustScore }}%
-                    </div>
-                    <div class="text-muted" style="font-size: 0.55rem;">Based on {{ $acceptedCount + $declinedCount }} acting requests</div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="p-2 bg-light rounded-sm text-center">
-                    <div class="text-muted" style="font-size: 0.6rem;">Compliance Rate</div>
-                    <div class="fw-semibold" style="font-size: 1rem; color: {{ $complianceScore >= 80 ? '#10B981' : '#F59E0B' }}">
-                        {{ $complianceScore }}%
-                    </div>
-                </div>
-            </div>
+            <x-stats-card value="{{ $leaveHistory->where('status', 'approved')->sum('days') }} days" label="Total Leave Taken (12m)" />
+            <x-stats-card value="{{ number_format($leaveBalances->sum('balance'), 1) }} days" label="Current Balance" />
+            <x-stats-card value="{{ $trustScore }}%" label="Trust Score" subtext="based on {{ $acceptedCount + $declinedCount }} acting requests" :color="$trustColor" />
+            <x-stats-card value="{{ $complianceScore }}%" label="Compliance Rate" :color="$complianceColor" />
         </div>
         
         <!-- Leave History Table -->

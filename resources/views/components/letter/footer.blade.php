@@ -1,51 +1,19 @@
 @props([
-    'verificationCode' => null, 
-    'verificationUrl' => null,
-    'printedAt' => null,
-    'pageNumber' => null,
-    'totalPages' => null
+    'correspondenceNote' => 'All correspondence should be addressed to the Vice Chancellor',
 ])
 
-<div class="letter-footer" style="font-family: 'Times New Roman', Times, serif; margin-top: 25px; border-top: 1px solid #ccc; padding-top: 8px;">
-    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 15px;">
-        
-        <!-- Left Side: Text Information -->
-        <div style="flex: 2;">
-            <p style="margin: 0; font-size: 7.5pt; color: #555;">
-                <!--This is a computer-generated letter. No physical signature is required.-->
-            </p>
-            @if($verificationUrl)
-            <p style="margin: 4px 0 0 0; font-size: 7pt;">
-                <i class="ti ti-shield-check"></i> 
-                Verify authenticity: 
-                <a href="{{ $verificationUrl }}" style="color: #2e7d32; text-decoration: none;" target="_blank">
-                    {{ $verificationUrl }}
-                </a>
-            </p>
-            @endif
-            @if($printedAt)
-            <p style="margin: 4px 0 0 0; font-size: 6.5pt; color: #999;">
-                <i class="ti ti-printer"></i> 
-                Printed on: {{ \Carbon\Carbon::parse($printedAt)->format('d M Y H:i:s') }}
-            </p>
-            @endif
-        </div>
-        
-        <!-- Right Side: QR Code -->
-        @if($verificationCode)
-        <div style="flex-shrink: 0; text-align: center;">
-            {!! \SimpleSoftwareIO\QrCode\Facades\QrCode::size(55)->generate($verificationUrl ?? $verificationCode) !!}
-            <p style="margin: 2px 0 0 0; font-size: 6pt; color: #888;">Scan to verify</p>
-        </div>
-        @endif
-        
-    </div>
-    
-    <!-- Page Number (if provided) -->
-    @if($pageNumber)
-    <div style="text-align: center; margin-top: 5px; font-size: 7pt; color: #999;">
-        Page {{ $pageNumber }} @if($totalPages) of {{ $totalPages }} @endif
-    </div>
-    @endif
-    
+{{-- The verification QR/link used to live here too, but DomPDF would not
+     reliably render an <img> inside this position:fixed band (see the
+     .footer-section wrapper in each letter template) once the header's own
+     table+image existed earlier on the page - it vanished from the real
+     PDF while looking fine on screen. That block now lives in normal
+     document flow instead - see verification-block.blade.php, placed
+     right after the signature in each letter template. This footer stays
+     text-only, which DomPDF has never had trouble with here. --}}
+@if($correspondenceNote)
+<div class="letter-footer" style="font-family: Arial, Helvetica, sans-serif; margin-top: 6px; border-top: 2px solid #C030FC; padding-top: 4px;">
+    <p style="margin: 0; text-align: center; font-style: italic; font-size: 8pt; color: #183C90;">
+        {{ $correspondenceNote }}
+    </p>
 </div>
+@endif

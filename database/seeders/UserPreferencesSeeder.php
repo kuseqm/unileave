@@ -2,9 +2,8 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\Setting;
-use App\Models\User;
+use Illuminate\Database\Seeder;
 
 class UserPreferencesSeeder extends Seeder
 {
@@ -13,7 +12,7 @@ class UserPreferencesSeeder extends Seeder
         // ============================================
         // DEFAULT PREFERENCES (For all users)
         // ============================================
-        
+
         $defaultPreferences = [
             // Display Preferences
             [
@@ -64,7 +63,7 @@ class UserPreferencesSeeder extends Seeder
                 'options' => json_encode(['0' => 'Sunday', '1' => 'Monday', '6' => 'Saturday']),
                 'sort_order' => 5,
             ],
-            
+
             // Date & Time Preferences
             [
                 'key' => 'date_format',
@@ -78,7 +77,7 @@ class UserPreferencesSeeder extends Seeder
                     'Y-m-d' => '2024-01-15',
                     'm/d/Y' => '01/15/2024',
                     'd/m/Y' => '15/01/2024',
-                    'M d, Y' => 'Jan 15, 2024'
+                    'M d, Y' => 'Jan 15, 2024',
                 ]),
                 'sort_order' => 10,
             ],
@@ -103,7 +102,7 @@ class UserPreferencesSeeder extends Seeder
                     'Africa/Dar_es_Salaam' => 'Dar es Salaam (EAT)',
                     'Africa/Nairobi' => 'Nairobi (EAT)',
                     'Africa/Kampala' => 'Kampala (EAT)',
-                    'UTC' => 'UTC'
+                    'UTC' => 'UTC',
                 ]),
                 'sort_order' => 12,
             ],
@@ -117,7 +116,7 @@ class UserPreferencesSeeder extends Seeder
                 'options' => json_encode(['en' => 'English', 'sw' => 'Swahili']),
                 'sort_order' => 13,
             ],
-            
+
             // Notification Preferences
             [
                 'key' => 'email_notifications',
@@ -184,7 +183,7 @@ class UserPreferencesSeeder extends Seeder
                 'description' => 'Receive notification when your request is rejected',
                 'sort_order' => 26,
             ],
-            
+
             // Theme & Appearance
             [
                 'key' => 'theme_mode',
@@ -223,7 +222,7 @@ class UserPreferencesSeeder extends Seeder
                 'description' => 'Enable UI animations and transitions',
                 'sort_order' => 33,
             ],
-            
+
             // Report Preferences
             [
                 'key' => 'default_report_type',
@@ -262,7 +261,7 @@ class UserPreferencesSeeder extends Seeder
                 'description' => 'Include applied filters in exported reports',
                 'sort_order' => 43,
             ],
-            
+
             // Accessibility
             [
                 'key' => 'high_contrast_mode',
@@ -291,7 +290,7 @@ class UserPreferencesSeeder extends Seeder
                 'description' => 'Minimize animations and motion effects',
                 'sort_order' => 52,
             ],
-            
+
             // Workflow Preferences
             [
                 'key' => 'default_view',
@@ -303,7 +302,7 @@ class UserPreferencesSeeder extends Seeder
                 'options' => json_encode([
                     'dashboard' => 'Dashboard',
                     'leave-requests.my-requests' => 'My Leave Requests',
-                    'staff.index' => 'Staff Directory'
+                    'staff.index' => 'Staff Directory',
                 ]),
                 'sort_order' => 60,
             ],
@@ -325,7 +324,7 @@ class UserPreferencesSeeder extends Seeder
                 'description' => 'Show confirmation dialog before submitting leave',
                 'sort_order' => 62,
             ],
-            
+
             // Security
             [
                 'key' => 'session_timeout_warning',
@@ -346,7 +345,7 @@ class UserPreferencesSeeder extends Seeder
                 'sort_order' => 71,
             ],
         ];
-        
+
         // Seed default preferences (global templates) - WITHOUT tenant_id
         foreach ($defaultPreferences as $pref) {
             Setting::updateOrCreate(
@@ -358,12 +357,12 @@ class UserPreferencesSeeder extends Seeder
                 $pref
             );
         }
-        
-        $this->command->info('Default preferences seeded: ' . count($defaultPreferences) . ' preferences');
-        
+
+        $this->command->info('Default preferences seeded: '.count($defaultPreferences).' preferences');
+
         $this->command->newLine();
         $this->command->info('=== PREFERENCES SUMMARY ===');
-        $this->command->line('Total preference definitions: ' . Setting::whereNull('user_id')->whereNull('role')->count());
-        $this->command->line('Total user-specific settings: ' . Setting::whereNotNull('user_id')->count());
+        $this->command->line('Total preference definitions: '.Setting::whereNull('user_id')->whereNull('role')->count());
+        $this->command->line('Total user-specific settings: '.Setting::whereNotNull('user_id')->count());
     }
 }

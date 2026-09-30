@@ -18,16 +18,15 @@
     </x-page-header>
     
     @if($errors->any())
-    <div class="alert alert-danger alert-dismissible fade show py-1 px-2 mb-2 rounded-sm" style="font-size: 0.7rem;" role="alert">
-        <i class="ti ti-alert-circle me-1"></i>
-        <strong>Please fix the following errors:</strong>
+    <x-alert-danger :session="false">
+    <strong>Please fix the following errors:</strong>
         <ul class="mb-0 mt-1 ps-3">
             @foreach($errors->all() as $error)
                 <li>{{ $error }}</li>
             @endforeach
         </ul>
         <button type="button" class="btn-close py-0" style="font-size: 0.6rem;" data-bs-dismiss="alert"></button>
-    </div>
+</x-alert-danger>
     @endif
     
     <div class="row g-2">
@@ -56,6 +55,8 @@
                                     <option value="travel">Travel Permission</option>
                                     <option value="contract">Staff Contract</option>
                                     <option value="general">General Correspondence</option>
+                                    <option value="graduation">Graduation Confirmation Letter</option>
+                                    <option value="verification">Certificate / Transcript Verification Letter</option>
                                 </select>
                             </div>
                         </div>
@@ -161,6 +162,11 @@
                                 <small class="text-muted" style="font-size: 0.55rem;">0 = unlimited, otherwise creates new file when reached</small>
                             </div>
                             <div class="col-md-6">
+                                <label class="form-label" style="font-size: 0.65rem;">Starting Volume</label>
+                                <input type="number" min="1" name="volume_start" class="form-control form-control-sm rounded-sm" value="{{ old('volume_start', 1) }}" style="font-size: 0.7rem;">
+                                <small class="text-muted" style="font-size: 0.55rem;">For {volume} numbering: the volume the file is on now (4 = VOL IV)</small>
+                            </div>
+                            <div class="col-md-6">
                                 <label class="form-label" style="font-size: 0.65rem;">File Naming Pattern</label>
                                 <input type="text" name="file_naming_pattern" class="form-control form-control-sm rounded-sm" value="{{ old('file_naming_pattern', '{prefix}-VOL-{number:03d}') }}" style="font-size: 0.7rem;">
                                 <small class="text-muted" style="font-size: 0.55rem;">Placeholders: {prefix}, {number:03d}</small>
@@ -210,8 +216,8 @@
                     <span style="font-weight: 600;">Format Pattern Guide</span>
                 </div>
                 <div class="card-body py-2 px-2">
-                    <div class="alert alert-light border mb-2 py-1 px-2 rounded-sm">
-                        <strong class="d-block mb-1" style="font-size: 0.7rem;">Available Placeholders:</strong>
+                    <x-alert-secondary>
+    <strong class="d-block mb-1" style="font-size: 0.7rem;">Available Placeholders:</strong>
                         <ul class="mb-0" style="font-size: 0.65rem;">
                             <li><code>{university_code}</code> - University code (e.g., SJUT, MU, UDSM)</li>
                             <li><code>{entity_code}</code> - Department/School code (e.g., SVAC, COMPSCI, ENG)</li>
@@ -223,10 +229,10 @@
                             <li><code>{action_type}</code> - Action type (APR, REJ, CAN, RCL)</li>
                             <li><code>{prefix}</code> - Alias for {university_code}</li>
                         </ul>
-                    </div>
+</x-alert-secondary>
                     
-                    <div class="alert alert-light border mb-2 py-1 px-2 rounded-sm">
-                        <strong class="d-block mb-1" style="font-size: 0.7rem;">Example Patterns:</strong>
+                    <x-alert-secondary>
+    <strong class="d-block mb-1" style="font-size: 0.7rem;">Example Patterns:</strong>
                         <ul class="mb-0" style="font-size: 0.65rem;">
                             <li><code>{university_code}/{entity_code}/{year}/{type_code}/VOL {volume}/{serial}</code><br>
                                 → <span class="text-muted">SJUT/SVAC/2026/013/VOL I/0001</span></li>
@@ -237,10 +243,10 @@
                             <li><code>HR/{year}/{serial}</code><br>
                                 → <span class="text-muted">HR/2026/0001</span></li>
                         </ul>
-                    </div>
+</x-alert-secondary>
                     
-                    <div class="alert alert-light border mb-0 py-1 px-2 rounded-sm">
-                        <strong class="d-block mb-1" style="font-size: 0.7rem;">Document Type Codes:</strong>
+                    <x-alert-secondary>
+    <strong class="d-block mb-1" style="font-size: 0.7rem;">Document Type Codes:</strong>
                         <ul class="mb-0" style="font-size: 0.65rem;">
                             <li><strong>Leave</strong> - Type: <code>LVE</code> | Code: <code>013</code></li>
                             <li><strong>Permission</strong> - Type: <code>PER</code> | Code: <code>014</code></li>
@@ -248,7 +254,7 @@
                             <li><strong>Contract</strong> - Type: <code>CTR</code> | Code: <code>016</code></li>
                             <li><strong>General</strong> - Type: <code>GEN</code> | Code: <code>017</code></li>
                         </ul>
-                    </div>
+</x-alert-secondary>
                 </div>
             </div>
         </div>

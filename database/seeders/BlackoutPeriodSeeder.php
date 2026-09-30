@@ -1,14 +1,15 @@
 <?php
+
 // database/seeders/BlackoutPeriodSeeder.php
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
-use App\Models\University;
-use App\Models\User;
 use App\Models\Department;
 use App\Models\LeaveType;
+use App\Models\University;
+use App\Models\User;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class BlackoutPeriodSeeder extends Seeder
 {
@@ -16,15 +17,17 @@ class BlackoutPeriodSeeder extends Seeder
     {
         // Find university
         $university = University::first();
-        if (!$university) {
+        if (! $university) {
             $this->command->error('No university found. Run UniversitySeeder first.');
+
             return;
         }
 
         // Find admin user
         $admin = User::where('email', 'admin@smut.ac.tz')->first();
-        if (!$admin) {
+        if (! $admin) {
             $this->command->error('No admin found. Run StaffSeeder first.');
+
             return;
         }
 

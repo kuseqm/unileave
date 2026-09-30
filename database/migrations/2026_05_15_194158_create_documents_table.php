@@ -26,7 +26,7 @@ return new class extends Migration
             $table->enum('verification_status', ['pending', 'verified', 'rejected'])->default('pending');
             $table->text('rejection_reason')->nullable();
             $table->timestamps();
-            
+
             $table->index('leave_request_id');
             $table->index('user_id');
             $table->index('verification_status');

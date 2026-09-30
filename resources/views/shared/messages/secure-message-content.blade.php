@@ -33,13 +33,12 @@
                 
                 <div class="card-body p-4">
                     <!-- Access Notice -->
-                    <div class="alert alert-info small mb-3">
-                        <i class="ti ti-shield me-1"></i>
-                        <strong>Authorized Access</strong> - You are viewing this message with special authorization.
+                    <x-alert-info>
+    <strong>Authorized Access</strong> - You are viewing this message with special authorization.
                         @if(isset($accessRequest) && $accessRequest)
                             <br>Access granted via one-time code on {{ $accessRequest->viewed_at ? $accessRequest->viewed_at->format('d M Y, H:i:s') : 'recently' }}.
                         @endif
-                    </div>
+</x-alert-info>
 
                     <!-- Message Header -->
                     <div class="border-bottom pb-2 mb-3">
@@ -87,7 +86,7 @@
                             <ul class="mt-1">
                                 @foreach($message->attachments as $attachment)
                                     <li>
-                                        <a href="{{ Storage::url($attachment->file_path) }}" target="_blank">
+                                        <a href="{{ route('messages.attachments.download', $attachment->id) }}" target="_blank">
                                             {{ $attachment->file_name }}
                                         </a>
                                         <span class="text-muted">({{ number_format($attachment->file_size / 1024, 2) }} KB)</span>
@@ -98,10 +97,9 @@
                     @endif
 
                     <!-- Security Notice -->
-                    <div class="alert alert-warning small mt-3">
-                        <i class="ti ti-alert-triangle me-1"></i>
-                        <strong>Security Notice:</strong> This access has been logged for audit purposes. Any unauthorized sharing of this content is prohibited.
-                    </div>
+                    <x-alert-warning>
+    <strong>Security Notice:</strong> This access has been logged for audit purposes. Any unauthorized sharing of this content is prohibited.
+</x-alert-warning>
                 </div>
             </div>
         </div>
@@ -126,11 +124,10 @@
                         <p class="text-muted small mt-1 mb-0">This access has been recorded in the audit log for compliance purposes.</p>
                     </div>
                     
-                    <div class="alert alert-secondary small py-2 px-2 mb-0">
-                        <i class="ti ti-lock me-1"></i>
-                        <strong>Need to request access?</strong>
+                    <x-alert-secondary>
+    <strong>Need to request access?</strong>
                         <p class="mb-0 mt-1">HR officers can request access via the <a href="{{ route('messages.metadata', $message->id) }}">Metadata page</a>.</p>
-                    </div>
+</x-alert-secondary>
                 </div>
             </div>
         </div>

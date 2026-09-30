@@ -16,7 +16,7 @@ class Letter extends Model
         // Polymorphic
         'letterable_type',
         'letterable_id',
-        
+
         // Reference & Tracking
         'letter_number',
         'secure_code',
@@ -25,21 +25,21 @@ class Letter extends Model
         'raw_content',
         'auto_number_paragraphs',
         'type',
-        
+
         // Sender & Recipient
         'sender_id',
         'recipient_id',
-        
+
         // Reference Fields
         'your_ref',
         'our_ref_format_id',
-        
+
         // Metadata
         'generated_by',
         'generated_by_role',
         'signatories',
         'cc_recipients',
-        
+
         // Status & Tracking
         'stage',
         'is_printed',
@@ -47,47 +47,47 @@ class Letter extends Model
         'pdf_path',
         'pdf_size',
         'submitted_at',
-        
+
         // Verification
         'verified_at',
         'verified_by',
         'verification_ip',
-        
+
         // File Management
         'file_number',
         'physical_location',
-        
+
         // HOD Approval
         'hod_approved_at',
         'hod_approved_by',
         'hod_ip_address',
         'hod_user_agent',
-        
+
         // Dean Approval
         'dean_approved_at',
         'dean_approved_by',
         'dean_ip_address',
         'dean_user_agent',
-        
+
         // DVC Approval
         'dvc_approved_at',
         'dvc_approved_by',
         'dvc_ip_address',
         'dvc_user_agent',
-        
+
         // VC Signature
         'vc_signed_at',
         'vc_signed_by',
         'vc_ip_address',
         'vc_user_agent',
-        
+
         // Document Security
         'document_hash',
         'is_revoked',
         'revoked_at',
         'revoked_by',
         'revoked_reason',
-        
+
         // Signature Info
         'signatory',
         'signatory_title',
@@ -96,10 +96,10 @@ class Letter extends Model
         'approver_role',
         'signed_at',
         'signed_by',
-        
+
         // Approval Comments
         'approval_comments',
-        
+
         // Additional
         'metadata',
     ];
@@ -204,6 +204,7 @@ class Letter extends Model
         if ($this->secure_code) {
             return route('verify.letter', $this->secure_code);
         }
+
         return null;
     }
 
@@ -212,7 +213,7 @@ class Letter extends Model
      */
     public function getIsVerifiedAttribute()
     {
-        return !is_null($this->verified_at);
+        return ! is_null($this->verified_at);
     }
 
     /**
@@ -233,7 +234,7 @@ class Letter extends Model
             'offer' => 'Offer Letter',
             'contract' => 'Contract Letter',
         ];
-        
+
         return $labels[$this->type] ?? ucfirst($this->type);
     }
 
@@ -252,7 +253,7 @@ class Letter extends Model
             'rejected' => 'Rejected',
             'revoked' => 'Revoked',
         ];
-        
+
         return $labels[$this->stage] ?? ucfirst($this->stage);
     }
 
@@ -261,10 +262,19 @@ class Letter extends Model
      */
     public function getCurrentApprovalLevelAttribute()
     {
-        if (!$this->hod_approved_at) return 'hod';
-        if (!$this->dean_approved_at) return 'dean';
-        if (!$this->dvc_approved_at) return 'dvc';
-        if (!$this->vc_signed_at) return 'vc';
+        if (! $this->hod_approved_at) {
+            return 'hod';
+        }
+        if (! $this->dean_approved_at) {
+            return 'dean';
+        }
+        if (! $this->dvc_approved_at) {
+            return 'dvc';
+        }
+        if (! $this->vc_signed_at) {
+            return 'vc';
+        }
+
         return 'completed';
     }
 
@@ -281,6 +291,7 @@ class Letter extends Model
             'vc' => 'Vice Chancellor',
             'completed' => 'Completed',
         ];
+
         return $roles[$level] ?? 'Unknown';
     }
 
@@ -290,10 +301,19 @@ class Letter extends Model
     public function getApprovalProgressAttribute()
     {
         $progress = 0;
-        if ($this->hod_approved_at) $progress += 25;
-        if ($this->dean_approved_at) $progress += 25;
-        if ($this->dvc_approved_at) $progress += 25;
-        if ($this->vc_signed_at) $progress += 25;
+        if ($this->hod_approved_at) {
+            $progress += 25;
+        }
+        if ($this->dean_approved_at) {
+            $progress += 25;
+        }
+        if ($this->dvc_approved_at) {
+            $progress += 25;
+        }
+        if ($this->vc_signed_at) {
+            $progress += 25;
+        }
+
         return $progress;
     }
 
@@ -302,16 +322,16 @@ class Letter extends Model
      */
     public function getIsTamperedAttribute()
     {
-        if (!$this->document_hash || !$this->vc_signed_at) {
+        if (! $this->document_hash || ! $this->vc_signed_at) {
             return false;
         }
-        
-        $currentHash = hash('sha256', 
-            $this->content . 
-            $this->letter_number . 
+
+        $currentHash = hash('sha256',
+            $this->content.
+            $this->letter_number.
             $this->vc_signed_at->toDateTimeString()
         );
-        
+
         return $currentHash !== $this->document_hash;
     }
 
@@ -449,34 +469,56 @@ class Letter extends Model
      */
     public function generateDocumentHash()
     {
-        $hash = hash('sha256', 
-            $this->content . 
-            $this->letter_number . 
+        $hash = hash('sha256',
+            $this->content.
+            $this->letter_number.
             ($this->vc_signed_at ?? now())->toDateTimeString()
         );
-        
+
         $this->update(['document_hash' => $hash]);
+
         return $hash;
     }
 
     /**
-     * Check if user can approve this letter at current level
+     * Check if user can approve/sign this letter at its current level.
+     * Single source of truth for both the approve/sign actions and the
+     * pending-approval/pending-signature listing queries - keeping both in
+     * sync so a letter never appears in a queue nobody is actually allowed
+     * to act on, and never grants approval to someone the queue wouldn't
+     * have shown it to.
      */
-    public function canUserApprove($user)
+    public function canUserApprove($user): bool
     {
+        // A letter without a single staff recipient (custom text recipient,
+        // or sent to multiple people) doesn't go through this per-person
+        // chain at all.
+        if ($this->use_custom_recipient || $this->has_multiple_recipients || ! $this->recipient_id) {
+            return false;
+        }
+
+        // Nobody approves or signs their own letter, at any level - even a
+        // Dean/DVC/VC who is also, incidentally, the letter's recipient.
+        if ($this->recipient_id === $user->id) {
+            return false;
+        }
+
+        $recipient = $this->recipient;
         $role = $user->getRoleNames()->first();
         $currentLevel = $this->current_approval_level;
-        
+
         switch ($currentLevel) {
             case 'hod':
-                return $role === 'hod' && $user->department_id === $this->recipient->department_id;
+                return $role === 'hod' && $user->department_id === $recipient->department_id;
             case 'dean':
-                return $role === 'dean';
+                return $role === 'dean'
+                    && ($recipient->department->school->dean_staff_id ?? null) === $user->id;
             case 'dvc':
-                $expectedRole = $this->recipient->staff_category === 'academic' ? 'dvca' : 'dvc-pfa';
-                return $role === $expectedRole;
+                $expectedRole = $recipient->staff_category === 'academic' ? 'dvca' : 'dvc-pfa';
+
+                return $role === $expectedRole && $recipient->university_id === $user->university_id;
             case 'vc':
-                return $role === 'vice-chancellor';
+                return $role === 'vice-chancellor' && $recipient->university_id === $user->university_id;
             default:
                 return false;
         }
@@ -488,7 +530,7 @@ class Letter extends Model
     public function getApprovalTimelineAttribute()
     {
         $timeline = [];
-        
+
         if ($this->hod_approved_at) {
             $timeline[] = [
                 'level' => 'HOD',
@@ -497,7 +539,7 @@ class Letter extends Model
                 'ip' => $this->hod_ip_address,
             ];
         }
-        
+
         if ($this->dean_approved_at) {
             $timeline[] = [
                 'level' => 'Dean',
@@ -506,7 +548,7 @@ class Letter extends Model
                 'ip' => $this->dean_ip_address,
             ];
         }
-        
+
         if ($this->dvc_approved_at) {
             $timeline[] = [
                 'level' => 'DVC',
@@ -515,7 +557,7 @@ class Letter extends Model
                 'ip' => $this->dvc_ip_address,
             ];
         }
-        
+
         if ($this->vc_signed_at) {
             $timeline[] = [
                 'level' => 'Vice Chancellor',
@@ -524,7 +566,7 @@ class Letter extends Model
                 'ip' => $this->vc_ip_address,
             ];
         }
-        
+
         return $timeline;
     }
 
@@ -535,6 +577,7 @@ class Letter extends Model
     {
         $random = strtoupper(substr(md5(uniqid()), 0, 8));
         $serial = str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
-        return $random . $serial;
+
+        return $random.$serial;
     }
 }

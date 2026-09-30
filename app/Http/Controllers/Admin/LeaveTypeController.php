@@ -17,20 +17,20 @@ class LeaveTypeController extends Controller
     public function index(Request $request)  // ADD $request parameter
     {
         $perPage = $this->getPerPage($request, 15);  // ADD THIS
-        
+
         $leaveTypes = LeaveType::orderBy('sort_order')
             ->orderBy('name')
             ->paginate($perPage);  // CHANGE: paginate(15) to paginate($perPage)
-        
+
         $totalLeaveTypes = LeaveType::count();
         $activeLeaveTypes = LeaveType::where('status', 'active')->count();
         $certificateRequired = LeaveType::where('requires_certificate', true)->count();
         $deductBalance = LeaveType::where('deduct_balance', true)->count();
         $inactiveLeaveTypes = LeaveType::where('status', 'inactive')->count();  // ADD THIS for stats card
         $newThisMonth = LeaveType::whereMonth('created_at', now()->month)->count();  // ADD THIS for stats card
-        
+
         return view('admin.leave-types.index', compact(
-            'leaveTypes', 'totalLeaveTypes', 'activeLeaveTypes', 
+            'leaveTypes', 'totalLeaveTypes', 'activeLeaveTypes',
             'certificateRequired', 'deductBalance', 'inactiveLeaveTypes', 'newThisMonth'  // ADD new variables
         ));
     }
@@ -83,7 +83,7 @@ class LeaveTypeController extends Controller
     {
         $leaveType = LeaveType::with(['leaveRequests.staff', 'leaveRequests.leaveType'])
             ->findOrFail($id);
-        
+
         return view('admin.leave-types.show', compact('leaveType'));
     }
 
@@ -93,6 +93,7 @@ class LeaveTypeController extends Controller
     public function edit($id)
     {
         $leaveType = LeaveType::findOrFail($id);
+
         return view('admin.leave-types.edit', compact('leaveType'));
     }
 
@@ -104,7 +105,7 @@ class LeaveTypeController extends Controller
         $leaveType = LeaveType::findOrFail($id);
 
         $request->validate([
-            'code' => 'required|string|max:10|unique:leave_types,code,' . $id,
+            'code' => 'required|string|max:10|unique:leave_types,code,'.$id,
             'name' => 'required|string|max:100',
             'requires_certificate' => 'boolean',
             'requires_letter' => 'boolean',
@@ -135,15 +136,15 @@ class LeaveTypeController extends Controller
     public function destroy($id)
     {
         $leaveType = LeaveType::findOrFail($id);
-        
+
         // Check if leave type is used in any requests
         if ($leaveType->leaveRequests()->count() > 0) {
             return redirect()->route('admin.leave-types.index')
                 ->with('error', 'Cannot delete leave type that has existing requests.');
         }
-        
+
         $leaveType->delete();
-        
+
         return redirect()->route('admin.leave-types.index')
             ->with('success', "Leave type '{$leaveType->name}' deleted successfully.");
     }

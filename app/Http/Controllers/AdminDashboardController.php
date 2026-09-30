@@ -2,18 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
 use App\Models\LeaveRequest;
-use Illuminate\Http\Request;
+use App\Models\User;
 
 class AdminDashboardController extends Controller
 {
     public function getStats()
     {
-        if (!auth()->user()->hasRole('admin')) {
+        if (! auth()->user()->hasRole('admin')) {
             return response()->json(['error' => 'Access denied'], 403);
         }
-        
+
         return response()->json([
             'total_staff' => User::count(),
             'pending_leave' => LeaveRequest::where('status', 'pending')->count(),

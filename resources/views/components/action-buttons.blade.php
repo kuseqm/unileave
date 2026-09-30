@@ -2,6 +2,7 @@
     'viewRoute' => null,
     'editRoute' => null,
     'deleteRoute' => null,
+    'deleteType' => null,
     'cancelRoute' => null,
     'cancelId' => null,
     'cancelName' => null,
@@ -32,7 +33,7 @@
     @endif
     
     @if($showDelete && $deleteRoute)
-    <button type="button" class="btn btn-sm btn-outline-danger rounded-sm" onclick="showDeleteModal('{{ $deleteId }}', '{{ $deleteName }}')" title="Delete" style="padding: 0.15rem 0.3rem;">
+    <button type="button" class="btn btn-sm btn-outline-danger rounded-sm" onclick="showDeleteModal('{{ $deleteId }}', '{{ addslashes($deleteName) }}', {{ $deleteType ? "'{$deleteType}'" : 'null' }}, '{{ $deleteRoute }}')" title="Delete" style="padding: 0.15rem 0.3rem;">
         <i class="ti ti-trash" style="font-size: 0.7rem;"></i>
     </button>
     @endif

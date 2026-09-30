@@ -6,7 +6,7 @@
 <div class="container-fluid px-2">
     
     <!-- Page Header -->
-    <x-page-header title="AUDIT TRAIL DASHBOARD" description="Complete system activity log for compliance and investigation">
+    <x-page-header title="AUDIT TRAIL DASHBOARD" description="{{ $canViewAll ? 'Complete system activity log for compliance and investigation' : 'Your own activity log' }}">
         <div class="d-flex gap-2">
             <a href="{{ route('audit-trail.export', request()->query()) }}" class="btn btn-success btn-sm rounded-sm" style="font-size: 0.7rem; padding: 0.2rem 0.5rem;">
                 <i class="ti ti-download me-1"></i> Export CSV
@@ -19,182 +19,169 @@
 
     <!-- Stats Cards Row - Following your exact pattern -->
     <div class="row g-2 mb-3">
-        <x-stats-card value="{{ number_format($stats['total']) }}" label="Total Events" subtext="all time recorded" />
-        <x-stats-card value="{{ number_format($stats['today']) }}" label="Today" subtext="events in last 24 hours" color="info" />
-        <x-stats-card value="{{ number_format($stats['this_week']) }}" label="This Week" subtext="last 7 days" color="success" />
-        <x-stats-card value="{{ number_format($stats['this_month']) }}" label="This Month" subtext="current month" color="warning" />
+        <x-stats-card value="{{ number_format($stats['total']) }}" label="Total Events" subtext="all time recorded" color="primary" icon="history" />
+        <x-stats-card value="{{ number_format($stats['today']) }}" label="Today" subtext="events in last 24 hours" color="info" icon="calendar-event" />
+        <x-stats-card value="{{ number_format($stats['this_week']) }}" label="This Week" subtext="last 7 days" color="success" icon="calendar-week" />
+        <x-stats-card value="{{ number_format($stats['this_month']) }}" label="This Month" subtext="current month" color="warning" icon="calendar" />
     </div>
 
-    <!-- Event Distribution Row -->
-    <div class="row g-2 mb-3">
-        <div class="col-md-6">
+    <div class="row g-2">
+        <!-- Search, event distribution, and audit trail table - main column -->
+        <div class="col-lg-8">
+            <!-- Event Distribution Row -->
+            <div class="row g-2 mb-3">
+                <div class="col-md-6">
+                    <div class="card rounded-sm">
+                        <div class="card-header py-1 px-2 bg-light">
+                            <i class="ti ti-chart-pie me-1"></i> Events by Type
+                        </div>
+                        <div class="card-body p-2">
+                            <div class="d-flex flex-wrap gap-2">
+                                @foreach($stats['by_event'] as $event)
+                                    <span class="badge bg-secondary">
+                                        {{ ucfirst($event->event) }}: {{ number_format($event->total) }}
+                                    </span>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card rounded-sm">
+                        <div class="card-header py-1 px-2 bg-light">
+                            <i class="ti ti-database me-1"></i> Entities Monitored
+                        </div>
+                        <div class="card-body p-2">
+                            <div class="d-flex flex-wrap gap-2">
+                                @foreach($stats['by_type'] as $type)
+                                    <span class="badge bg-info">
+                                        {{ str_replace('App\Models\\', '', $type->auditable_type) }}: {{ number_format($type->total) }}
+                                    </span>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search Card -->
+            <x-search-card
+                placeholder="Search by user, action, or IP address..."
+                id="auditTrailSearchInput"
+                name="search"
+                :value="request('search')"
+                :showCategoryFilter="true"
+                :showTypeFilter="true"
+                :showDateRange="true"
+                categoryLabel="Entity"
+                typeLabel="Event"
+                :categoryOptions="['leave' => 'Leave Requests', 'permission' => 'Permissions', 'travel' => 'Travel', 'acting' => 'Acting Response (Leave)', 'acting_escalation' => 'Acting Escalation', 'incoming_letter' => 'Incoming Letters', 'staff' => 'Staff', 'import' => 'Import', 'auth' => 'Authentication']"
+                :typeOptions="['create' => 'Create', 'update' => 'Update', 'approve' => 'Approve', 'reject' => 'Reject', 'assign' => 'Assign', 'dismiss' => 'Dismiss', 'status_update' => 'Status Update', 'bulk_import' => 'Bulk Import', 'login' => 'Login', 'logout' => 'Logout', 'password_change' => 'Password Change', 'view' => 'View']"
+                :dateFromValue="request('date_from')"
+                :dateToValue="request('date_to')"
+            >
+                <div id="auditTrailSearchStats" class="text-muted" style="font-size: 0.65rem;">
+                    {{ $audits->total() }} events total
+                </div>
+            </x-search-card>
+
+            <!-- User Filter (page-specific, alongside the shared search card) - only meaningful for viewers who can see everyone's activity -->
+            @if($canViewAll)
+            <div class="card rounded-sm mb-3">
+                <div class="card-body py-2 px-3">
+                    <div class="row g-1 align-items-end">
+                        <div class="col-md-3">
+                            <label class="form-label" style="font-size: 0.65rem;">User</label>
+                            <select id="userFilter" class="form-select form-select-sm rounded-sm" style="font-size: 0.7rem; padding: 0.2rem 0.3rem;">
+                                <option value="">All Users</option>
+                                @foreach($users as $user)
+                                    <option value="{{ $user->id }}" {{ request('user_id') == $user->id ? 'selected' : '' }}>
+                                        {{ $user->first_name }} {{ $user->last_name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @endif
+
+            <div id="auditTrailResults">
+                @include('shared.audit-trail._results', ['audits' => $audits])
+            </div>
+        </div>
+
+        <!-- Information - narrow column -->
+        <div class="col-lg-4">
             <div class="card rounded-sm">
                 <div class="card-header py-1 px-2 bg-light">
-                    <i class="ti ti-chart-pie me-1"></i> Events by Type
-                </div>
-                <div class="card-body p-2">
-                    <div class="d-flex flex-wrap gap-2">
-                        @foreach($stats['by_event'] as $event)
-                            <span class="badge bg-secondary">
-                                {{ ucfirst($event->event) }}: {{ number_format($event->total) }}
-                            </span>
-                        @endforeach
+                    <div class="d-flex align-items-center">
+                        <i class="ti ti-info-circle text-info me-1" style="font-size: 0.8rem;"></i>
+                        <span style="font-size: 0.7rem; font-weight: 600;">Information</span>
                     </div>
                 </div>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="card rounded-sm">
-                <div class="card-header py-1 px-2 bg-light">
-                    <i class="ti ti-database me-1"></i> Entities Monitored
-                </div>
-                <div class="card-body p-2">
-                    <div class="d-flex flex-wrap gap-2">
-                        @foreach($stats['by_type'] as $type)
-                            <span class="badge bg-info">
-                                {{ str_replace('App\Models\\', '', $type->auditable_type) }}: {{ number_format($type->total) }}
-                            </span>
-                        @endforeach
+                <div class="card-body py-2 px-2">
+                    <div class="mb-2">
+                        <div class="fw-semibold" style="font-size: 0.7rem;"><i class="ti ti-flag me-1 text-primary"></i> About This Dashboard</div>
+                        <ul class="mb-0 ps-3" style="font-size: 0.65rem; color: #555;">
+                            <li>{{ $canViewAll ? 'Shows all activity across the system, for compliance and investigation' : 'Shows only your own activity' }}</li>
+                            <li>"Events by Type" and "Entities Monitored" summarize what's currently in view</li>
+                        </ul>
                     </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- Filters -->
-    <div class="card rounded-sm mb-3">
-        <div class="card-body py-2 px-3">
-            <form method="GET" action="{{ route('audit-trail.index') }}" class="row g-2">
-                <div class="col-md-2">
-                    <select name="entity_type" class="form-select form-select-sm">
-                        <option value="all">All Entities</option>
-                        <option value="message" {{ request('entity_type') == 'message' ? 'selected' : '' }}>Messages</option>
-                        <option value="leave" {{ request('entity_type') == 'leave' ? 'selected' : '' }}>Leave Requests</option>
-                        <option value="permission" {{ request('entity_type') == 'permission' ? 'selected' : '' }}>Permissions</option>
-                        <option value="travel" {{ request('entity_type') == 'travel' ? 'selected' : '' }}>Travel</option>
-                        <option value="letter" {{ request('entity_type') == 'letter' ? 'selected' : '' }}>Letters</option>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <select name="event" class="form-select form-select-sm">
-                        <option value="all">All Events</option>
-                        <option value="created" {{ request('event') == 'created' ? 'selected' : '' }}>Created</option>
-                        <option value="updated" {{ request('event') == 'updated' ? 'selected' : '' }}>Updated</option>
-                        <option value="deleted" {{ request('event') == 'deleted' ? 'selected' : '' }}>Deleted</option>
-                        <option value="restored" {{ request('event') == 'restored' ? 'selected' : '' }}>Restored</option>
-                        <option value="viewed" {{ request('event') == 'viewed' ? 'selected' : '' }}>Viewed</option>
-                        <option value="approved" {{ request('event') == 'approved' ? 'selected' : '' }}>Approved</option>
-                        <option value="rejected" {{ request('event') == 'rejected' ? 'selected' : '' }}>Rejected</option>
-                        <option value="accessed_via_code" {{ request('event') == 'accessed_via_code' ? 'selected' : '' }}>Secure Access</option>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <select name="user_id" class="form-select form-select-sm">
-                        <option value="all">All Users</option>
-                        @foreach($users as $user)
-                            <option value="{{ $user->id }}" {{ request('user_id') == $user->id ? 'selected' : '' }}>
-                                {{ $user->first_name }} {{ $user->last_name }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <input type="date" name="date_from" class="form-control form-control-sm" value="{{ request('date_from') }}" placeholder="Date From">
-                </div>
-                <div class="col-md-2">
-                    <input type="date" name="date_to" class="form-control form-control-sm" value="{{ request('date_to') }}" placeholder="Date To">
-                </div>
-                <div class="col-md-2">
-                    <div class="d-flex gap-1">
-                        <button type="submit" class="btn btn-primary btn-sm w-100" style="font-size: 0.7rem;">
-                            <i class="ti ti-filter me-1"></i> Filter
-                        </button>
-                        <a href="{{ route('audit-trail.index') }}" class="btn btn-secondary btn-sm" style="font-size: 0.7rem;">
-                            <i class="ti ti-clear"></i>
-                        </a>
+                    <div class="mb-2">
+                        <div class="fw-semibold" style="font-size: 0.7rem;"><i class="ti ti-filter me-1 text-primary"></i> Filtering</div>
+                        <ul class="mb-0 ps-3" style="font-size: 0.65rem; color: #555;">
+                            <li>Filter by Entity or Event to narrow results</li>
+                            @if($canViewAll)
+                            <li>Filter by User to see one person's activity</li>
+                            @endif
+                            <li>Use "Export CSV" to download the current filtered view</li>
+                        </ul>
                     </div>
-                </div>
-            </form>
-        </div>
-    </div>
 
-    <!-- Audit Trail Table -->
-    <div class="card rounded-sm">
-        <div class="card-header py-1 px-2 bg-light">
-            <div class="d-flex align-items-center justify-content-between">
-                <div class="d-flex align-items-center">
-                    <i class="ti ti-history text-primary me-1" style="font-size: 0.8rem;"></i>
-                    <span style="font-size: 0.7rem; font-weight: 600;">Activity Log</span>
-                    <span class="text-muted ms-2 small">Showing {{ $audits->firstItem() ?? 0 }} to {{ $audits->lastItem() ?? 0 }} of {{ $audits->total() }}</span>
-                </div>
-                <div class="text-muted small">
-                    <i class="ti ti-shield me-1"></i> Non-repudiation record
+                    <x-alert-light class="mb-0 py-1 px-2 rounded-sm">
+                        <div class="d-flex align-items-start gap-1">
+                            <i class="ti ti-tips text-warning mt-0" style="font-size: 0.7rem;"></i>
+                            <div>
+                                <strong class="d-block" style="font-size: 0.65rem;">Tips</strong>
+                                <small class="text-muted" style="font-size: 0.6rem;">&bull; Records are immutable and kept for audit purposes</small>
+                            </div>
+                        </div>
+                    </x-alert-light>
                 </div>
             </div>
-        </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-sm mb-0" style="font-size: 0.75rem;" id="auditTable">
-                    <thead class="bg-light">
-                        <tr>
-                            <th class="ps-2 py-1" width="50">#</th>
-                            <th class="py-1">Date/Time</th>
-                            <th class="py-1">User</th>
-                            <th class="py-1">Role</th>
-                            <th class="py-1">Entity</th>
-                            <th class="py-1">Event</th>
-                            <th class="py-1">Action</th>
-                            <th class="py-1">IP Address</th>
-                            <th class="pe-2 py-1" width="50">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($audits as $audit)
-                        <tr>
-                            <td class="ps-2 py-1">{{ $audit->id }}</td>
-                            <td class="py-1">
-                                {{ $audit->created_at->format('d M Y, H:i:s') }}
-                                <div class="text-muted" style="font-size: 0.6rem;">{{ $audit->created_at->diffForHumans() }}</div>
-                            </td>
-                            <td class="py-1">
-                                {{ $audit->user->first_name ?? 'System' }} {{ $audit->user->last_name ?? '' }}
-                                <div class="text-muted" style="font-size: 0.6rem;">{{ $audit->user->email ?? '' }}</div>
-                            </td>
-                            <td class="py-1">
-                                <span class="badge bg-secondary rounded-sm" style="font-size: 0.6rem;">{{ $audit->user_role ?? 'Unknown' }}</span>
-                            </td>
-                            <td class="py-1">
-                                <span class="badge bg-info rounded-sm" style="font-size: 0.6rem;">{{ $audit->entity_type }}</span>
-                                <div class="text-muted" style="font-size: 0.6rem;">ID: {{ $audit->auditable_id }}</div>
-                            </td>
-                            <td class="py-1">
-                                <span class="badge bg-{{ $audit->event == 'created' ? 'success' : ($audit->event == 'deleted' ? 'danger' : ($audit->event == 'accessed_via_code' ? 'warning' : 'secondary')) }} rounded-sm" style="font-size: 0.6rem;">
-                                    {{ ucfirst($audit->event) }}
-                                </span>
-                            </td>
-                            <td class="py-1">{{ Str::limit($audit->action, 50) }}</td>
-                            <td class="py-1"><code style="font-size: 0.6rem;">{{ $audit->ip_address ?? 'N/A' }}</code></td>
-                            <td class="pe-2 py-1">
-                                <a href="{{ route('audit-trail.show', $audit->id) }}" class="btn btn-sm btn-outline-info rounded-sm" style="font-size: 0.6rem; padding: 0.15rem 0.4rem;" title="View Details">
-                                    <i class="ti ti-eye"></i>
-                                </a>
-                            </td>
-                        </tr>
-                        @empty
-                        <tr>
-                            <td colspan="9" class="text-center py-3 text-muted" style="font-size: 0.7rem;">
-                                <i class="ti ti-history" style="font-size: 48px;"></i>
-                                <p class="mt-2">No audit records found</p>
-                            </td>
-                        </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        <div class="card-footer py-1 px-2">
-            <x-pagination :items="$audits" :perPageOptions="[10, 25, 50, 100]" />
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const exportLink = document.querySelector('a[href*="audit-trail/export"]');
+
+    initLiveSearch({
+        url: '{{ route('audit-trail.index') }}',
+        resultsSelector: '#auditTrailResults',
+        statsSelector: '#auditTrailSearchStats',
+        searchInputSelector: '#auditTrailSearchInput',
+        suggestionsSelector: '#auditTrailSearchInputSuggestions',
+        recentSearchesKey: 'auditTrailRecentSearches',
+        statLabel: 'events',
+        perPage: 50,
+        filterSelectors: ['#categoryFilter', '#typeFilter', '#dateFromFilter', '#dateToFilter', '#userFilter'],
+        extraParams: () => ({
+            entity_type: document.getElementById('categoryFilter')?.value || '',
+            event: document.getElementById('typeFilter')?.value || '',
+            date_from: document.getElementById('dateFromFilter')?.value || '',
+            date_to: document.getElementById('dateToFilter')?.value || '',
+            user_id: document.getElementById('userFilter')?.value || '',
+        }),
+        onUpdate: (data, params) => {
+            if (exportLink) {
+                exportLink.href = '{{ route('audit-trail.export') }}?' + params.toString();
+            }
+        },
+    });
+});
+</script>
 @endsection

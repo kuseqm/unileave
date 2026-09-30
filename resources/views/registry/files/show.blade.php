@@ -19,7 +19,7 @@
             <form action="{{ route('registry.files.close', $file->id) }}" method="POST" class="d-inline">
                 @csrf
                 @method('PUT')
-                <button type="submit" class="btn btn-warning btn-sm rounded-sm" style="font-size: 0.7rem; padding: 0.2rem 0.5rem;" onclick="return confirm('Close this file? It will no longer accept new letters.')">
+                <button type="button" class="btn btn-warning btn-sm rounded-sm" style="font-size: 0.7rem; padding: 0.2rem 0.5rem;" onclick="confirmSubmit(this, 'Close this file? It will no longer accept new letters.', { danger: false, confirmText: 'Close File' })">
                     <i class="ti ti-lock me-1"></i> Close File
                 </button>
             </form>
@@ -29,7 +29,7 @@
             <form action="{{ route('registry.files.reopen', $file->id) }}" method="POST" class="d-inline">
                 @csrf
                 @method('PUT')
-                <button type="submit" class="btn btn-success btn-sm rounded-sm" style="font-size: 0.7rem; padding: 0.2rem 0.5rem;" onclick="return confirm('Reopen this file? It will accept new letters again.')">
+                <button type="button" class="btn btn-success btn-sm rounded-sm" style="font-size: 0.7rem; padding: 0.2rem 0.5rem;" onclick="confirmSubmit(this, 'Reopen this file? It will accept new letters again.', { danger: false, confirmText: 'Reopen File' })">
                     <i class="ti ti-lock-open me-1"></i> Reopen File
                 </button>
             </form>

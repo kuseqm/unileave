@@ -18,8 +18,8 @@
         </a>
     </x-page-header>
     
-    <div class="row">
-        <div class="col-md-6">
+    <div class="row g-2">
+        <div class="col-lg-8">
             <div class="card rounded-sm">
                 <div class="card-header py-1 px-2 bg-light">
                     <div class="d-flex align-items-center">
@@ -33,7 +33,21 @@
                         
                         <div class="mb-2">
                             <label class="form-label" style="font-size: 0.7rem;">Select Staff Member</label>
-                            
+
+                            <!-- Search -->
+                            <div class="row g-1 align-items-end mb-2">
+                                <div class="col">
+                                    <input type="text" id="staffSearchInput" value="{{ request('search') }}" autocomplete="off" class="form-control form-control-sm rounded-sm" placeholder="Search by name, email or staff ID..." style="font-size: 0.7rem; padding: 0.2rem 0.3rem;">
+                                </div>
+                                @if(request('search'))
+                                <div class="col-auto">
+                                    <a href="{{ route('admin.roles.assign') }}" class="btn btn-outline-secondary btn-sm rounded-sm" style="font-size: 0.65rem; padding: 0.25rem 0.5rem;">
+                                        <i class="ti ti-refresh me-1"></i> Reset
+                                    </a>
+                                </div>
+                                @endif
+                            </div>
+
                             <!-- Staff List with Pagination -->
                             <div class="staff-list-container border rounded-sm" style="max-height: 400px; overflow-y: auto;">
                                 @forelse($users as $user)
@@ -71,43 +85,9 @@
                             </div>
                             
                             <!-- Pagination for staff list -->
-                            @if($users->hasPages())
                             <div class="mt-2 pt-2 border-top">
-                                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-                                    <div class="d-flex align-items-center gap-2">
-                                        <span class="text-muted" style="font-size: 0.6rem;">Show:</span>
-                                        <select id="perPageSelect" class="custom-select-sm" style="font-size: 0.6rem; padding: 0.15rem 1rem 0.15rem 0.3rem;">
-                                            <option value="10" {{ $users->perPage() == 10 ? 'selected' : '' }}>10</option>
-                                            <option value="25" {{ $users->perPage() == 25 ? 'selected' : '' }}>25</option>
-                                            <option value="50" {{ $users->perPage() == 50 ? 'selected' : '' }}>50</option>
-                                            <option value="100" {{ $users->perPage() == 100 ? 'selected' : '' }}>100</option>
-                                        </select>
-                                    </div>
-                                    
-                                    <div class="custom-pagination">
-                                        <div class="pagination-links">
-                                            @if ($users->onFirstPage())
-                                                <span class="pagination-item disabled">‹</span>
-                                            @else
-                                                <a href="{{ $users->previousPageUrl() }}" class="pagination-item">‹</a>
-                                            @endif
-                                            
-                                            <span class="pagination-item active">{{ $users->currentPage() }}</span>
-                                            
-                                            @if ($users->hasMorePages())
-                                                <a href="{{ $users->nextPageUrl() }}" class="pagination-item">›</a>
-                                            @else
-                                                <span class="pagination-item disabled">›</span>
-                                            @endif
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="text-muted" style="font-size: 0.55rem;">
-                                        Page {{ $users->currentPage() }} of {{ $users->lastPage() }}
-                                    </div>
-                                </div>
+                                <x-pagination :items="$users" :perPageOptions="[10, 25, 50, 100]" />
                             </div>
-                            @endif
                         </div>
                         
                         <div class="mb-2">
@@ -133,7 +113,7 @@
             </div>
         </div>
         
-        <div class="col-md-6">
+        <div class="col-lg-4">
             <div class="card rounded-sm">
                 <div class="card-header py-1 px-2 bg-light">
                     <div class="d-flex align-items-center">
@@ -142,19 +122,32 @@
                     </div>
                 </div>
                 <div class="card-body p-2">
-                    <div class="alert alert-info py-1 px-2 mb-0" style="font-size: 0.7rem;">
-                        <i class="ti ti-info-circle me-1"></i>
-                        <strong>Available Roles:</strong>
+                    @php
+                        $roleDescriptions = [
+                            'super-admin' => 'Full system control across all institutions',
+                            'admin' => 'Full system access',
+                            'vice-chancellor' => 'Institution-wide oversight',
+                            'internal-auditor' => 'Read-only access for compliance',
+                            'dvca' => 'Deputy Vice Chancellor Academic',
+                            'dvc-pfa' => 'Deputy Vice Chancellor Planning, Finance & Admin',
+                            'acting-dvc' => 'Temporary DVC assignment',
+                            'dean' => 'Dean of School',
+                            'hod' => 'Head of Department',
+                            'deputy-hod' => 'Approves when HOD is on leave',
+                            'dept-secretary' => 'Department administrative support',
+                            'hr-officer' => 'HR management access',
+                            'hr-manager' => 'Senior HR access, including staff removal and ID cards',
+                            'staff' => 'Regular staff member',
+                        ];
+                    @endphp
+                    <x-alert-info>
+    <strong>Available Roles:</strong>
                         <ul class="mb-0 mt-1 ps-3">
-                            <li><strong>admin</strong> - Full system access</li>
-                            <li><strong>hr-officer</strong> - HR management access</li>
-                            <li><strong>hod</strong> - Head of Department</li>
-                            <li><strong>dean</strong> - Dean of School</li>
-                            <li><strong>dvca</strong> - Deputy Vice Chancellor Academic</li>
-                            <li><strong>dvc-pfa</strong> - Deputy Vice Chancellor PFA</li>
-                            <li><strong>staff</strong> - Regular staff member</li>
+                            @foreach($roles as $role)
+                                <li><strong>{{ $role->name }}</strong> - {{ $roleDescriptions[$role->name] ?? ucfirst(str_replace('-', ' ', $role->name)) }}</li>
+                            @endforeach
                         </ul>
-                    </div>
+</x-alert-info>
                 </div>
             </div>
         </div>
@@ -162,60 +155,6 @@
 </div>
 
 <style>
-/* Custom Pagination Styles */
-.custom-pagination {
-    margin: 0;
-}
-
-.pagination-links {
-    display: flex;
-    gap: 0.25rem;
-    align-items: center;
-}
-
-.pagination-item {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 24px;
-    height: 24px;
-    padding: 0 0.3rem;
-    font-size: 0.6rem;
-    color: #475569;
-    background: white;
-    border: 1px solid #E8E2D5;
-    border-radius: 4px;
-    text-decoration: none;
-    transition: all 0.2s ease;
-}
-
-.pagination-item:hover:not(.disabled):not(.active) {
-    background: #F1F5F9;
-    border-color: #CBD5E1;
-    color: #1E293B;
-}
-
-.pagination-item.active {
-    background: #3B82F6;
-    border-color: #3B82F6;
-    color: white;
-}
-
-.pagination-item.disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    background: #F8FAFC;
-}
-
-.custom-select-sm {
-    font-size: 0.6rem;
-    padding: 0.15rem 1rem 0.15rem 0.3rem;
-    border: 1px solid #E8E2D5;
-    border-radius: 4px;
-    background: white;
-    cursor: pointer;
-}
-
 .staff-list-container {
     background: white;
 }
@@ -234,15 +173,23 @@
 </style>
 
 <script>
-// Per Page Change Handler
-const perPageSelect = document.getElementById('perPageSelect');
-if (perPageSelect) {
-    perPageSelect.addEventListener('change', function() {
-        const url = new URL(window.location.href);
-        url.searchParams.set('per_page', this.value);
-        url.searchParams.delete('page');
-        window.location.href = url.toString();
-    });
-}
+document.getElementById('staffSearchInput')?.addEventListener('keyup', (function () {
+    let timer;
+    return function (e) {
+        if (e.key === 'Enter') return;
+        clearTimeout(timer);
+        const value = this.value;
+        timer = setTimeout(() => {
+            const url = new URL(window.location.href);
+            if (value) {
+                url.searchParams.set('search', value);
+            } else {
+                url.searchParams.delete('search');
+            }
+            url.searchParams.delete('page');
+            window.location.href = url.toString();
+        }, 500);
+    };
+})());
 </script>
 @endsection

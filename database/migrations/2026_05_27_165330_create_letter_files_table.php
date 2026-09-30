@@ -26,7 +26,7 @@ return new class extends Migration
             $table->foreignId('created_by')->constrained('users');
             $table->text('notes')->nullable();
             $table->timestamps();
-            
+
             $table->index('is_active');
             $table->index('file_number');
         });

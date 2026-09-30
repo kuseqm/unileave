@@ -4,15 +4,19 @@
     'cc' => [],
     'signedAt' => null,
     'signedByIp' => null,
-    'isDigitallySigned' => false
+    'isDigitallySigned' => false,
+    'signatureImage' => null,
 ])
 
-<div class="letter-signature" style="font-family: 'Times New Roman', Times, serif; margin-top: 25px;">
-    
+<div class="letter-signature" style="font-family: Arial, Helvetica, sans-serif; margin-top: 10px; font-size: 11pt;">
+
     <!-- Signature Block -->
-    <p style="margin-bottom: 5px;">Yours sincerely,</p>
-    
-    <div style="margin-top: 30px;">
+    <p style="margin-bottom: 3px;">Yours sincerely,</p>
+
+    <div style="margin-top: 12px;">
+        @if($signatureImage)
+            <img src="{{ $signatureImage }}" alt="Signature" style="height: 45px; margin-bottom: 2px;">
+        @endif
         @if($signatory)
             <p style="margin: 0; line-height: 1.3;"><strong>{{ $signatory }}</strong></p>
             <p style="margin: 0; line-height: 1.3;">{{ $signatoryTitle ?? 'Human Resources Department' }}</p>
@@ -43,7 +47,7 @@
     
     <!-- CC List -->
     @if(count($cc) > 0)
-        <div style="margin-top: 20px; font-size: 9pt;">
+        <div style="margin-top: 10px; font-size: 8.5pt;">
             <strong>CC:</strong>
             <ul style="margin: 3px 0 0 20px; padding: 0;">
                 @foreach($cc as $recipient)

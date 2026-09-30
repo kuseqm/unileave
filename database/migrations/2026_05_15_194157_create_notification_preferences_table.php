@@ -19,7 +19,7 @@ return new class extends Migration
             $table->boolean('document_notifications')->default(true);
             $table->boolean('reminder_notifications')->default(true);
             $table->timestamps();
-            
+
             $table->foreign('user_id')->references('id')->on('staff')->onDelete('cascade');
         });
     }

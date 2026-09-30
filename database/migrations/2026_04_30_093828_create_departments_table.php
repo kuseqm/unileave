@@ -18,11 +18,13 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->enum('status', ['active', 'inactive'])->default('active');
             $table->timestamps();
-            
-            // Foreign keys (optional but recommended)
+
+            // Foreign keys
+            // campus_id -> campuses is safe here (campuses migration runs first).
+            // school_id -> schools and hod_staff_id -> staff are added in a later
+            // migration instead: both of those tables are created AFTER this one
+            // runs, so defining those constraints here breaks a fresh install.
             $table->foreign('campus_id')->references('id')->on('campuses')->onDelete('cascade');
-            $table->foreign('school_id')->references('id')->on('schools')->onDelete('set null');
-            $table->foreign('hod_staff_id')->references('id')->on('staff')->onDelete('set null');
         });
     }
 

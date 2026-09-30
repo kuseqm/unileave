@@ -1,12 +1,13 @@
 <?php
+
 // database/seeders/DepartmentSeeder.php
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
+use App\Models\Campus;
 use App\Models\Department;
 use App\Models\School;
-use App\Models\Campus;
+use Illuminate\Database\Seeder;
 
 class DepartmentSeeder extends Seeder
 {
@@ -16,8 +17,9 @@ class DepartmentSeeder extends Seeder
         $mainCampus = Campus::where('name', 'Main Campus - Dodoma')->first();
         $kampalaCampus = Campus::where('name', 'Kampala Campus')->first();
 
-        if (!$mainCampus) {
+        if (! $mainCampus) {
             $this->command->error('Main Campus not found. Run CampusSeeder first.');
+
             return;
         }
 
@@ -28,8 +30,9 @@ class DepartmentSeeder extends Seeder
         $edu = School::where('code', 'EDU')->first();  // School of Education
         $shs = School::where('code', 'SHS')->first();  // School of Health Sciences
 
-        if (!$sbe || !$law || !$sst || !$edu) {
+        if (! $sbe || ! $law || ! $sst || ! $edu) {
             $this->command->error('Schools not found. Run SchoolSeeder first.');
+
             return;
         }
 
@@ -48,7 +51,7 @@ class DepartmentSeeder extends Seeder
                 'code' => 'MKT',
                 'description' => 'Department of Marketing and Entrepreneurship',
             ],
-            
+
             // School of Law (LAW)
             [
                 'school' => $law,
@@ -62,7 +65,7 @@ class DepartmentSeeder extends Seeder
                 'code' => 'PRI',
                 'description' => 'Department of Private Law',
             ],
-            
+
             // School of Science and Technology (SST)
             [
                 'school' => $sst,
@@ -76,7 +79,7 @@ class DepartmentSeeder extends Seeder
                 'code' => 'ITE',
                 'description' => 'Department of Information Technology',
             ],
-            
+
             // School of Education (EDU)
             [
                 'school' => $edu,
@@ -113,7 +116,7 @@ class DepartmentSeeder extends Seeder
             $department = Department::updateOrCreate(
                 [
                     'school_id' => $deptData['school']->id,
-                    'name' => $deptData['name']
+                    'name' => $deptData['name'],
                 ],
                 [
                     'code' => $deptData['code'],
@@ -122,9 +125,9 @@ class DepartmentSeeder extends Seeder
                     'status' => 'active',
                 ]
             );
-            $this->command->info('✓ Department created: ' . $department->name);
+            $this->command->info('✓ Department created: '.$department->name);
         }
 
-        $this->command->info('✓ Total departments created: ' . count($departments));
+        $this->command->info('✓ Total departments created: '.count($departments));
     }
 }

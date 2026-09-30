@@ -10,30 +10,30 @@ return new class extends Migration
     {
         Schema::table('message_conversations', function (Blueprint $table) {
             // Conversation reference number
-            if (!Schema::hasColumn('message_conversations', 'conversation_number')) {
+            if (! Schema::hasColumn('message_conversations', 'conversation_number')) {
                 $table->string('conversation_number')->nullable()->after('id');
             }
-            
+
             // Subject line for the conversation
-            if (!Schema::hasColumn('message_conversations', 'subject')) {
+            if (! Schema::hasColumn('message_conversations', 'subject')) {
                 $table->string('subject')->nullable()->after('participant_ids');
             }
-            
+
             // Enhanced status
-            if (!Schema::hasColumn('message_conversations', 'status')) {
+            if (! Schema::hasColumn('message_conversations', 'status')) {
                 $table->enum('status', ['active', 'archived', 'closed'])->default('active')->after('is_active');
             }
-            
+
             // Who closed it and when
-            if (!Schema::hasColumn('message_conversations', 'closed_by')) {
+            if (! Schema::hasColumn('message_conversations', 'closed_by')) {
                 $table->foreignId('closed_by')->nullable()->constrained('users')->after('status');
             }
-            
-            if (!Schema::hasColumn('message_conversations', 'closed_at')) {
+
+            if (! Schema::hasColumn('message_conversations', 'closed_at')) {
                 $table->timestamp('closed_at')->nullable()->after('closed_by');
             }
         });
-        
+
         // Add indexes
         Schema::table('message_conversations', function (Blueprint $table) {
             $table->index('conversation_number');

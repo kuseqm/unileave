@@ -93,16 +93,15 @@
                     </div>
                     
                     @if($message->deleted_at)
-                        <div class="alert alert-warning py-1 px-2 mb-0 mt-2" style="font-size: 0.65rem;">
-                            <i class="ti ti-trash me-1"></i> Soft deleted on {{ $message->deleted_at->format('d M Y, H:i:s') }}
-                        </div>
+                        <x-alert-warning>
+    Soft deleted on {{ $message->deleted_at->format('d M Y, H:i:s') }}
+</x-alert-warning>
                     @endif
                     
                     <!-- Content Access Warning -->
-                    <div class="alert alert-warning mt-3 mb-0 py-1 px-2" style="font-size: 0.65rem;">
-                        <i class="ti ti-lock me-1"></i>
-                        <strong>Content Encrypted</strong> - The actual message content is encrypted and cannot be viewed here.
-                    </div>
+                    <x-alert-warning>
+    <strong>Content Encrypted</strong> - The actual message content is encrypted and cannot be viewed here.
+</x-alert-warning>
                 </div>
             </div>
             
@@ -274,10 +273,9 @@
                         <p class="text-muted mt-1 mb-0" style="font-size: 0.65rem;">HR can request access to message content. VC approves and generates a one-time code valid for 24 hours.</p>
                     </div>
                     
-                    <div class="alert alert-info py-1 px-2 mb-0" style="font-size: 0.65rem;">
-                        <i class="ti ti-tips me-1"></i>
-                        <strong>Note:</strong> All timestamps are in your local timezone. Data is retained for 7 years as required by law.
-                    </div>
+                    <x-alert-info>
+    <strong>Note:</strong> All timestamps are in your local timezone. Data is retained for 7 years as required by law.
+</x-alert-info>
                 </div>
             </div>
         </div>
@@ -286,12 +284,12 @@
 
 <script>
 function restoreMessage(id) {
-    if(confirm('Restore this message? It will become active again.')) {
+    confirmAction('Restore this message? It will become active again.', function () {
         fetch(`/messages/${id}/restore`, {
             method: 'POST',
             headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' }
         }).then(() => window.location.href = '{{ route("messages.admin-list") }}');
-    }
+    }, { danger: false, confirmText: 'Restore' });
 }
 
 function requestAccess(id) {

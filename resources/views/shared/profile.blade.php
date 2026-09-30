@@ -23,19 +23,9 @@
         <x-stats-card value="{{ $rejectedLeaveRequests ?? 0 }}" label="Rejected" subtext="denied" color="danger" />
     </div>
     
-    @if(session('success'))
-    <div class="alert alert-success alert-dismissible fade show py-1 px-2 mb-2 rounded-sm" style="font-size: 0.7rem;" role="alert">
-        <i class="ti ti-check-circle me-1"></i> {{ session('success') }}
-        <button type="button" class="btn-close py-0" style="font-size: 0.6rem;" data-bs-dismiss="alert"></button>
-    </div>
-    @endif
+    <x-alert-success />
     
-    @if(session('error'))
-    <div class="alert alert-danger alert-dismissible fade show py-1 px-2 mb-2 rounded-sm" style="font-size: 0.7rem;" role="alert">
-        <i class="ti ti-alert-circle me-1"></i> {{ session('error') }}
-        <button type="button" class="btn-close py-0" style="font-size: 0.6rem;" data-bs-dismiss="alert"></button>
-    </div>
-    @endif
+    <x-alert-danger />
     
     <div class="row g-2">
         
@@ -292,9 +282,9 @@
                             </div>
                         </div>
                         
-                        <div class="alert alert-info py-1 px-2 mb-1 rounded-sm" style="font-size: 0.6rem;">
-                            <i class="ti ti-info-circle me-1"></i> Password must be at least 8 characters long.
-                        </div>
+                        <x-alert-info>
+    Password must be at least 8 characters long.
+</x-alert-info>
                         
                         <div class="d-flex justify-content-end mt-1">
                             <button type="submit" class="btn btn-warning btn-sm rounded-sm" style="font-size: 0.7rem; padding: 0.25rem 0.5rem;">

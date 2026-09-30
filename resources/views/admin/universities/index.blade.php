@@ -13,9 +13,11 @@
     
     <!-- Page Header -->
     <x-page-header title="UNIVERSITY MANAGEMENT" description="Manage universities, campuses, and academic institutions">
+        @if($isSuperAdmin ?? false)
         <a href="{{ route('admin.universities.create') }}" class="btn btn-primary btn-sm rounded-sm" style="font-size: 0.7rem; padding: 0.2rem 0.5rem;">
             <i class="ti ti-plus me-1"></i> Add University
         </a>
+        @endif
     </x-page-header>
     
     <!-- Stats Cards - Clickable -->
@@ -27,19 +29,9 @@
     </div>
     
     <!-- Alerts -->
-    @if(session('success'))
-    <div class="alert alert-success alert-dismissible fade show py-1 px-2 mb-2 rounded-sm" style="font-size: 0.7rem;" role="alert">
-        <i class="ti ti-check-circle me-1"></i> {{ session('success') }}
-        <button type="button" class="btn-close py-0" style="font-size: 0.6rem;" data-bs-dismiss="alert"></button>
-    </div>
-    @endif
+    <x-alert-success />
     
-    @if(session('error'))
-    <div class="alert alert-danger alert-dismissible fade show py-1 px-2 mb-2 rounded-sm" style="font-size: 0.7rem;" role="alert">
-        <i class="ti ti-alert-circle me-1"></i> {{ session('error') }}
-        <button type="button" class="btn-close py-0" style="font-size: 0.6rem;" data-bs-dismiss="alert"></button>
-    </div>
-    @endif
+    <x-alert-danger />
     
     <!-- Sophisticated Search Card -->
     <x-search-card 
@@ -49,117 +41,142 @@
         :statusOptions="['active' => 'Active', 'inactive' => 'Inactive']"
     />
     
-    <!-- Universities Table -->
-    <div class="card rounded-sm">
-        <div class="card-header py-1 px-2 bg-light">
-            <div class="d-flex align-items-center">
-                <i class="ti ti-building text-primary me-1" style="font-size: 0.8rem;"></i>
-                <span style="font-size: 0.7rem; font-weight: 600;">Universities List</span>
-            </div>
-        </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-sm mb-0" style="font-size: 0.75rem;" id="universitiesTable">
-                    <thead class="bg-light">
-                        <tr>
-                            <th class="ps-2 py-1" width="50">SN</th>
-                            <th class="py-1" width="80">Code</th>
-                            <th class="py-1">Name</th>
-                            <th class="py-1" width="100">Campuses</th>
-                            <th class="py-1" width="80">Status</th>
-                            <th class="pe-2 py-1" width="100">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($universities as $index => $university)
-                        <tr data-name="{{ strtolower($university->name) }}" 
-                            data-code="{{ strtolower($university->code) }}" 
-                            data-status="{{ $university->status }}"
-                            data-id="{{ $university->id }}"
-                            class="clickable-row">
-                            <td class="ps-2 py-1">{{ $universities->firstItem() + $index }}</td>
-                            <td class="py-1"><strong>{{ $university->code }}</strong></td>
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    <div class="rounded-circle bg-light me-1 d-flex align-items-center justify-content-center" style="width: 24px; height: 24px;">
-                                        <i class="ti ti-building" style="font-size: 0.7rem;"></i>
-                                    </div>
-                                    <div>
-                                        <span class="fw-semibold hover-link">{{ $university->name }}</span>
-                                        @if($university->address)
-                                        <div class="text-muted" style="font-size: 0.6rem;">{{ Str::limit($university->address, 30) }}</div>
+    <div class="row g-2">
+        <!-- Universities Table - main column -->
+        <div class="col-lg-8">
+            <div class="card rounded-sm">
+                <div class="card-header py-1 px-2 bg-light">
+                    <div class="d-flex align-items-center">
+                        <i class="ti ti-building text-primary me-1" style="font-size: 0.8rem;"></i>
+                        <span style="font-size: 0.7rem; font-weight: 600;">Universities List</span>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-sm mb-0" style="font-size: 0.75rem;" id="universitiesTable">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="ps-2 py-1" width="50">SN</th>
+                                    <th class="py-1" width="80">Code</th>
+                                    <th class="py-1">Name</th>
+                                    <th class="py-1" width="100">Campuses</th>
+                                    <th class="py-1" width="80">Status</th>
+                                    <th class="pe-2 py-1" width="100">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($universities as $index => $university)
+                                <tr data-name="{{ strtolower($university->name) }}"
+                                    data-code="{{ strtolower($university->code) }}"
+                                    data-status="{{ $university->status }}"
+                                    data-id="{{ $university->id }}"
+                                    class="clickable-row">
+                                    <td class="ps-2 py-1">{{ $universities->firstItem() + $index }}</td>
+                                    <td class="py-1"><strong>{{ $university->code }}</strong></td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="rounded-circle bg-light me-1 d-flex align-items-center justify-content-center" style="width: 24px; height: 24px;">
+                                                <i class="ti ti-building" style="font-size: 0.7rem;"></i>
+                                            </div>
+                                            <div>
+                                                <span class="fw-semibold hover-link">{{ $university->name }}</span>
+                                                @if($university->address)
+                                                <div class="text-muted" style="font-size: 0.6rem;">{{ Str::limit($university->address, 30) }}</div>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="py-1">
+                                        <a href="{{ route('admin.campuses.index', ['university_id' => $university->id]) }}" class="text-decoration-none">
+                                            <span class="badge bg-info-subtle text-info rounded-sm hover-badge" style="font-size: 0.6rem; cursor: pointer;">
+                                                <i class="ti ti-school me-1" style="font-size: 0.55rem;"></i>
+                                                {{ $university->campuses->count() }} Campuses
+                                            </span>
+                                        </a>
+                                    </td>
+                                    <td class="py-1">
+                                        @if($university->status == 'active')
+                                            <span class="badge bg-success-subtle text-success rounded-sm" style="font-size: 0.6rem;">Active</span>
+                                        @else
+                                            <span class="badge bg-secondary-subtle text-secondary rounded-sm" style="font-size: 0.6rem;">Inactive</span>
                                         @endif
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="py-1">
-                                <a href="{{ route('admin.campuses.index', ['university_id' => $university->id]) }}" class="text-decoration-none">
-                                    <span class="badge bg-info-subtle text-info rounded-sm hover-badge" style="font-size: 0.6rem; cursor: pointer;">
-                                        <i class="ti ti-school me-1" style="font-size: 0.55rem;"></i>
-                                        {{ $university->campuses->count() }} Campuses
-                                    </span>
-                                </a>
-                            </td>
-                            <td class="py-1">
-                                @if($university->status == 'active')
-                                    <span class="badge bg-success-subtle text-success rounded-sm" style="font-size: 0.6rem;">Active</span>
-                                @else
-                                    <span class="badge bg-secondary-subtle text-secondary rounded-sm" style="font-size: 0.6rem;">Inactive</span>
-                                @endif
-                            </td>
-                            <td class="pe-2 py-1">
-                                <div class="d-flex gap-1">
-                                    <!-- Edit Button -->
-                                    <a href="{{ route('admin.universities.edit', $university->id) }}" class="btn btn-sm btn-outline-primary rounded-sm" style="font-size: 0.6rem; padding: 0.15rem 0.4rem;" title="Edit University">
-                                        <i class="ti ti-edit"></i>
-                                    </a>
-                                    <!-- Delete Button -->
-                                    <button type="button" onclick="showDeleteModal({{ $university->id }}, '{{ addslashes($university->name) }}')" class="btn btn-sm btn-outline-danger rounded-sm" style="font-size: 0.6rem; padding: 0.15rem 0.4rem;" title="Delete University">
-                                        <i class="ti ti-trash"></i>
-                                    </button>
-                                    <!-- View Campuses Button -->
-                                    <a href="{{ route('admin.campuses.index', ['university_id' => $university->id]) }}" class="btn btn-sm btn-outline-secondary rounded-sm" style="font-size: 0.6rem; padding: 0.15rem 0.4rem;" title="View Campuses">
-                                        <i class="ti ti-school"></i>
-                                    </a>
-                                </div>
-                            </td>
-                        </tr>
-                        @empty
-                        <tr>
-                            <td colspan="6" class="text-center py-3 text-muted" style="font-size: 0.7rem;">
-                                No universities found
-                            </td>
-                        </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+                                    </td>
+                                    <td class="pe-2 py-1">
+                                        <div class="d-flex gap-1">
+                                            <!-- Edit Button -->
+                                            <a href="{{ route('admin.universities.edit', $university->id) }}" class="btn btn-sm btn-outline-primary rounded-sm" style="font-size: 0.6rem; padding: 0.15rem 0.4rem;" title="Edit University">
+                                                <i class="ti ti-edit"></i>
+                                            </a>
+                                            <!-- Delete Button -->
+                                            @if($isSuperAdmin ?? false)
+                                            <button type="button" onclick="showDeleteModal({{ $university->id }}, '{{ addslashes($university->name) }}', 'university', '{{ route('admin.universities.destroy', $university->id) }}')" class="btn btn-sm btn-outline-danger rounded-sm" style="font-size: 0.6rem; padding: 0.15rem 0.4rem;" title="Delete University">
+                                                <i class="ti ti-trash"></i>
+                                            </button>
+                                            @endif
+                                            <!-- View Campuses Button -->
+                                            <a href="{{ route('admin.campuses.index', ['university_id' => $university->id]) }}" class="btn btn-sm btn-outline-secondary rounded-sm" style="font-size: 0.6rem; padding: 0.15rem 0.4rem;" title="View Campuses">
+                                                <i class="ti ti-school"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                @empty
+                                <tr>
+                                    <td colspan="6" class="text-center py-3 text-muted" style="font-size: 0.7rem;">
+                                        No universities found
+                                    </td>
+                                </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer py-1 px-2">
+                    <x-pagination :items="$universities" :perPageOptions="[10, 25, 50, 100]" />
+                </div>
             </div>
         </div>
-        <div class="card-footer py-1 px-2">
-            <x-pagination :items="$universities" :perPageOptions="[10, 25, 50, 100]" />
+
+        <!-- Information - narrow column -->
+        <div class="col-lg-4">
+            <div class="card rounded-sm">
+                <div class="card-header py-1 px-2 bg-light">
+                    <div class="d-flex align-items-center">
+                        <i class="ti ti-info-circle text-info me-1" style="font-size: 0.8rem;"></i>
+                        <span style="font-size: 0.7rem; font-weight: 600;">Information</span>
+                    </div>
+                </div>
+                <div class="card-body py-2 px-2">
+                    <div class="mb-2">
+                        <div class="fw-semibold" style="font-size: 0.7rem;"><i class="ti ti-building me-1 text-primary"></i> About Universities</div>
+                        <p class="mb-0" style="font-size: 0.65rem; color: #555;">A university is the top-level institution in the hierarchy, owning campuses, schools/faculties, and departments. Only Super Admins can add or delete universities.</p>
+                    </div>
+
+                    <div class="mb-2">
+                        <div class="fw-semibold" style="font-size: 0.7rem;"><i class="ti ti-link me-1 text-primary"></i> Quick Links</div>
+                        <ul class="mb-0 ps-3" style="font-size: 0.65rem; color: #555;">
+                            <li><a href="{{ route('admin.campuses.index') }}">Campuses</a> - manage campuses across universities</li>
+                            <li><a href="{{ route('admin.schools.index') }}">Schools & Faculties</a> - manage schools</li>
+                            <li><a href="{{ route('admin.departments.index') }}">Departments</a> - manage departments</li>
+                        </ul>
+                    </div>
+
+                    <x-alert-light class="mb-0 py-1 px-2 rounded-sm">
+                        <div class="d-flex align-items-start gap-1">
+                            <i class="ti ti-tips text-warning mt-0" style="font-size: 0.7rem;"></i>
+                            <div>
+                                <strong class="d-block" style="font-size: 0.65rem;">Tips</strong>
+                                <small class="text-muted" style="font-size: 0.6rem;">&bull; Click the campuses badge to jump straight to that university's campuses</small><br>
+                                <small class="text-muted" style="font-size: 0.6rem;">&bull; Click a row anywhere to open the university's details</small>
+                            </div>
+                        </div>
+                    </x-alert-light>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
-<!-- Delete Confirmation Modal -->
-<div class="modal fade" id="deleteModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content rounded-sm">
-            <div class="modal-header py-1 px-2">
-                <h5 class="modal-title" style="font-size: 0.8rem;">Confirm Delete</h5>
-                <button type="button" class="btn-close py-0" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body py-2 px-2">
-                <p style="font-size: 0.75rem;">Are you sure you want to delete <strong id="deleteItemName"></strong>?</p>
-                <p class="text-danger mb-0" style="font-size: 0.7rem;">This will also delete all associated campuses and departments. This action cannot be undone.</p>
-            </div>
-            <div class="modal-footer py-1 px-2">
-                <button type="button" class="btn btn-secondary btn-sm rounded-sm" data-bs-dismiss="modal" style="font-size: 0.7rem;">Cancel</button>
-                <a href="#" id="deleteConfirmBtn" class="btn btn-danger btn-sm rounded-sm" style="font-size: 0.7rem;">Delete</a>
-            </div>
-        </div>
-    </div>
-</div>
 
 <style>
 /* Hover effects for clickable elements */
@@ -188,22 +205,6 @@
 </style>
 
 <script>
-let deleteId = '';
-let deleteName = '';
-
-function showDeleteModal(id, name) {
-    deleteId = id;
-    deleteName = name;
-    document.getElementById('deleteItemName').innerText = name;
-    document.getElementById('deleteConfirmBtn').href = '/admin/universities/' + id;
-    new bootstrap.Modal(document.getElementById('deleteModal')).show();
-}
-
-// Override the default confirmDelete function that might be called from old code
-window.confirmDelete = function(id, name) {
-    showDeleteModal(id, name);
-};
-
 // Make entire row clickable (except action buttons)
 document.addEventListener('DOMContentLoaded', function() {
     const rows = document.querySelectorAll('.clickable-row');

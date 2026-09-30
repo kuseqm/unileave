@@ -12,7 +12,7 @@ class OfficialDocument extends Model
         'document_number', 'type', 'related_id', 'related_type',
         'generated_by', 'file_path', 'qr_code_path', 'qr_code_data',
         'digital_signature_path', 'is_signed', 'signed_at', 'signed_by',
-        'verification_url', 'status'
+        'verification_url', 'status',
     ];
 
     protected $casts = [

@@ -154,17 +154,20 @@
                     </div>
                 </div>
                 <div class="card-body py-2 px-2">
-                    <div class="alert alert-light border mb-2 py-1 px-2 rounded-sm">
+                    <x-alert-light class="mb-2 py-1 px-2 rounded-sm">
+
                         <div class="d-flex align-items-start gap-1">
                             <i class="ti ti-hierarchy text-primary mt-0" style="font-size: 0.7rem;"></i>
                             <div>
                                 <strong class="d-block" style="font-size: 0.65rem;">Hierarchy</strong>
                                 <small class="text-muted" style="font-size: 0.6rem;">University → Campus → School/Faculty → <strong>Department</strong> → Staff</small>
                             </div>
-                        </div>
+                        
+</x-alert-light>
                     </div>
                     
-                    <div class="alert alert-light border mb-2 py-1 px-2 rounded-sm">
+                    <x-alert-light class="mb-2 py-1 px-2 rounded-sm">
+
                         <div class="d-flex align-items-start gap-1">
                             <i class="ti ti-user-check text-success mt-0" style="font-size: 0.7rem;"></i>
                             <div>
@@ -172,10 +175,12 @@
                                 <small class="text-muted" style="font-size: 0.6rem;">• <strong>HOD</strong> - Head of Department (academic staff)<br>
                                 • <strong>Unit Head</strong> - Head of Unit (non-academic staff)</small>
                             </div>
-                        </div>
+                        
+</x-alert-light>
                     </div>
                     
-                    <div class="alert alert-light border mb-0 py-1 px-2 rounded-sm">
+                    <x-alert-light class="mb-0 py-1 px-2 rounded-sm">
+
                         <div class="d-flex align-items-start gap-1">
                             <i class="ti ti-tips text-warning mt-0" style="font-size: 0.7rem;"></i>
                             <div>
@@ -185,7 +190,8 @@
                                 • Unit Head can be assigned to any staff member<br>
                                 • Departments can have multiple staff members</small>
                             </div>
-                        </div>
+                        
+</x-alert-light>
                     </div>
                 </div>
             </div>

@@ -38,6 +38,14 @@
                                 <div class="text-muted" style="font-size: 0.6rem;">Reason</div>
                                 <div class="small" style="font-size: 0.7rem;">{{ ucfirst($travelRequest->travel_reason) }} travel</div>
                             </div>
+                            @if($travelRequest->handover_notes)
+                            <div class="col-12">
+                                <div class="text-muted" style="font-size: 0.6rem;">What you'll be covering</div>
+                                <div class="small" style="font-size: 0.7rem;">
+                                    <x-numbered-paragraphs :text="$travelRequest->handover_notes" />
+                                </div>
+                            </div>
+                            @endif
                         </div>
                     </div>
                     

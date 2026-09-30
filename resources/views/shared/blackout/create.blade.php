@@ -83,17 +83,20 @@
                     </div>
                 </div>
                 <div class="card-body py-2 px-2">
-                    <div class="alert alert-light border mb-2 py-1 px-2 rounded-sm">
+                    <x-alert-light class="mb-2 py-1 px-2 rounded-sm">
+
                         <div class="d-flex align-items-start gap-1">
                             <i class="ti ti-tips text-warning mt-0" style="font-size: 0.7rem;"></i>
                             <div>
                                 <strong class="d-block" style="font-size: 0.65rem;">What is a Blackout Period?</strong>
                                 <small class="text-muted" style="font-size: 0.6rem;">A blackout period is a time when leave requests are restricted or blocked entirely.</small>
                             </div>
-                        </div>
+                        
+</x-alert-light>
                     </div>
                     
-                    <div class="alert alert-light border mb-2 py-1 px-2 rounded-sm">
+                    <x-alert-light class="mb-2 py-1 px-2 rounded-sm">
+
                         <div class="d-flex align-items-start gap-1">
                             <i class="ti ti-hierarchy text-primary mt-0" style="font-size: 0.7rem;"></i>
                             <div>
@@ -101,10 +104,12 @@
                                 <small class="text-muted" style="font-size: 0.6rem;">• <strong>Hard Block</strong> - Staff cannot apply for leave during this period</small><br>
                                 <small class="text-muted" style="font-size: 0.6rem;">• <strong>Soft Warning</strong> - Staff see a warning but can still apply</small>
                             </div>
-                        </div>
+                        
+</x-alert-light>
                     </div>
                     
-                    <div class="alert alert-light border mb-0 py-1 px-2 rounded-sm">
+                    <x-alert-light class="mb-0 py-1 px-2 rounded-sm">
+
                         <div class="d-flex align-items-start gap-1">
                             <i class="ti ti-calendar text-success mt-0" style="font-size: 0.7rem;"></i>
                             <div>
@@ -114,7 +119,8 @@
                                 <small class="text-muted" style="font-size: 0.6rem;">• Peak admission periods</small><br>
                                 <small class="text-muted" style="font-size: 0.6rem;">• Budget preparation periods</small>
                             </div>
-                        </div>
+                        
+</x-alert-light>
                     </div>
                 </div>
             </div>

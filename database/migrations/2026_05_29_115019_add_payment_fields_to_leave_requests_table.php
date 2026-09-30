@@ -26,7 +26,7 @@ return new class extends Migration
                 'payment_percentage',
                 'payment_notes',
                 'payment_decision_at',
-                'payment_decided_by'
+                'payment_decided_by',
             ]);
         });
     }

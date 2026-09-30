@@ -13,37 +13,30 @@
     <x-page-header title="PENDING SIGNATURES" description="Letters awaiting your digital signature">
     </x-page-header>
     
-    @if(session('success'))
-    <div class="alert alert-success alert-dismissible fade show py-1 px-2 mb-2 rounded-sm" style="font-size: 0.7rem;" role="alert">
-        <i class="ti ti-check-circle me-1"></i> {{ session('success') }}
-        <button type="button" class="btn-close py-0" style="font-size: 0.6rem;" data-bs-dismiss="alert"></button>
-    </div>
-    @endif
+    <x-alert-success />
     
-    @if(session('error'))
-    <div class="alert alert-danger alert-dismissible fade show py-1 px-2 mb-2 rounded-sm" style="font-size: 0.7rem;" role="alert">
-        <i class="ti ti-alert-circle me-1"></i> {{ session('error') }}
-        <button type="button" class="btn-close py-0" style="font-size: 0.6rem;" data-bs-dismiss="alert"></button>
-    </div>
-    @endif
+    <x-alert-danger />
     
     <!-- Stats Cards -->
     <div class="row g-2 mb-3">
-        <x-stats-card value="{{ $letters->total() }}" label="Awaiting Signature" subtext="ready for VC approval" color="warning" />
-        <x-stats-card value="{{ $letters->where('dvc_approved_at', '>=', now()->subDays(7))->count() }}" label="This Week" subtext="approved by DVC in last 7 days" color="info" />
-        <x-stats-card value="{{ $letters->where('created_at', '>=', now()->subDays(30))->count() }}" label="This Month" subtext="letters pending signature" color="primary" />
+        <x-stats-card value="{{ $stats['total'] }}" label="Awaiting Signature" subtext="ready for VC approval" color="warning" />
+        <x-stats-card value="{{ $stats['this_week'] }}" label="This Week" subtext="approved by DVC in last 7 days" color="info" />
+        <x-stats-card value="{{ $stats['this_month'] }}" label="This Month" subtext="approved by DVC in last 30 days" color="primary" />
+        <x-stats-card value="{{ $stats['overdue'] }}" label="Overdue" subtext="waiting over 7 days" color="danger" />
     </div>
     
     <!-- Important Notice -->
-    <div class="alert alert-warning py-1 px-2 mb-2 rounded-sm" style="font-size: 0.65rem;">
-        <i class="ti ti-shield me-1"></i>
-        <strong>Digital Signature Required:</strong> 
+    <x-alert-warning>
+    <strong>Digital Signature Required:</strong> 
         By signing a letter, you confirm its authenticity and approve it as official.
         Your signature will be recorded with your name, timestamp, IP address, and a unique document hash.
         This is legally binding and cannot be undone.
-    </div>
+</x-alert-warning>
     
-    <div class="card rounded-sm">
+    <div class="row g-2">
+        <!-- Pending Signatures Table - main column -->
+        <div class="col-lg-8">
+            <div class="card rounded-sm">
         <div class="card-header py-1 px-2 bg-light">
             <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
                 <div class="d-flex align-items-center">
@@ -122,6 +115,41 @@
             {{ $letters->links() }}
         </div>
         @endif
+            </div>
+        </div>
+
+        <!-- Information - narrow column -->
+        <div class="col-lg-4">
+            <div class="card rounded-sm">
+                <div class="card-header py-1 px-2 bg-light">
+                    <div class="d-flex align-items-center">
+                        <i class="ti ti-info-circle text-info me-1" style="font-size: 0.8rem;"></i>
+                        <span style="font-size: 0.7rem; font-weight: 600;">Information</span>
+                    </div>
+                </div>
+                <div class="card-body py-2 px-2">
+                    <div class="mb-2">
+                        <div class="fw-semibold" style="font-size: 0.7rem;"><i class="ti ti-flag me-1 text-primary"></i> About Digital Signature</div>
+                        <ul class="mb-0 ps-3" style="font-size: 0.65rem; color: #555;">
+                            <li>Letters here have already cleared HOD, Dean, and DVC approval</li>
+                            <li>Signing requires your PIN and is legally binding</li>
+                            <li>Your name, timestamp, IP, and a document hash are recorded</li>
+                        </ul>
+                    </div>
+
+                    <x-alert-light class="mb-0 py-1 px-2 rounded-sm">
+                        <div class="d-flex align-items-start gap-1">
+                            <i class="ti ti-tips text-warning mt-0" style="font-size: 0.7rem;"></i>
+                            <div>
+                                <strong class="d-block" style="font-size: 0.65rem;">Tips</strong>
+                                <small class="text-muted" style="font-size: 0.6rem;">&bull; Double-check the letter content before signing</small><br>
+                                <small class="text-muted" style="font-size: 0.6rem;">&bull; This action cannot be undone</small>
+                            </div>
+                        </div>
+                    </x-alert-light>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -139,16 +167,14 @@
                     <button type="button" class="btn-close py-0" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body py-3 px-3">
-                    <div class="alert alert-info py-1 px-2 mb-3" style="font-size: 0.7rem;">
-                        <i class="ti ti-info-circle"></i> 
-                        <strong>Letter:</strong> {{ $letter->letter_number }} - {{ Str::limit($letter->title, 50) }}
-                    </div>
+                    <x-alert-info>
+    <strong>Letter:</strong> {{ $letter->letter_number }} - {{ Str::limit($letter->title, 50) }}
+</x-alert-info>
                     
-                    <div class="alert alert-warning py-1 px-2 mb-3" style="font-size: 0.7rem;">
-                        <i class="ti ti-shield"></i> 
-                        By signing this letter, you confirm it is authentic and approved.
+                    <x-alert-warning>
+    By signing this letter, you confirm it is authentic and approved.
                         This action is legally binding and will be recorded.
-                    </div>
+</x-alert-warning>
                     
                     <div class="mb-2">
                         <label class="form-label" style="font-size: 0.7rem;">Enter Your Signature PIN</label>
@@ -156,9 +182,8 @@
                         <small class="text-muted" style="font-size: 0.55rem;">Your PIN is secure and never stored in plain text.</small>
                     </div>
                     
-                    <div class="alert alert-light border py-1 px-2 rounded-sm" style="font-size: 0.65rem;">
-                        <i class="ti ti-database"></i> 
-                        <strong>What will be recorded:</strong>
+                    <x-alert-secondary>
+    <strong>What will be recorded:</strong>
                         <ul class="mb-0 mt-1 ps-3">
                             <li>Your name and role (Vice Chancellor)</li>
                             <li>Date and time of signature</li>
@@ -167,7 +192,7 @@
                             <li>Document hash for verification</li>
                             <li>Approval chain (HOD → Dean → DVC → VC)</li>
                         </ul>
-                    </div>
+</x-alert-secondary>
                 </div>
                 <div class="modal-footer py-2 px-3">
                     <button type="button" class="btn btn-secondary btn-sm rounded-sm" data-bs-dismiss="modal" style="font-size: 0.7rem;">Cancel</button>

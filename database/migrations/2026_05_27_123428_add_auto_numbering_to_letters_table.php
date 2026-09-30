@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::table('letters', function (Blueprint $table) {
             // Add auto-numbering preference (default: true)
             $table->boolean('auto_number_paragraphs')->default(true)->after('content');
-            
+
             // Store raw content before formatting (optional)
             $table->text('raw_content')->nullable()->after('auto_number_paragraphs');
         });

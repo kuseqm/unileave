@@ -21,24 +21,24 @@ return new class extends Migration
             $table->text('personal_description')->nullable();
             $table->enum('cost_coverage', ['organizers_full', 'organizers_partial', 'university', 'private']);
             $table->text('additional_details')->nullable();
-            
+
             // Acting staff status
             $table->enum('acting_status', ['pending', 'accepted', 'declined'])->default('pending');
             $table->timestamp('acting_responded_at')->nullable();
             $table->string('acting_token', 100)->nullable();
             $table->text('acting_comment')->nullable();
-            
+
             // Approval status
             $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
             $table->string('current_approval_level')->default('acting');
             $table->text('rejection_reason')->nullable();
-            
+
             // Evidence attachments
             $table->string('invitation_letter_path')->nullable();
             $table->string('endorsement_path')->nullable();
-            
+
             $table->timestamps();
-            
+
             // Indexes
             $table->index('staff_id');
             $table->index('acting_staff_id');

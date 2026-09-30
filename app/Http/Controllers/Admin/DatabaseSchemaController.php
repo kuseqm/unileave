@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Http\Request;
 
 class DatabaseSchemaController extends Controller
 {
@@ -17,14 +16,14 @@ class DatabaseSchemaController extends Controller
         // Get all tables
         $tables = DB::select('SHOW TABLES');
         $tableNames = array_map('current', $tables);
-        
+
         $schema = [];
         $relationships = [];
-        
+
         foreach ($tableNames as $tableName) {
             // Get columns for each table
             $columns = DB::select("SHOW FULL COLUMNS FROM {$tableName}");
-            
+
             // Get foreign keys
             $foreignKeys = DB::select("
                 SELECT 
@@ -36,13 +35,13 @@ class DatabaseSchemaController extends Controller
                 AND TABLE_NAME = '{$tableName}'
                 AND REFERENCED_TABLE_NAME IS NOT NULL
             ");
-            
+
             $schema[$tableName] = [
                 'columns' => $columns,
                 'foreign_keys' => $foreignKeys,
                 'row_count' => DB::table($tableName)->count(),
             ];
-            
+
             // Build relationships for diagram
             foreach ($foreignKeys as $fk) {
                 $relationships[] = [
@@ -53,35 +52,52 @@ class DatabaseSchemaController extends Controller
                 ];
             }
         }
-        
+
         // Get migration history
         $migrations = DB::table('migrations')->orderBy('batch', 'desc')->get();
-        
-        return view('admin.database-schema.index', compact('schema', 'relationships', 'tableNames', 'migrations'));
+
+        $stats = [
+            'total_tables' => count($tableNames),
+            'total_migrations' => $migrations->count(),
+            'latest_batch' => $migrations->max('batch') ?? 0,
+            'total_columns' => collect($schema)->sum(fn ($s) => count($s['columns'])),
+            'total_rows' => collect($schema)->sum('row_count'),
+            'total_foreign_keys' => collect($schema)->sum(fn ($s) => count($s['foreign_keys'])),
+            'total_relationships' => count($relationships),
+            'total_indexes' => collect($tableNames)->sum(fn ($t) => count(DB::select("SHOW INDEX FROM `{$t}`"))),
+        ];
+
+        return view('admin.database-schema.index', compact('schema', 'relationships', 'tableNames', 'migrations', 'stats'));
     }
-    
+
     /**
      * Get table details via AJAX
      */
     public function getTableDetails($tableName)
     {
-        $columns = DB::select("SHOW FULL COLUMNS FROM {$tableName}");
-        
-        $foreignKeys = DB::select("
-            SELECT 
+        // SHOW/DESCRIBE statements can't use parameter binding for identifiers,
+        // so we whitelist against tables that actually exist before interpolating.
+        if (! Schema::hasTable($tableName)) {
+            abort(404);
+        }
+
+        $columns = DB::select("SHOW FULL COLUMNS FROM `{$tableName}`");
+
+        $foreignKeys = DB::select('
+            SELECT
                 COLUMN_NAME,
                 REFERENCED_TABLE_NAME,
                 REFERENCED_COLUMN_NAME
             FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
             WHERE TABLE_SCHEMA = DATABASE()
-            AND TABLE_NAME = '{$tableName}'
+            AND TABLE_NAME = ?
             AND REFERENCED_TABLE_NAME IS NOT NULL
-        ");
-        
-        $indexes = DB::select("SHOW INDEX FROM {$tableName}");
-        
+        ', [$tableName]);
+
+        $indexes = DB::select("SHOW INDEX FROM `{$tableName}`");
+
         $sampleData = DB::table($tableName)->limit(5)->get();
-        
+
         return response()->json([
             'columns' => $columns,
             'foreign_keys' => $foreignKeys,
@@ -90,7 +106,7 @@ class DatabaseSchemaController extends Controller
             'row_count' => DB::table($tableName)->count(),
         ]);
     }
-    
+
     /**
      * Export schema as JSON
      */
@@ -98,12 +114,12 @@ class DatabaseSchemaController extends Controller
     {
         $tables = DB::select('SHOW TABLES');
         $tableNames = array_map('current', $tables);
-        
+
         $schema = [];
-        
+
         foreach ($tableNames as $tableName) {
             $columns = DB::select("SHOW FULL COLUMNS FROM {$tableName}");
-            
+
             $foreignKeys = DB::select("
                 SELECT 
                     COLUMN_NAME,
@@ -114,17 +130,17 @@ class DatabaseSchemaController extends Controller
                 AND TABLE_NAME = '{$tableName}'
                 AND REFERENCED_TABLE_NAME IS NOT NULL
             ");
-            
+
             $schema[$tableName] = [
                 'columns' => $columns,
                 'foreign_keys' => $foreignKeys,
                 'row_count' => DB::table($tableName)->count(),
             ];
         }
-        
+
         return response()->json($schema, 200, [
             'Content-Type' => 'application/json',
-            'Content-Disposition' => 'attachment; filename="database-schema.json"'
+            'Content-Disposition' => 'attachment; filename="database-schema.json"',
         ]);
     }
 }

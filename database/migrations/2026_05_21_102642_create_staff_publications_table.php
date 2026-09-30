@@ -23,7 +23,7 @@ return new class extends Migration
             $table->integer('citations_count')->default(0);
             $table->string('file_path', 500)->nullable();
             $table->timestamps();
-            
+
             $table->index('staff_id');
         });
     }

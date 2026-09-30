@@ -21,5 +21,7 @@ class DatabaseSeeder extends Seeder
         $this->call(UserPreferencesSeeder::class);      // 11. User preferences
         $this->call(HodSetupSeeder::class);             // 12. HOD Setup (Fixes approval flow)
         $this->call(TestApprovalFlowSeeder::class);     // 13. TEST APPROVAL FLOW USERS
+        $this->call(PolicySeeder::class);               // 14. Sample university policies and rules
+        $this->call(GraduationCeremonySeeder::class);    // 15. Real historical graduation ceremonies
     }
 }

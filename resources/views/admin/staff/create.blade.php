@@ -6,33 +6,26 @@
 <div class="container-fluid px-2">
     
     <!-- Breadcrumb -->
-    <x-breadcrumb :items="[
+    <x-breadcrumb :items=" [
         ['name' => 'Staff', 'url' => route('staff.index')],
         ['name' => 'Add Staff', 'url' => '#']
     ]" />
     
-    <!-- Page Header Card -->
-    <div class="card rounded-sm mb-3">
-        <div class="card-body py-2 px-3">
-            <div class="d-flex align-items-center justify-content-between">
-                <div>
-                    <h1 class="h5 mb-0" style="color: #3B82F6; font-weight: 700;">ADD STAFF MEMBER</h1>
-                    <p class="text-muted mb-0" style="font-size: 0.7rem;">Create a new staff account in the system</p>
-                </div>
-                <div class="d-flex gap-2">
-                    <a href="{{ route('staff.index') }}" class="btn btn-outline-secondary btn-sm rounded-sm" style="font-size: 0.7rem; padding: 0.2rem 0.5rem;">
-                        <i class="ti ti-arrow-left me-1"></i> Back
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- Page Header -->
+    <x-page-header title="ADD STAFF MEMBER" description="Create a new staff account in the system" backUrl="{{ route('staff.index') }}" />
     
-    @if(session('error'))
-    <div class="alert alert-danger alert-dismissible fade show py-1 px-2 mb-2 rounded-sm" style="font-size: 0.7rem;" role="alert">
-        <i class="ti ti-alert-circle me-1"></i> {{ session('error') }}
+    <x-alert-danger />
+    
+    @if($errors->any())
+    <x-alert-danger :session="false">
+        <strong>Please fix the following errors:</strong>
+        <ul class="mb-0 mt-1 ps-3">
+            @foreach($errors->all() as $error)
+            <li>{{ $error }}</li>
+            @endforeach
+        </ul>
         <button type="button" class="btn-close py-0" style="font-size: 0.6rem;" data-bs-dismiss="alert"></button>
-    </div>
+    </x-alert-danger>
     @endif
     
     <div class="row g-2">
@@ -54,8 +47,8 @@
                             <!-- Title (NEW) -->
                             <div class="col-md-2 mb-1">
                                 <label class="form-label" style="font-size: 0.65rem;">Title</label>
-                                <select name="title" class="form-select form-select-sm rounded-sm" style="font-size: 0.7rem; padding: 0.2rem 0.3rem;">
-                                    <option value="">Select Title</option>
+                                <select name="title" class="form-select form-select-sm rounded-sm" style="font-size: 0.7rem; padding: 0.2rem 1.4rem 0.2rem 0.3rem;">
+                                    <option value="">Title</option>
                                     <option value="Mr" {{ old('title') == 'Mr' ? 'selected' : '' }}>Mr</option>
                                     <option value="Mrs" {{ old('title') == 'Mrs' ? 'selected' : '' }}>Mrs</option>
                                     <option value="Ms" {{ old('title') == 'Ms' ? 'selected' : '' }}>Ms</option>
@@ -65,12 +58,12 @@
                                     <option value="Rev" {{ old('title') == 'Rev' ? 'selected' : '' }}>Rev</option>
                                 </select>
                             </div>
-                            
+
                             <!-- Gender (NEW) -->
                             <div class="col-md-2 mb-1">
                                 <label class="form-label" style="font-size: 0.65rem;">Gender</label>
-                                <select name="gender" class="form-select form-select-sm rounded-sm" style="font-size: 0.7rem; padding: 0.2rem 0.3rem;">
-                                    <option value="">Select Gender</option>
+                                <select name="gender" class="form-select form-select-sm rounded-sm" style="font-size: 0.7rem; padding: 0.2rem 1.4rem 0.2rem 0.3rem;">
+                                    <option value="">Gender</option>
                                     <option value="male" {{ old('gender') == 'male' ? 'selected' : '' }}>Male</option>
                                     <option value="female" {{ old('gender') == 'female' ? 'selected' : '' }}>Female</option>
                                     <option value="other" {{ old('gender') == 'other' ? 'selected' : '' }}>Other</option>
@@ -114,8 +107,13 @@
                             
                             <div class="col-md-6 mb-1">
                                 <label class="form-label" style="font-size: 0.65rem;">Staff Category</label>
-                                <input type="text" id="category_display" class="form-control form-control-sm rounded-sm" style="font-size: 0.7rem; padding: 0.2rem 0.3rem; background: #f5f5f5;" readonly>
-                                <small class="text-muted" style="font-size: 0.6rem;">Auto-selected based on role</small>
+                                <select name="staff_category" id="staff_category" class="form-select form-select-sm rounded-sm" style="font-size: 0.7rem; padding: 0.2rem 1.4rem 0.2rem 0.3rem;">
+                                    <option value="">Select Category</option>
+                                    <option value="academic" {{ old('staff_category') == 'academic' ? 'selected' : '' }}>Academic</option>
+                                    <option value="administrative" {{ old('staff_category') == 'administrative' ? 'selected' : '' }}>Administrative</option>
+                                    <option value="supporting" {{ old('staff_category') == 'supporting' ? 'selected' : '' }}>Supporting</option>
+                                </select>
+                                <small class="text-muted" style="font-size: 0.6rem;">Suggested from role, but you can change it</small>
                             </div>
                         </div>
                         
@@ -123,6 +121,7 @@
                         <div class="border rounded-sm p-2 mt-2 mb-2" style="background: #f8fafc;">
                             <strong class="d-block mb-1" style="font-size: 0.7rem;"><i class="ti ti-map-pin me-1"></i> Location Assignment</strong>
                             
+                            @if($isSuperAdmin)
                             <div class="mb-1">
                                 <label class="form-label" style="font-size: 0.65rem;">University <span class="text-danger">*</span></label>
                                 <select id="university_id" name="university_id" class="form-select form-select-sm rounded-sm" style="font-size: 0.7rem; padding: 0.2rem 0.3rem;" required>
@@ -132,13 +131,32 @@
                                     @endforeach
                                 </select>
                             </div>
-                            
+
                             <div class="mb-1">
                                 <label class="form-label" style="font-size: 0.65rem;">Campus <span class="text-danger">*</span></label>
                                 <select id="campus_id" name="campus_id" class="form-select form-select-sm rounded-sm" disabled style="font-size: 0.7rem; padding: 0.2rem 0.3rem;" required>
                                     <option value="">Select University First</option>
                                 </select>
                             </div>
+                            @else
+                            <div class="mb-1">
+                                <label class="form-label" style="font-size: 0.65rem;">Institute</label>
+                                <div class="form-control form-control-sm rounded-sm bg-light" style="font-size: 0.7rem; padding: 0.2rem 0.3rem;">
+                                    {{ auth()->user()->university->name ?? 'Your institute' }}
+                                </div>
+                                <small class="text-muted" style="font-size: 0.6rem;">Every staff member you add belongs to your own institute.</small>
+                            </div>
+
+                            <div class="mb-1">
+                                <label class="form-label" style="font-size: 0.65rem;">Campus <span class="text-danger">*</span></label>
+                                <select id="campus_id" name="campus_id" class="form-select form-select-sm rounded-sm" style="font-size: 0.7rem; padding: 0.2rem 0.3rem;" required>
+                                    <option value="">Select Campus</option>
+                                    @foreach($campuses as $campus)
+                                    <option value="{{ $campus->id }}">{{ $campus->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            @endif
                             
                             <div class="mb-1">
                                 <label class="form-label" style="font-size: 0.65rem;">School/Faculty</label>
@@ -155,10 +173,9 @@
                             </div>
                         </div>
                         
-                        <div class="alert alert-info py-1 px-2 mb-2 rounded-sm" style="font-size: 0.65rem;">
-                            <i class="ti ti-info-circle me-1"></i>
-                            <strong>Temporary Password:</strong> <code>Temp@123</code> (user will be required to change on first login)
-                        </div>
+                        <x-alert-info>
+    <strong>Temporary Password:</strong> <code>Temp@123</code> (user will be required to change on first login)
+</x-alert-info>
                         
                         <div class="d-flex justify-content-end gap-1 mt-2">
                             <a href="{{ route('staff.index') }}" class="btn btn-secondary btn-sm rounded-sm" style="font-size: 0.7rem; padding: 0.25rem 0.5rem;">Cancel</a>
@@ -200,10 +217,9 @@
                         </ul>
                     </div>
                     
-                    <div class="alert alert-light border mb-0 py-1 px-2 rounded-sm" style="font-size: 0.65rem;">
-                        <i class="ti ti-mail text-primary me-1"></i>
-                        <span>New staff will receive a welcome email with their temporary password.</span>
-                    </div>
+                    <x-alert-secondary>
+    <span>New staff will receive a welcome email with their temporary password.</span>
+</x-alert-secondary>
                 </div>
             </div>
             
@@ -232,40 +248,69 @@
     </div>
 </div>
 
-<!-- Category auto-select script -->
+        <!-- Category suggestion script -->
 <script>
+// Suggests a category from the chosen role, but never overwrites a value
+// the admin already picked themselves - the category select stays a free
+// choice, not something the role locks in.
+const staffCategorySelect = document.getElementById('staff_category');
+let categoryTouchedByUser = false;
+staffCategorySelect.addEventListener('change', function() {
+    categoryTouchedByUser = true;
+});
+
 document.querySelector('select[name="role"]').addEventListener('change', function() {
-    const role = this.value;
-    const categoryDisplay = document.getElementById('category_display');
-    let category = '';
-    
-    if (role === 'hod' || role === 'staff') {
-        category = 'Academic';
-    } else if (role === 'hr-officer') {
-        category = 'Administrative';
-    } else if (role === 'admin') {
-        category = 'Administrative';
-    } else {
-        category = '';
+    if (categoryTouchedByUser) {
+        return;
     }
-    
-    categoryDisplay.value = category;
+
+    const role = this.value;
+    let category = '';
+
+    if (role === 'hod' || role === 'staff') {
+        category = 'academic';
+    } else if (role === 'hr-officer' || role === 'admin') {
+        category = 'administrative';
+    }
+
+    staffCategorySelect.value = category;
 });
 
 // Cascading selects - UPDATED URLs
-document.getElementById('university_id').addEventListener('change', function() {
+// A plain admin has no University select at all (they're pinned to their
+// own institute server-side), so this only wires up for super-admin.
+function loadDepartments(campusId, schoolId, selectedDeptId) {
+    const deptSelect = document.getElementById('department_id');
+    deptSelect.innerHTML = '<option value="">Select Department</option>';
+    deptSelect.disabled = true;
+
+    if (!campusId) return;
+
+    const url = `/staff/departments-by-campus/${campusId}?school_id=${encodeURIComponent(schoolId || '')}`;
+    fetch(url)
+        .then(res => res.json())
+        .then(data => {
+            data.forEach(dept => {
+                const selected = selectedDeptId == dept.id ? 'selected' : '';
+                deptSelect.innerHTML += `<option value="${dept.id}" ${selected}>${dept.name}</option>`;
+            });
+            deptSelect.disabled = false;
+        });
+}
+
+document.getElementById('university_id')?.addEventListener('change', function() {
     const universityId = this.value;
     const campusSelect = document.getElementById('campus_id');
     const schoolSelect = document.getElementById('school_id');
     const deptSelect = document.getElementById('department_id');
-    
+
     campusSelect.innerHTML = '<option value="">Select Campus</option>';
-    schoolSelect.innerHTML = '<option value="">Select Campus First</option>';
-    deptSelect.innerHTML = '<option value="">Select School First</option>';
+    schoolSelect.innerHTML = '<option value="">Select School</option>';
+    deptSelect.innerHTML = '<option value="">Select Department</option>';
     campusSelect.disabled = true;
     schoolSelect.disabled = true;
     deptSelect.disabled = true;
-    
+
     if (universityId) {
         fetch(`/staff/campuses/${universityId}`)
             .then(res => res.json())
@@ -282,12 +327,12 @@ document.getElementById('campus_id').addEventListener('change', function() {
     const campusId = this.value;
     const schoolSelect = document.getElementById('school_id');
     const deptSelect = document.getElementById('department_id');
-    
+
     schoolSelect.innerHTML = '<option value="">Select School</option>';
-    deptSelect.innerHTML = '<option value="">Select School First</option>';
+    deptSelect.innerHTML = '<option value="">Select Department</option>';
     schoolSelect.disabled = true;
     deptSelect.disabled = true;
-    
+
     if (campusId) {
         fetch(`/staff/schools/${campusId}`)
             .then(res => res.json())
@@ -296,27 +341,16 @@ document.getElementById('campus_id').addEventListener('change', function() {
                     schoolSelect.innerHTML += `<option value="${school.id}">${school.name}</option>`;
                 });
                 schoolSelect.disabled = false;
+                loadDepartments(campusId, schoolSelect.value || '', null);
             });
     }
 });
 
 document.getElementById('school_id').addEventListener('change', function() {
+    const campusId = document.getElementById('campus_id').value;
     const schoolId = this.value;
-    const deptSelect = document.getElementById('department_id');
-    
-    deptSelect.innerHTML = '<option value="">Select Department</option>';
-    deptSelect.disabled = true;
-    
-    if (schoolId) {
-        fetch(`/staff/departments/${schoolId}`)
-            .then(res => res.json())
-            .then(data => {
-                data.forEach(dept => {
-                    deptSelect.innerHTML += `<option value="${dept.id}">${dept.name}</option>`;
-                });
-                deptSelect.disabled = false;
-            });
-    }
+    const selectedDeptId = document.getElementById('department_id').value;
+    loadDepartments(campusId, schoolId, selectedDeptId);
 });
 </script>
 @endsection

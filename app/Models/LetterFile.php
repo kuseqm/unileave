@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class LetterFile extends Model
 {
@@ -83,6 +83,7 @@ class LetterFile extends Model
         if ($this->referenceFormat) {
             return str_pad($this->current_serial, $this->referenceFormat->serial_length, '0', STR_PAD_LEFT);
         }
+
         return str_pad($this->current_serial, 4, '0', STR_PAD_LEFT);
     }
 
@@ -94,6 +95,7 @@ class LetterFile extends Model
         if ($this->referenceFormat) {
             return str_pad($this->start_serial, $this->referenceFormat->serial_length, '0', STR_PAD_LEFT);
         }
+
         return str_pad($this->start_serial, 4, '0', STR_PAD_LEFT);
     }
 
@@ -106,8 +108,10 @@ class LetterFile extends Model
             if ($this->referenceFormat) {
                 return str_pad($this->end_serial, $this->referenceFormat->serial_length, '0', STR_PAD_LEFT);
             }
+
             return str_pad($this->end_serial, 4, '0', STR_PAD_LEFT);
         }
+
         return 'Unlimited';
     }
 
@@ -116,11 +120,12 @@ class LetterFile extends Model
      */
     public function getUsagePercentageAttribute()
     {
-        if (!$this->end_serial || $this->end_serial == 0) {
+        if (! $this->end_serial || $this->end_serial == 0) {
             return 0;
         }
         $total = $this->end_serial - $this->start_serial + 1;
         $used = $this->current_serial - $this->start_serial + 1;
+
         return round(($used / $total) * 100);
     }
 
@@ -129,10 +134,11 @@ class LetterFile extends Model
      */
     public function getRemainingCapacityAttribute()
     {
-        if (!$this->end_serial) {
+        if (! $this->end_serial) {
             return 'Unlimited';
         }
         $remaining = $this->end_serial - $this->current_serial;
+
         return max(0, $remaining);
     }
 
@@ -141,12 +147,14 @@ class LetterFile extends Model
      */
     public function getStatusLabelAttribute()
     {
-        if ($this->is_active && !$this->closed_at) {
+        if ($this->is_active && ! $this->closed_at) {
             if ($this->end_serial && $this->current_serial >= $this->end_serial) {
                 return 'Full';
             }
+
             return 'Active';
         }
+
         return 'Closed';
     }
 
@@ -160,6 +168,7 @@ class LetterFile extends Model
             'Full' => 'warning',
             'Closed' => 'secondary',
         ];
+
         return $colors[$this->status_label] ?? 'secondary';
     }
 
@@ -188,9 +197,9 @@ class LetterFile extends Model
      */
     public function scopeHasCapacity($query)
     {
-        return $query->where(function($q) {
+        return $query->where(function ($q) {
             $q->whereNull('end_serial')
-              ->orWhereColumn('current_serial', '<', 'end_serial');
+                ->orWhereColumn('current_serial', '<', 'end_serial');
         });
     }
 
@@ -203,9 +212,10 @@ class LetterFile extends Model
      */
     public function hasCapacity()
     {
-        if (!$this->end_serial) {
+        if (! $this->end_serial) {
             return true;
         }
+
         return $this->current_serial < $this->end_serial;
     }
 
@@ -222,16 +232,16 @@ class LetterFile extends Model
      */
     public function getNextLetterNumber()
     {
-        if (!$this->hasCapacity()) {
+        if (! $this->hasCapacity()) {
             return null;
         }
 
         $nextSerial = $this->current_serial + 1;
-        
+
         if ($this->referenceFormat) {
             return $this->referenceFormat->generateNumber($nextSerial);
         }
-        
+
         return str_pad($nextSerial, 4, '0', STR_PAD_LEFT);
     }
 
@@ -241,17 +251,17 @@ class LetterFile extends Model
     public function incrementSerial()
     {
         $this->increment('current_serial');
-        
+
         // Check if file is now full
         if ($this->isFull()) {
             $this->update(['is_active' => false, 'closed_at' => now()]);
-            
+
             // Auto-create new file if format allows
             if ($this->referenceFormat && $this->referenceFormat->auto_create_new_file) {
                 $this->referenceFormat->createNewFile();
             }
         }
-        
+
         return $this;
     }
 
@@ -264,7 +274,7 @@ class LetterFile extends Model
             'is_active' => false,
             'closed_at' => now(),
         ]);
-        
+
         return $this;
     }
 
@@ -277,7 +287,7 @@ class LetterFile extends Model
             'is_active' => true,
             'closed_at' => null,
         ]);
-        
+
         return $this;
     }
 
@@ -288,11 +298,11 @@ class LetterFile extends Model
     {
         $start = $this->start_serial_formatted;
         $end = $this->end_serial_formatted;
-        
+
         if ($end === 'Unlimited') {
             return "From {$start} onward";
         }
-        
+
         return "{$start} - {$end}";
     }
 
@@ -303,6 +313,7 @@ class LetterFile extends Model
     {
         $parts = explode('-', $this->file_number);
         $volume = end($parts);
+
         return "File: {$this->file_number}";
     }
 }

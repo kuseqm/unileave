@@ -18,7 +18,7 @@ return new class extends Migration
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });
-        
+
         // Seed default mappings
         DB::table('template_column_mappings')->insert([
             ['excel_header' => 'Staff ID', 'database_column' => 'staff_id', 'is_required' => true, 'sort_order' => 1],

@@ -95,7 +95,7 @@
                             <div class="fw-semibold mb-2">Attachments</div>
                             <div class="d-flex gap-2 flex-wrap">
                                 @foreach($message->attachments as $attachment)
-                                    <a href="{{ Storage::url($attachment->file_path) }}" target="_blank" class="btn btn-outline-secondary btn-sm rounded-pill">
+                                    <a href="{{ route('messages.attachments.download', $attachment->id) }}" target="_blank" class="btn btn-outline-secondary btn-sm rounded-pill">
                                         <i class="ti ti-paperclip me-1"></i> {{ $attachment->file_name }}
                                         <span class="text-muted ms-1">({{ number_format($attachment->file_size / 1024, 1) }} KB)</span>
                                     </a>
@@ -127,7 +127,7 @@
                         
                         <!-- Delete Button - Using YOUR modal pattern (like staff management) -->
                         <button type="button" 
-                                onclick="showDeleteModal({{ $message->id }}, '{{ addslashes($message->subject) }}')" 
+                                onclick="showDeleteModal({{ $message->id }}, '{{ addslashes($message->subject) }}', null, '{{ route('messages.destroy', $message->id) }}')"
                                 class="btn btn-outline-danger btn-sm rounded-sm ms-auto">
                             <i class="ti ti-trash me-1"></i> Delete
                         </button>
@@ -168,34 +168,7 @@
     </div>
 </div>
 
-<!-- Delete Confirmation Modal - EXACTLY like your staff management page -->
-<div class="modal fade" id="deleteModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content rounded-sm">
-            <div class="modal-header py-1 px-2">
-                <h5 class="modal-title" style="font-size: 0.8rem;">Confirm Delete</h5>
-                <button type="button" class="btn-close py-0" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body py-2 px-2">
-                <p style="font-size: 0.75rem;">Are you sure you want to delete message <strong id="deleteMessageSubject"></strong>?</p>
-                <p class="text-danger mb-0" style="font-size: 0.7rem;">This action cannot be undone.</p>
-            </div>
-            <div class="modal-footer py-1 px-2">
-                <button type="button" class="btn btn-secondary btn-sm rounded-sm" data-bs-dismiss="modal" style="font-size: 0.7rem;">Cancel</button>
-                <a href="#" id="deleteConfirmBtn" class="btn btn-danger btn-sm rounded-sm" style="font-size: 0.7rem;">Delete</a>
-            </div>
-        </div>
-    </div>
-</div>
-
 <script>
-// Delete modal function - EXACT pattern from your staff management
-function showDeleteModal(id, subject) {
-    document.getElementById('deleteMessageSubject').innerText = subject;
-    document.getElementById('deleteConfirmBtn').href = '/messages/' + id;
-    new bootstrap.Modal(document.getElementById('deleteModal')).show();
-}
-
 function archiveMessage(id) {
     fetch(`/messages/${id}/archive`, { 
         method: 'POST', 

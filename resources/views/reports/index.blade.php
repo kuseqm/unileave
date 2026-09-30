@@ -10,6 +10,9 @@
     ]" />
     
     <x-page-header title="REPORTS DASHBOARD" description="View and export system reports">
+        <a href="{{ route('reports.custom') }}" class="btn btn-primary btn-sm rounded-sm" style="font-size: 0.7rem; padding: 0.2rem 0.5rem;">
+            <i class="ti ti-adjustments me-1"></i> Build Your Own Report
+        </a>
     </x-page-header>
     
     <!-- Stats Cards (all dynamic) -->
@@ -119,10 +122,9 @@
                             <li>Below the chart, a <strong>detailed data table</strong> shows all rows.</li>
                         </ul>
                     </div>
-                    <div class="alert alert-info py-1 px-2 mb-0 rounded-sm" style="font-size: 0.65rem;">
-                        <i class="ti ti-lightbulb me-1"></i>
-                        <strong>Tip:</strong> Use the calendar pickers for date‑driven reports (e.g., Leave Summary, Leave Taken).
-                    </div>
+                    <x-alert-info>
+    <strong>Tip:</strong> Use the calendar pickers for date‑driven reports (e.g., Leave Summary, Leave Taken).
+</x-alert-info>
                 </div>
             </div>
         </div>

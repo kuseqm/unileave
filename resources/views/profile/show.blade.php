@@ -23,20 +23,17 @@
     
     <x-page-header title="MY PROFILE" description="View and manage your personal and professional information"></x-page-header>
     
-    @if(session('success'))
-    <div class="alert alert-success alert-dismissible fade show py-1 px-2 mb-2 rounded-sm" style="font-size: 0.7rem;" role="alert">
-        <i class="ti ti-check-circle me-1"></i> {{ session('success') }}
-        <button type="button" class="btn-close py-0" style="font-size: 0.6rem;" data-bs-dismiss="alert"></button>
-    </div>
-    @endif
+    <x-alert-success />
     
-    @if(session('error'))
-    <div class="alert alert-danger alert-dismissible fade show py-1 px-2 mb-2 rounded-sm" style="font-size: 0.7rem;" role="alert">
-        <i class="ti ti-alert-circle me-1"></i> {{ session('error') }}
+    <x-alert-danger />
+
+    @if(session('warning'))
+    <x-alert-warning>
+    {{ session('warning') }}
         <button type="button" class="btn-close py-0" style="font-size: 0.6rem;" data-bs-dismiss="alert"></button>
-    </div>
+</x-alert-warning>
     @endif
-    
+
     <div class="row">
         <!-- LEFT COLUMN - Profile Picture & Stats -->
         <div class="col-md-3">
@@ -419,7 +416,9 @@
                 <div class="row g-2 mt-1"><div class="col-6"><label class="form-label" style="font-size: 0.65rem;">Marital Status</label><select name="marital_status" class="form-select form-select-sm"><option value="">Select</option><option value="single" {{ auth()->user()->marital_status == 'single' ? 'selected' : '' }}>Single</option><option value="married" {{ auth()->user()->marital_status == 'married' ? 'selected' : '' }}>Married</option><option value="divorced" {{ auth()->user()->marital_status == 'divorced' ? 'selected' : '' }}>Divorced</option><option value="widowed" {{ auth()->user()->marital_status == 'widowed' ? 'selected' : '' }}>Widowed</option></select></div>
                 <div class="col-6"><label class="form-label" style="font-size: 0.65rem;">Spouse Name</label><input type="text" name="spouse_name" class="form-control form-control-sm" value="{{ auth()->user()->spouse_name ?? '' }}"></div></div>
                 <div class="row g-2 mt-1"><div class="col-12"><label class="form-label" style="font-size: 0.65rem;">Phone Number</label><input type="text" name="phone" class="form-control form-control-sm" value="{{ auth()->user()->phone ?? '' }}"></div></div>
-                <div class="alert alert-info mt-2 py-1 px-2" style="font-size: 0.6rem;"><i class="ti ti-info-circle me-1"></i> First Name, Middle Name, and Last Name cannot be changed. Contact HR for corrections.</div>
+                <x-alert-info>
+    First Name, Middle Name, and Last Name cannot be changed. Contact HR for corrections.
+</x-alert-info>
             </div>
             <div class="modal-footer py-1 px-2"><button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-primary btn-sm"><i class="ti ti-save me-1"></i> Save Changes</button></div>
         </form>
@@ -598,7 +597,9 @@
         <div class="modal-body py-2 px-2">
             <div class="mb-2"><label class="form-label" style="font-size: 0.65rem;">TIN Number</label><input type="text" name="tin_number" class="form-control form-control-sm" value="{{ auth()->user()->tin_number ?? '' }}"></div>
             <div class="mb-2"><label class="form-label" style="font-size: 0.65rem;">NSSF Number</label><input type="text" name="nssf_number" class="form-control form-control-sm" value="{{ auth()->user()->nssf_number ?? '' }}"></div>
-            <div class="alert alert-info mt-2 py-1 px-2" style="font-size: 0.6rem;"><i class="ti ti-info-circle me-1"></i> TIN and NSSF numbers are used for payroll and tax purposes.</div>
+            <x-alert-info>
+    TIN and NSSF numbers are used for payroll and tax purposes.
+</x-alert-info>
         </div>
         <div class="modal-footer py-1 px-2"><button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-primary btn-sm">Save Changes</button></div>
     </form>
@@ -713,12 +714,17 @@ function viewBankAccount(id) {
 }
 
 // Delete functions
-function deleteDependent(id) { if(confirm('Delete this dependent?')) { fetch(`/profile/dependents/${id}`, { method: 'DELETE', headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content } }).then(() => location.reload()); } }
-function deleteAddress(id) { if(confirm('Delete this address?')) { fetch(`/profile/addresses/${id}`, { method: 'DELETE', headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content } }).then(() => location.reload()); } }
-function deleteEmergency(id) { if(confirm('Delete this emergency contact?')) { fetch(`/profile/emergency/${id}`, { method: 'DELETE', headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content } }).then(() => location.reload()); } }
-function deleteQualification(id) { if(confirm('Delete this qualification?')) { fetch(`/profile/qualifications/${id}`, { method: 'DELETE', headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content } }).then(() => location.reload()); } }
-function deleteSkill(id) { if(confirm('Delete this skill?')) { fetch(`/profile/skills/${id}`, { method: 'DELETE', headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content } }).then(() => location.reload()); } }
-function deleteLanguage(id) { if(confirm('Delete this language?')) { fetch(`/profile/languages/${id}`, { method: 'DELETE', headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content } }).then(() => location.reload()); } }
-function deleteBankAccount(id) { if(confirm('Delete this bank account?')) { fetch(`/profile/bank/${id}`, { method: 'DELETE', headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content } }).then(() => location.reload()); } }
+function deleteProfileItem(endpoint, message) {
+    confirmAction(message, function () {
+        fetch(endpoint, { method: 'DELETE', headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content } }).then(() => location.reload());
+    });
+}
+function deleteDependent(id) { deleteProfileItem(`/profile/dependents/${id}`, 'Delete this dependent?'); }
+function deleteAddress(id) { deleteProfileItem(`/profile/addresses/${id}`, 'Delete this address?'); }
+function deleteEmergency(id) { deleteProfileItem(`/profile/emergency/${id}`, 'Delete this emergency contact?'); }
+function deleteQualification(id) { deleteProfileItem(`/profile/qualifications/${id}`, 'Delete this qualification?'); }
+function deleteSkill(id) { deleteProfileItem(`/profile/skills/${id}`, 'Delete this skill?'); }
+function deleteLanguage(id) { deleteProfileItem(`/profile/languages/${id}`, 'Delete this language?'); }
+function deleteBankAccount(id) { deleteProfileItem(`/profile/bank/${id}`, 'Delete this bank account?'); }
 </script>
 @endsection

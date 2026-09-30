@@ -1,13 +1,13 @@
 <?php
+
 // app/Http/Controllers/Admin/TenantSettingsController.php
 
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Tenant;
 use App\Models\Setting;
+use App\Models\Tenant;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class TenantSettingsController extends Controller
 {
@@ -17,7 +17,15 @@ class TenantSettingsController extends Controller
     public function index()
     {
         $tenants = Tenant::all();
-        return view('admin.tenants.index', compact('tenants'));
+
+        $stats = [
+            'total' => $tenants->count(),
+            'active' => $tenants->where('status', 'active')->count(),
+            'inactive' => $tenants->where('status', 'inactive')->count(),
+            'pending' => $tenants->where('status', 'pending')->count(),
+        ];
+
+        return view('admin.tenants.index', compact('tenants', 'stats'));
     }
 
     public function create()
@@ -43,6 +51,7 @@ class TenantSettingsController extends Controller
     public function edit($id)
     {
         $tenant = Tenant::findOrFail($id);
+
         return view('admin.tenants.edit', compact('tenant'));
     }
 
@@ -51,9 +60,9 @@ class TenantSettingsController extends Controller
         $tenant = Tenant::findOrFail($id);
 
         $request->validate([
-            'name' => 'required|string|max:255|unique:tenants,name,' . $id,
-            'domain' => 'nullable|string|unique:tenants,domain,' . $id,
-            'database' => 'nullable|string|unique:tenants,database,' . $id,
+            'name' => 'required|string|max:255|unique:tenants,name,'.$id,
+            'domain' => 'nullable|string|unique:tenants,domain,'.$id,
+            'database' => 'nullable|string|unique:tenants,database,'.$id,
             'status' => 'required|in:active,inactive,pending',
         ]);
 
@@ -66,12 +75,12 @@ class TenantSettingsController extends Controller
     public function destroy($id)
     {
         $tenant = Tenant::findOrFail($id);
-        
+
         // Check if tenant has users
         if ($tenant->users()->count() > 0) {
             return back()->with('error', 'Cannot delete tenant with active users.');
         }
-        
+
         $tenant->delete();
 
         return redirect()->route('admin.tenants.index')
@@ -85,14 +94,14 @@ class TenantSettingsController extends Controller
             ->orderBy('group')
             ->get()
             ->groupBy('group');
-            
+
         return view('admin.tenants.settings', compact('tenant', 'settings'));
     }
 
     public function updateSettings(Request $request, $id)
     {
         $tenant = Tenant::findOrFail($id);
-        
+
         foreach ($request->settings as $key => $value) {
             Setting::updateOrCreate(
                 ['key' => $key, 'tenant_id' => $id],

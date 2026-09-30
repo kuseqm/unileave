@@ -17,7 +17,7 @@ return new class extends Migration
             $table->enum('proficiency_speak', ['none', 'basic', 'intermediate', 'fluent', 'native'])->default('none');
             $table->boolean('is_working_language')->default(false);
             $table->timestamps();
-            
+
             $table->index('staff_id');
         });
     }

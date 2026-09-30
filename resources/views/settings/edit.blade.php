@@ -16,8 +16,11 @@
         </a>
     </x-page-header>
     
-    <div class="card rounded-sm">
-        <div class="card-body">
+    <div class="row g-2">
+        <!-- Form - main column -->
+        <div class="col-lg-7">
+        <div class="card rounded-sm">
+            <div class="card-body">
             <form method="POST" action="{{ route('settings.update', $setting->id) }}">
                 @csrf
                 @method('PUT')
@@ -136,6 +139,38 @@
                     <a href="{{ route('settings.index') }}" class="btn btn-secondary">Cancel</a>
                 </div>
             </form>
+            </div>
+        </div>
+        </div>
+
+        <!-- Information - narrow column -->
+        <div class="col-lg-5">
+            <div class="card rounded-sm">
+                <div class="card-header py-1 px-2 bg-light">
+                    <div class="d-flex align-items-center">
+                        <i class="ti ti-info-circle text-info me-1" style="font-size: 0.8rem;"></i>
+                        <span style="font-size: 0.7rem; font-weight: 600;">About Settings</span>
+                    </div>
+                </div>
+                <div class="card-body py-2 px-2">
+                    <div class="mb-2">
+                        <small class="text-muted" style="font-size: 0.65rem;">Changing the Key can break anything that reads this setting by name - only change it if you're sure nothing depends on the old key.</small>
+                    </div>
+
+                    <x-alert-light class="mb-0 py-1 px-2 rounded-sm">
+
+                        <div class="d-flex align-items-start gap-1">
+                            <i class="ti ti-tips text-warning mt-0" style="font-size: 0.7rem;"></i>
+                            <div>
+                                <strong class="d-block" style="font-size: 0.65rem;">Tips</strong>
+                                <small class="text-muted" style="font-size: 0.6rem;">&bull; Changing Type may change how the Value field is edited</small><br>
+                                <small class="text-muted" style="font-size: 0.6rem;">&bull; Encrypt Value for anything sensitive (API keys, secrets)</small>
+                            </div>
+
+</x-alert-light>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>

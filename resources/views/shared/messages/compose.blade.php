@@ -19,30 +19,20 @@
 
     <!-- ERROR DISPLAY SECTION -->
     @if($errors->any())
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <strong>Error!</strong> Please fix the following:
+        <x-alert-danger :session="false">
+    <strong>Error!</strong> Please fix the following:
             <ul class="mb-0 mt-2">
                 @foreach($errors->all() as $error)
                     <li>{{ $error }}</li>
                 @endforeach
             </ul>
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
+</x-alert-danger>
     @endif
 
-    @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            {{ session('success') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    @endif
+    <x-alert-success />
 
-    @if(session('error'))
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            {{ session('error') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    @endif
+    <x-alert-danger />
 
     <div class="row g-2">
         <div class="col-lg-8">
@@ -91,21 +81,19 @@
 
                         <!-- Info Alerts for Reply/Reply All/Forward -->
                         @if(isset($replyTo) && $replyTo)
-                            <div class="alert alert-info py-1 px-2 small">
-                                <i class="ti ti-corner-up-right me-1"></i> 
-                                <strong>Replying to:</strong> {{ $replyTo->sender->first_name }} {{ $replyTo->sender->last_name }}
+                            <x-alert-info>
+    <strong>Replying to:</strong> {{ $replyTo->sender->first_name }} {{ $replyTo->sender->last_name }}
                                 @if(!empty($replyAllRecipients))
                                     <br><small>Reply All mode: Also sending to other recipients on this conversation</small>
                                 @endif
-                            </div>
+</x-alert-info>
                         @endif
 
                         @if(isset($forwardMessage) && $forwardMessage)
-                            <div class="alert alert-secondary py-1 px-2 small">
-                                <i class="ti ti-corner-up-left me-1"></i> 
-                                <strong>Forwarding message from:</strong> {{ $forwardMessage->sender->first_name }} {{ $forwardMessage->sender->last_name }}
+                            <x-alert-secondary>
+    <strong>Forwarding message from:</strong> {{ $forwardMessage->sender->first_name }} {{ $forwardMessage->sender->last_name }}
                                 <br><small>Original sent: {{ $forwardMessage->created_at ? $forwardMessage->created_at->format('d M Y, H:i') : 'Unknown' }}</small>
-                            </div>
+</x-alert-secondary>
                         @endif
 
                         <!-- Subject -->

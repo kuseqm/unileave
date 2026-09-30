@@ -28,12 +28,7 @@
         </div>
     </x-page-header>
     
-    @if(session('success'))
-    <div class="alert alert-success alert-dismissible fade show py-1 px-2 mb-2 rounded-sm" style="font-size: 0.7rem;" role="alert">
-        <i class="ti ti-check-circle me-1"></i> {{ session('success') }}
-        <button type="button" class="btn-close py-0" style="font-size: 0.6rem;" data-bs-dismiss="alert"></button>
-    </div>
-    @endif
+    <x-alert-success />
     
     <div class="row g-2">
         <!-- Format Information -->
@@ -384,14 +379,12 @@ document.addEventListener('DOMContentLoaded', function() {
                                 </div>
                                 <div class="modal-body py-2 px-2">
                                     <p style="font-size: 0.75rem;">Are you sure you want to delete <strong>${itemName}</strong>?</p>
-                                    <div class="alert alert-warning py-1 px-2 mt-2 rounded-sm" style="font-size: 0.65rem;">
-                                        <i class="ti ti-alert-circle me-1"></i>
-                                        <strong>Warning:</strong> This format will be permanently deleted.
-                                    </div>
-                                    <div class="alert alert-danger py-1 px-2 mt-2 rounded-sm" style="font-size: 0.65rem;">
-                                        <i class="ti ti-info-circle me-1"></i>
-                                        Cannot delete if format has been used (current_serial > 0). Deactivate it instead.
-                                    </div>
+                                    <x-alert-warning>
+    <strong>Warning:</strong> This format will be permanently deleted.
+</x-alert-warning>
+                                    <x-alert-danger :session="false">
+    Cannot delete if format has been used (current_serial > 0). Deactivate it instead.
+</x-alert-danger>
                                 </div>
                                 <div class="modal-footer py-1 px-2">
                                     <button type="button" class="btn btn-secondary btn-sm rounded-sm" data-bs-dismiss="modal" style="font-size: 0.7rem;">Cancel</button>

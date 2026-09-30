@@ -1,10 +1,11 @@
 <?php
+
 // database/seeders/UniversitySeeder.php
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\University;
+use Illuminate\Database\Seeder;
 
 class UniversitySeeder extends Seeder
 {
@@ -40,7 +41,7 @@ class UniversitySeeder extends Seeder
                 ['name' => $uniData['name']],
                 $uniData
             );
-            $this->command->info('✓ University: ' . $university->name);
+            $this->command->info('✓ University: '.$university->name);
         }
     }
 }

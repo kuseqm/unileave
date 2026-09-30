@@ -87,7 +87,7 @@
                                 <label class="form-label" style="font-size: 0.65rem;">Max Consecutive Days</label>
                                 <input type="number" name="max_consecutive_days" class="form-control form-control-sm rounded-sm @error('max_consecutive_days') is-invalid @enderror" value="{{ old('max_consecutive_days', $leaveType->max_consecutive_days) }}" style="font-size: 0.7rem; padding: 0.2rem 0.3rem;">
                                 @error('max_consecutive_days')<div class="invalid-feedback" style="font-size: 0.65rem;">{{ $message }}</div>@enderror
-                                <small class="text-muted" style="font-size: 0.6rem;">Leave empty for unlimited</small>
+                                <small class="text-muted" style="font-size: 0.6rem;">For reference only - applications are not checked against this. Set the limit in your HR policy ("Longest single request", per leave type).</small>
                             </div>
                             <div class="col-md-6 mb-1">
                                 <label class="form-label" style="font-size: 0.65rem;">Status</label>
@@ -140,14 +140,16 @@
                         </ul>
                     </div>
                     
-                    <div class="alert alert-light border mb-0 py-1 px-2 rounded-sm">
+                    <x-alert-light class="mb-0 py-1 px-2 rounded-sm">
+
                         <div class="d-flex align-items-start gap-1">
                             <i class="ti ti-stats text-success mt-0" style="font-size: 0.7rem;"></i>
                             <div>
                                 <strong class="d-block" style="font-size: 0.65rem;">Usage Statistics</strong>
                                 <small class="text-muted" style="font-size: 0.6rem;">Used in {{ $leaveType->leaveRequests->count() }} leave request(s)</small>
                             </div>
-                        </div>
+                        
+</x-alert-light>
                     </div>
                 </div>
             </div>

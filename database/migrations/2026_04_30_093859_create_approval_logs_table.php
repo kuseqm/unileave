@@ -19,7 +19,7 @@ return new class extends Migration
             $table->foreignId('approver_staff_id')->constrained('staff')->onDelete('cascade');
             $table->string('ip_address', 45);
             $table->timestamps();
-            
+
             $table->index(['request_type', 'request_id']);
             $table->index('approver_staff_id');
             $table->index('created_at');

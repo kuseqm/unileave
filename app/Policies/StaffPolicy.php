@@ -2,8 +2,8 @@
 
 namespace App\Policies;
 
-use App\Models\User;
 use App\Models\Staff;
+use App\Models\User;
 
 class StaffPolicy
 {
@@ -14,7 +14,7 @@ class StaffPolicy
     {
         return true; // All authenticated users can view the staff list
     }
-    
+
     /**
      * Determine if user can view a specific staff member
      */
@@ -22,7 +22,7 @@ class StaffPolicy
     {
         return true; // All authenticated users can view staff details
     }
-    
+
     /**
      * Determine if user can create staff
      */
@@ -31,7 +31,7 @@ class StaffPolicy
         // Only admin and HR managers can create staff
         return $user->hasRole('admin') || $user->hasRole('hr_manager');
     }
-    
+
     /**
      * Determine if user can update a specific staff member
      */
@@ -40,7 +40,7 @@ class StaffPolicy
         // Only admin and HR managers can update staff
         return $user->hasRole('admin') || $user->hasRole('hr_manager');
     }
-    
+
     /**
      * Determine if user can delete a specific staff member
      */
@@ -49,7 +49,7 @@ class StaffPolicy
         // Only admin can delete staff
         return $user->hasRole('admin');
     }
-    
+
     /**
      * Check if user has any write permissions (for showing action buttons)
      * This is used for the Actions column header

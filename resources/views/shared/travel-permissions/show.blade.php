@@ -6,12 +6,20 @@
 <div class="container-fluid px-2">
     
     <x-breadcrumb :items="[
-        ['name' => 'My Travel Requests', 'url' => route('travel-permissions.my-requests')],
+        ['name' => 'Applications Overview', 'url' => route('applications-overview.index')],
         ['name' => 'Travel Request Details', 'url' => '#']
     ]" />
     
     <x-page-header title="TRAVEL REQUEST DETAILS" description="View travel permission information">
-        <a href="{{ route('travel-permissions.my-requests') }}" class="btn btn-outline-secondary btn-sm rounded-sm" style="font-size: 0.7rem; padding: 0.2rem 0.5rem;">
+        @if(auth()->id() === $travelRequest->staff_id && $travelRequest->status === 'pending')
+        <button type="button" class="btn btn-outline-danger btn-sm rounded-sm" style="font-size: 0.7rem; padding: 0.2rem 0.5rem;" onclick="confirmCancelTravel()">
+            <i class="ti ti-ban me-1"></i> Cancel Request
+        </button>
+        <form id="cancel-travel-form" action="{{ route('travel-permissions.cancel', $travelRequest->id) }}" method="POST" class="d-none">
+            @csrf
+        </form>
+        @endif
+        <a href="{{ route('applications-overview.index') }}" class="btn btn-outline-secondary btn-sm rounded-sm" style="font-size: 0.7rem; padding: 0.2rem 0.5rem;">
             <i class="ti ti-arrow-left me-1"></i> Back
         </a>
     </x-page-header>
@@ -52,7 +60,7 @@
                                     $coverageLabels = [
                                         'organizers_full' => 'Organizers (Full Paid)',
                                         'organizers_partial' => 'Organizers (Partially Paid)',
-                                        'university' => 'St. John\'s University of Tanzania',
+                                        'university' => 'University',
                                         'private' => 'Private Travel'
                                     ];
                                 @endphp
@@ -152,8 +160,22 @@
                         </div>
                         
                         <div class="list-group-item d-flex align-items-center gap-2 py-1 px-2">
-                            <div class="rounded-circle bg-{{ $travelRequest->status == 'approved' ? 'success' : ($travelRequest->status == 'pending' ? 'warning' : 'danger') }}-subtle p-1" style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;">
-                                <i class="ti ti-{{ $travelRequest->status == 'approved' ? 'check' : ($travelRequest->status == 'pending' ? 'clock' : 'x') }}" style="font-size: 0.7rem;"></i>
+                            @php
+                                $statusIconColor = match($travelRequest->status) {
+                                    'approved' => 'success',
+                                    'pending' => 'warning',
+                                    'cancelled' => 'secondary',
+                                    default => 'danger',
+                                };
+                                $statusIcon = match($travelRequest->status) {
+                                    'approved' => 'check',
+                                    'pending' => 'clock',
+                                    'cancelled' => 'ban',
+                                    default => 'x',
+                                };
+                            @endphp
+                            <div class="rounded-circle bg-{{ $statusIconColor }}-subtle p-1" style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;">
+                                <i class="ti ti-{{ $statusIcon }}" style="font-size: 0.7rem;"></i>
                             </div>
                             <div class="flex-grow-1">
                                 <div class="fw-semibold" style="font-size: 0.7rem;">Final Approval Status</div>
@@ -171,4 +193,14 @@
         </div>
     </div>
 </div>
+
+<x-live-refresh :url="route('travel-permissions.show.heartbeat', $travelRequest->id)" />
+
+<script>
+function confirmCancelTravel() {
+    confirmAction('Are you sure you want to cancel this travel request? This action cannot be undone.', function () {
+        document.getElementById('cancel-travel-form').submit();
+    }, { title: 'Cancel Travel Request' });
+}
+</script>
 @endsection

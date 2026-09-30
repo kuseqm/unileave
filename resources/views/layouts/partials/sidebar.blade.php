@@ -25,8 +25,8 @@
                 </div>
             </div>
             
-            <!-- 2. Institute Section (Admin only) -->
-            @role('admin')
+            <!-- 2. Institute Section -->
+            @canany(['manage_universities','manage_campuses','manage_schools','manage_departments'])
             <div class="nav-section">
                 <div class="nav-section-header" data-section="institute">
                     <div class="nav-section-title">
@@ -36,28 +36,36 @@
                     <i class="ti ti-chevron-right section-arrow"></i>
                 </div>
                 <div class="nav-section-content" data-section-content="institute">
+                    @can('manage_universities')
                     <a class="nav-link nav-sub-link {{ request()->routeIs('admin.universities*') ? 'active' : '' }}" href="{{ route('admin.universities.index') }}">
                         <i class="ti ti-building-community"></i>
                         <span>Universities</span>
                     </a>
+                    @endcan
+                    @can('manage_campuses')
                     <a class="nav-link nav-sub-link {{ request()->routeIs('admin.campuses*') ? 'active' : '' }}" href="{{ route('admin.campuses.index') }}">
                         <i class="ti ti-map-pin"></i>
                         <span>Campuses</span>
                     </a>
+                    @endcan
+                    @can('manage_schools')
                     <a class="nav-link nav-sub-link {{ request()->routeIs('admin.schools*') ? 'active' : '' }}" href="{{ route('admin.schools.index') }}">
                         <i class="ti ti-school"></i>
                         <span>Schools/Faculties</span>
                     </a>
+                    @endcan
+                    @can('manage_departments')
                     <a class="nav-link nav-sub-link {{ request()->routeIs('admin.departments*') ? 'active' : '' }}" href="{{ route('admin.departments.index') }}">
                         <i class="ti ti-folder"></i>
                         <span>Departments</span>
                     </a>
+                    @endcan
                 </div>
             </div>
-            @endrole
+            @endcanany
             
             <!-- 3. Human Resources Section -->
-            @hasanyrole('admin|hr-officer|hod|dean|dvca|dvc-pfa|unit_head|vice-chancellor')
+            @can('view_staff')
             <div class="nav-section">
                 <div class="nav-section-header" data-section="hr">
                     <div class="nav-section-title">
@@ -72,17 +80,32 @@
                         <span>All Staff</span>
                     </a>
                     
-                    @hasanyrole('admin|hr-officer')
+                    @can('import_staff')
                     <a class="nav-link nav-sub-link {{ request()->routeIs('admin.import.staff') ? 'active' : '' }}" href="{{ route('admin.import.staff') }}">
                         <i class="ti ti-file-import"></i>
                         <span>Import Staff</span>
                     </a>
-                    @endhasanyrole
+                    @endcan
+
+                    @haspermission('view_id_cards')
+                    <a class="nav-link nav-sub-link {{ request()->routeIs('admin.id-cards*') ? 'active' : '' }}" href="{{ route('admin.id-cards.index') }}">
+                        <i class="ti ti-id"></i>
+                        <span>ID Cards</span>
+                    </a>
+                    @endhaspermission
+
+                    @haspermission('view_authorized_signatures')
+                    <a class="nav-link nav-sub-link {{ request()->routeIs('admin.authorized-signatures*') ? 'active' : '' }}" href="{{ route('admin.authorized-signatures.index') }}">
+                        <i class="ti ti-signature"></i>
+                        <span>Authorized Signatures</span>
+                    </a>
+                    @endhaspermission
                 </div>
             </div>
-            @endhasanyrole
+            @endcan
             
             <!-- 4. Leave Management Section -->
+            @canany(['apply_leave','view_own_leave','view_all_leave','view_school_leave','view_department_leave','view_pending_approvals','admin_access','manage_blackout_periods','request_acting_staff','view_acting_assignments','view_acting_requests'])
             <div class="nav-section">
                 <div class="nav-section-header" data-section="leave">
                     <div class="nav-section-title">
@@ -92,29 +115,57 @@
                     <i class="ti ti-chevron-right section-arrow"></i>
                 </div>
                 <div class="nav-section-content" data-section-content="leave">
-                    @auth
+                    @can('apply_leave')
                     <a class="nav-link nav-sub-link {{ request()->routeIs('leave-requests.create') ? 'active' : '' }}" href="{{ route('leave-requests.create') }}">
                         <i class="ti ti-plus"></i>
                         <span>Apply for Leave</span>
                     </a>
-                    @endauth
+                    @endcan
                     
-                    @auth
+                    @canany(['view_own_leave','view_all_leave'])
                     <a class="nav-link nav-sub-link {{ request()->routeIs('leave-requests.my-requests') ? 'active' : '' }}" href="{{ route('leave-requests.my-requests') }}">
                         <i class="ti ti-list"></i>
                         <span>My Requests</span>
                     </a>
-                    @endauth
+                    @endcanany
                     
-                    @auth
+                    @canany(['view_own_leave','view_all_leave'])
                     <a class="nav-link nav-sub-link {{ request()->routeIs('leave-requests.status') ? 'active' : '' }}" href="{{ route('leave-requests.status') }}">
                         <i class="ti ti-list-details"></i>
                         <span>Request Status</span>
                     </a>
-                    @endauth
-                    
-                    <!-- WAITING APPROVALS - Role-based counter -->
-                    @hasanyrole('hod|dean|dvca|dvc-pfa|admin|hr-officer|vice-chancellor')
+                    @endcanany
+
+                    @canany(['view_own_leave','view_all_leave','view_department_leave','view_school_leave'])
+                    <a class="nav-link nav-sub-link {{ request()->routeIs('leave-letters.*') ? 'active' : '' }}" href="{{ route('leave-letters.index') }}">
+                        <i class="ti ti-file-text"></i>
+                        <span>My Leave Letters</span>
+                    </a>
+                    @endcanany
+
+                    @can('submit_leave_on_behalf')
+                    <a class="nav-link nav-sub-link {{ request()->routeIs('leave-requests.on-behalf') ? 'active' : '' }}" href="{{ route('leave-requests.on-behalf') }}">
+                        <i class="ti ti-user-plus"></i>
+                        <span>Submit on Behalf</span>
+                    </a>
+                    @endcan
+
+                    @canany(['track_department_leave','view_department_leave'])
+                    <a class="nav-link nav-sub-link {{ request()->routeIs('admin.department-leave.*') ? 'active' : '' }}" href="{{ route('admin.department-leave.index') }}">
+                        <i class="ti ti-users-group"></i>
+                        <span>Track Department Leave</span>
+                    </a>
+                    @endcanany
+
+                    @can('prepare_leave_documents')
+                    <a class="nav-link nav-sub-link {{ request()->routeIs('admin.leave-documents.*') ? 'active' : '' }}" href="{{ route('admin.leave-documents.index') }}">
+                        <i class="ti ti-file-description"></i>
+                        <span>Prepare Leave Documents</span>
+                    </a>
+                    @endcan
+
+                    <!-- WAITING APPROVALS - Permission-based counter -->
+                    @can('view_pending_approvals')
                     <a class="nav-link nav-sub-link {{ request()->routeIs('leave-requests.pending') ? 'active' : '' }}" href="{{ route('leave-requests.pending') }}">
                         <i class="ti ti-clock"></i>
                         <span>Waiting Approvals</span>
@@ -183,42 +234,62 @@
                         </span>
                         @endif
                     </a>
+                    @endcan
+
+                    @hasanyrole('hod|dean|unit_head|hr-officer|hr-manager|dvca|dvc-pfa|admin')
+                    <a class="nav-link nav-sub-link {{ request()->routeIs('leave-requests.unresponsive-acting') ? 'active' : '' }}" href="{{ route('leave-requests.unresponsive-acting') }}">
+                        <i class="ti ti-alert-circle"></i>
+                        <span>Unresponsive Acting Staff</span>
+                        @php
+                            // Same scope the "Unresponsive Acting Staff" page and dashboard widget
+                            // use, so this badge can never drift from what that page actually shows.
+                            $unresponsiveNavCount = \App\Models\LeaveRequest::actingOverdueVisible()->count();
+                        @endphp
+                        @if($unresponsiveNavCount > 0)
+                        <span class="badge bg-danger rounded-pill ms-1" style="font-size: 0.55rem; padding: 0.2rem 0.5rem;">
+                            {{ $unresponsiveNavCount > 99 ? '99+' : $unresponsiveNavCount }}
+                        </span>
+                        @endif
+                    </a>
                     @endhasanyrole
-                    
-                    @role('admin')
+
+                    @can('manage_leave_types')
                     <a class="nav-link nav-sub-link {{ request()->routeIs('admin.leave-types*') ? 'active' : '' }}" href="{{ route('admin.leave-types.index') }}">
                         <i class="ti ti-tags"></i>
                         <span>Leave Types</span>
                     </a>
-                    @endrole
+                    @endcan
                     
+                    @can('manage_blackout_periods')
                     <a class="nav-link nav-sub-link {{ request()->routeIs('blackout.*') ? 'active' : '' }}" href="{{ route('blackout.index') }}">
                         <i class="ti ti-ban"></i>
                         <span>Blackout Periods</span>
                     </a>
+                    @endcan
 
-                    @auth
+                    @canany(['request_acting_staff','view_acting_assignments','view_acting_requests'])
                     <a class="nav-link nav-sub-link {{ request()->routeIs('leave-requests.hold-position-for-me') ? 'active' : '' }}" href="{{ route('leave-requests.hold-position-for-me') }}">
                         <i class="ti ti-clock-cog"></i>
                         <span>Acting Requests</span>
                     </a>
-                    @endauth
+                    @endcanany
                     
-                    @auth
+                    @canany(['view_acting_assignments','view_acting_requests','request_acting_staff'])
                     <a class="nav-link nav-sub-link {{ request()->routeIs('leave-requests.i-held-position-for') ? 'active' : '' }}" href="{{ route('leave-requests.i-held-position-for') }}">
                         <i class="ti ti-user-check"></i>
                         <span>My Assignments</span>
                     </a>
-                    @endauth
+                    @endcanany
 
-                    @auth
+                    @canany(['view_all_leave','view_school_leave','view_department_leave','view_pending_approvals'])
                     <a class="nav-link nav-sub-link {{ request()->routeIs('leave-requests.approvals-history') ? 'active' : '' }}" href="{{ route('leave-requests.approvals-history') }}">
                         <i class="ti ti-history"></i>
                         <span>My Approvals History</span>
                     </a>
-                    @endauth
+                    @endcanany
                 </div>
             </div>
+            @endcanany
             
             <!-- 5. Messaging Section (All authenticated users) -->
             @auth
@@ -252,7 +323,12 @@
                         <i class="ti ti-file"></i>
                         <span>Drafts</span>
                     </a>
-                    
+
+                    <a class="nav-link nav-sub-link {{ request()->routeIs('notifications.index') ? 'active' : '' }}" href="{{ route('notifications.index') }}">
+                        <i class="ti ti-bell"></i>
+                        <span>Notifications</span>
+                    </a>
+
                     <!-- Divider -->
                     <div class="dropdown-divider my-1"></div>
                     
@@ -262,7 +338,7 @@
                         $role = $user->getRoleNames()->first();
                     @endphp
                     
-                    @if(in_array($role, ['admin', 'hr_manager', 'vice-chancellor', 'school_admin', 'hod']))
+                    @hasanyrole('admin|hr-manager|vice-chancellor|school-admin|hod')
                         <div class="fw-semibold small text-muted mt-2 mb-1 px-2">
                             <i class="ti ti-database me-1" style="font-size: 0.7rem;"></i> Management
                         </div>
@@ -272,36 +348,67 @@
                             <i class="ti ti-database"></i>
                             <span>Message Directory</span>
                         </a>
-                    @endif
+                    @endhasanyrole
                     
                     <!-- VC: Access Requests -->
-                    @if(in_array($role, ['vice-chancellor', 'admin']))
+                    @hasanyrole('vice-chancellor|admin')
                         <a class="nav-link nav-sub-link {{ request()->routeIs('messages.access-requests*') ? 'active' : '' }}" href="{{ route('messages.access-requests') }}">
                             <i class="ti ti-key"></i>
                             <span>Access Requests</span>
                             <span class="badge bg-warning rounded-pill ms-1" id="pendingRequestsBadge" style="font-size: 0.55rem; padding: 0.1rem 0.4rem; display: none;">0</span>
                         </a>
-                    @endif
+                    @endhasanyrole
                     
-                    <!-- Audit Trail (Admin/HR/VC only) -->
-                    <!-- Audit Trail Dashboard -->
-                    @if(in_array($role, ['admin', 'hr_manager', 'vice-chancellor', 'internal-auditor']))
-                        <a class="nav-link nav-sub-link {{ request()->routeIs('audit-trail*') ? 'active' : '' }}" href="{{ route('audit-trail.index') }}">
-                            <i class="ti ti-history"></i>
-                            <span>Audit Trail Dashboard</span>
-                            @php
-                                $recentAudits = \App\Models\UnifiedAuditTrail::whereDate('created_at', today())->count();
-                            @endphp
-                            @if($recentAudits > 0)
-                                <span class="badge bg-danger rounded-pill ms-1">{{ $recentAudits > 99 ? '99+' : $recentAudits }}</span>
-                            @endif
-                        </a>
-                    @endif
                 </div>
             </div>
             @endauth
-            
+
+            <!-- 5b. Oversight Section (Audit Trail: view_audit_trail; Applications Overview: view_all_leave|view_pending_approvals) -->
+            @canany(['view_audit_trail','view_all_leave','view_pending_approvals'])
+            <div class="nav-section">
+                <div class="nav-section-header" data-section="oversight">
+                    <div class="nav-section-title">
+                        <i class="ti ti-shield-check"></i>
+                        <span>Oversight</span>
+                    </div>
+                    <i class="ti ti-chevron-right section-arrow"></i>
+                </div>
+                <div class="nav-section-content" data-section-content="oversight">
+                    @can('view_audit_trail')
+                    @php
+                        $auditCanViewAll = auth()->user()->hasAnyRole(['admin', 'hr-manager', 'vice-chancellor', 'internal-auditor', 'registrar']);
+                        $recentAudits = $auditCanViewAll
+                            ? \App\Models\UnifiedAuditTrail::whereDate('created_at', today())->count()
+                            : \App\Models\UnifiedAuditTrail::where('user_id', auth()->id())->whereDate('created_at', today())->count();
+                    @endphp
+                    <a class="nav-link nav-sub-link {{ request()->routeIs('audit-trail*') ? 'active' : '' }}" href="{{ route('audit-trail.index') }}">
+                        <i class="ti ti-history"></i>
+                        <span>Audit Trail{{ $auditCanViewAll ? ' Dashboard' : '' }}</span>
+                        @if($recentAudits > 0)
+                            <span class="badge bg-danger rounded-pill ms-1">{{ $recentAudits > 99 ? '99+' : $recentAudits }}</span>
+                        @endif
+                    </a>
+                    @endcan
+
+                    @can('view_audit_trail')
+                    <a class="nav-link nav-sub-link {{ request()->routeIs('verification-logs*') ? 'active' : '' }}" href="{{ route('verification-logs.index') }}">
+                        <i class="ti ti-scan"></i>
+                        <span>Verification Log</span>
+                    </a>
+                    @endcan
+
+                    @canany(['view_all_leave','view_pending_approvals'])
+                        <a class="nav-link nav-sub-link {{ request()->routeIs('applications-overview*') ? 'active' : '' }}" href="{{ route('applications-overview.index') }}">
+                            <i class="ti ti-list-details"></i>
+                            <span>Applications Overview</span>
+                        </a>
+                    @endcanany
+                </div>
+            </div>
+            @endcanany
+
             <!-- 6. Permission Management Section -->
+            @canany(['apply_leave','view_own_leave','view_all_leave','view_school_leave','view_department_leave','view_pending_approvals'])
             <div class="nav-section">
                 <div class="nav-section-header" data-section="permission">
                     <div class="nav-section-title">
@@ -311,21 +418,21 @@
                     <i class="ti ti-chevron-right section-arrow"></i>
                 </div>
                 <div class="nav-section-content" data-section-content="permission">
-                    @auth
+                    @can('apply_leave')
                     <a class="nav-link nav-sub-link {{ request()->routeIs('permissions.create') ? 'active' : '' }}" href="{{ route('permissions.create') }}">
                         <i class="ti ti-clock"></i>
                         <span>Apply for Permission</span>
                     </a>
-                    @endauth
+                    @endcan
                     
-                    @auth
+                    @can('apply_leave')
                     <a class="nav-link nav-sub-link {{ request()->routeIs('travel-permissions.create') ? 'active' : '' }}" href="{{ route('travel-permissions.create') }}">
                         <i class="ti ti-plane"></i>
                         <span>Apply for Travel</span>
                     </a>
-                    @endauth
+                    @endcan
                     
-                    @auth
+                    @canany(['view_own_leave','view_all_leave'])
                     <a class="nav-link nav-sub-link {{ request()->routeIs('permissions.my-requests') ? 'active' : '' }}" href="{{ route('permissions.my-requests') }}">
                         <i class="ti ti-list"></i>
                         <span>My Permission Requests</span>
@@ -338,9 +445,9 @@
                         <span class="badge bg-info rounded-pill ms-1" style="font-size: 0.55rem; padding: 0.1rem 0.4rem;">{{ $permissionPendingCount > 99 ? '99+' : $permissionPendingCount }}</span>
                         @endif
                     </a>
-                    @endauth
+                    @endcanany
                     
-                    @hasanyrole('hod|dean|dvca|dvc-pfa|admin|hr-officer|vice-chancellor')
+                    @canany(['view_pending_approvals','view_all_leave'])
                     <a class="nav-link nav-sub-link {{ request()->routeIs('permissions.pending') ? 'active' : '' }}" href="{{ route('permissions.pending') }}">
                         <i class="ti ti-clock"></i>
                         <span>Unattended Approvals</span>
@@ -355,12 +462,24 @@
                         <span class="badge bg-danger rounded-pill ms-1" style="font-size: 0.55rem; padding: 0.1rem 0.4rem;">{{ $totalPending > 99 ? '99+' : $totalPending }}</span>
                         @endif
                     </a>
-                    @endhasanyrole
+                    @endcanany
+
+                    @canany(['view_all_leave','view_school_leave','view_department_leave','view_own_leave'])
+                    <a class="nav-link nav-sub-link {{ request()->routeIs('permissions.approvals-history') ? 'active' : '' }}" href="{{ route('permissions.approvals-history') }}">
+                        <i class="ti ti-history"></i>
+                        <span>Permission History</span>
+                    </a>
+                    <a class="nav-link nav-sub-link {{ request()->routeIs('travel-permissions.approvals-history') ? 'active' : '' }}" href="{{ route('travel-permissions.approvals-history') }}">
+                        <i class="ti ti-history"></i>
+                        <span>Travel History</span>
+                    </a>
+                    @endcanany
                 </div>
             </div>
-            
-            <!-- 7. Central Registry Section (Admin & Registry Officers & Clerk) -->
-            @hasanyrole('admin|registry-officer|registrar|clerk')
+            @endcanany
+
+            <!-- 7. Central Registry Section (manage_registry) -->
+            @can('manage_registry')
             <div class="nav-section">
                 <div class="nav-section-header" data-section="central-registry">
                     <div class="nav-section-title">
@@ -416,8 +535,8 @@
                     <!-- Divider -->
                     <div class="dropdown-divider my-1"></div>
                     
-                    <!-- Registry Settings (Admin only) -->
-                    @role('admin')
+                    <!-- Registry Settings (manage_registry) -->
+                    @can('manage_registry')
                     <a class="nav-link nav-sub-link {{ request()->routeIs('registry.offices*') ? 'active' : '' }}" href="{{ route('registry.offices.index') }}">
                         <i class="ti ti-building"></i>
                         <span>Manage Offices</span>
@@ -427,14 +546,69 @@
                         <i class="ti ti-settings"></i>
                         <span>Registry Settings</span>
                     </a>
-                    @endrole
-                    
+
+                    <a class="nav-link nav-sub-link {{ request()->routeIs('registry.formats*') ? 'active' : '' }}" href="{{ route('registry.formats.index') }}">
+                        <i class="ti ti-hash"></i>
+                        <span>Reference Formats</span>
+                    </a>
+                    @endcan
+
                 </div>
             </div>
-            @endhasanyrole
+            @endcan
 
-            <!-- 8. VC Dashboard (Vice Chancellor only) -->
-            @role('vice-chancellor')
+            <!-- 7b. Academic Records (Students / Graduation Verification) -
+                 deliberately its own section, not nested under Central
+                 Registry, even though it shares that module's reference
+                 numbers - a Student is never a Staff. Gated by
+                 view_students (super-admin/admin/registrar have it by
+                 default - see RoleAndPermissionSeeder) AND by the
+                 institution having the "academic_records" add-on enabled
+                 (see EnsureAddonEnabled) - a role having the permission
+                 isn't enough if a super-admin hasn't granted the
+                 institution the add-on itself. -->
+            @can('view_students')
+            @if(auth()->user()->hasAddon('academic_records'))
+            <div class="nav-section">
+                <div class="nav-section-header" data-section="academic-records">
+                    <div class="nav-section-title">
+                        <i class="ti ti-school"></i>
+                        <span>Academic Records</span>
+                    </div>
+                    <i class="ti ti-chevron-right section-arrow"></i>
+                </div>
+                <div class="nav-section-content" data-section-content="academic-records">
+                    <a class="nav-link nav-sub-link {{ request()->routeIs('students.*') && ! request()->routeIs('students.import.*') && ! request()->routeIs('students.statistics') && ! request()->routeIs('students.catalog.*') ? 'active' : '' }}" href="{{ route('students.index') }}">
+                        <i class="ti ti-users"></i>
+                        <span>Graduates</span>
+                    </a>
+                    @can('view_students')
+                    <a class="nav-link nav-sub-link {{ request()->routeIs('verification-letters.*') ? 'active' : '' }}" href="{{ route('verification-letters.index') }}">
+                        <i class="ti ti-file-certificate"></i>
+                        <span>Verification Letters</span>
+                    </a>
+                    @endcan
+                    <a class="nav-link nav-sub-link {{ request()->routeIs('students.statistics') ? 'active' : '' }}" href="{{ route('students.statistics') }}">
+                        <i class="ti ti-chart-bar"></i>
+                        <span>Graduate Statistics</span>
+                    </a>
+                    @can('import_students')
+                    <a class="nav-link nav-sub-link {{ request()->routeIs('students.import.*') ? 'active' : '' }}" href="{{ route('students.import.index') }}">
+                        <i class="ti ti-upload"></i>
+                        <span>Import Graduation Roster</span>
+                    </a>
+                    <a class="nav-link nav-sub-link {{ request()->routeIs('students.catalog.*') ? 'active' : '' }}" href="{{ route('students.catalog.index') }}">
+                        <i class="ti ti-category-plus"></i>
+                        <span>Academic Catalog</span>
+                    </a>
+                    @endcan
+                </div>
+            </div>
+            @endif
+            @endcan
+
+            <!-- 8. VC Dashboard (view_institution_dashboard) -->
+            @can('view_institution_dashboard')
             <div class="nav-section">
                 <div class="nav-section-header" data-section="vc">
                     <div class="nav-section-title">
@@ -450,10 +624,10 @@
                     </a>
                 </div>
             </div>
-            @endrole
+            @endcan
             
             <!-- 9. Administration Section -->
-            @hasanyrole('admin|hr-officer|hod|dean|dvca|dvc-pfa|vice-chancellor')
+            @canany(['admin_access','view_audit_logs','view_reports','view_gate_entry_logs','record_entry_exit','verify_qr_codes'])
             <div class="nav-section">
                 <div class="nav-section-header" data-section="admin">
                     <div class="nav-section-title">
@@ -464,35 +638,93 @@
                 </div>
                 <div class="nav-section-content" data-section-content="admin">
                     
-                    @role('admin')
+                    @if(auth()->user()->can('view_roles') && auth()->user()->can('admin_access'))
                     <a class="nav-link nav-sub-link {{ request()->routeIs('admin.roles*') ? 'active' : '' }}" href="{{ route('admin.roles.index') }}">
                         <i class="ti ti-lock"></i>
                         <span>Role Management</span>
                     </a>
-                    @endrole
+                    @endif
                     
-                    @role('admin')
+                    @canany(['manage_acting_dvc','approve_acting_dvc'])
                     <a class="nav-link nav-sub-link {{ request()->routeIs('admin.acting-dvc*') ? 'active' : '' }}" href="{{ route('admin.acting-dvc.index') }}">
                         <i class="ti ti-user-check"></i>
                         <span>Acting DVC</span>
                     </a>
-                    @endrole
-                    
+                    @endcanany
+
+                    @can('delegate_approval')
+                    <a class="nav-link nav-sub-link {{ request()->routeIs('admin.approval-delegations*') ? 'active' : '' }}" href="{{ route('admin.approval-delegations.index') }}">
+                        <i class="ti ti-user-share"></i>
+                        <span>Approval Delegations</span>
+                    </a>
+                    @endcan
+
+                    @can('manage_leave_approval_chain')
+                    <a class="nav-link nav-sub-link {{ request()->routeIs('admin.leave-approval-chain*') ? 'active' : '' }}" href="{{ route('admin.leave-approval-chain.index') }}">
+                        <i class="ti ti-arrows-shuffle"></i>
+                        <span>Leave Approval Chain</span>
+                    </a>
+                    @endcan
+
+                    @can('manage_announcements')
+                    <a class="nav-link nav-sub-link {{ request()->routeIs('admin.announcements*') ? 'active' : '' }}" href="{{ route('admin.announcements.index') }}">
+                        <i class="ti ti-speakerphone"></i>
+                        <span>Announcements</span>
+                    </a>
+                    @endcan
+
+                    @can('manage_events')
+                    <a class="nav-link nav-sub-link {{ request()->routeIs('admin.events*') ? 'active' : '' }}" href="{{ route('admin.events.index') }}">
+                        <i class="ti ti-calendar-event"></i>
+                        <span>Events</span>
+                    </a>
+                    @endcan
+
+                    @can('manage_team_members')
+                    <a class="nav-link nav-sub-link {{ request()->routeIs('admin.team-members*') ? 'active' : '' }}" href="{{ route('admin.team-members.index') }}">
+                        <i class="ti ti-users-group"></i>
+                        <span>Team Members</span>
+                    </a>
+                    @endcan
+
+                    @can('manage_academic_years')
+                    <a class="nav-link nav-sub-link {{ request()->routeIs('admin.academic-years*') ? 'active' : '' }}" href="{{ route('admin.academic-years.index') }}">
+                        <i class="ti ti-calendar-stats"></i>
+                        <span>Academic Years</span>
+                    </a>
+                    @endcan
+
+                    @can('view_audit_logs')
                     <a class="nav-link nav-sub-link {{ request()->routeIs('audit-logs*') ? 'active' : '' }}" href="{{ route('audit-logs.index') }}">
                         <i class="ti ti-history"></i>
                         <span>Audit Logs</span>
                     </a>
+                    @endcan
                     
-                    @hasanyrole('admin|hr-officer')
+                    @can('view_reports')
                     <a class="nav-link nav-sub-link {{ request()->routeIs('reports*') ? 'active' : '' }}" href="{{ route('reports.index') }}">
                         <i class="ti ti-chart-bar"></i>
                         <span>Reports</span>
                     </a>
-                    @endhasanyrole
-                    
+                    @endcan
+
+                    @canany(['view_gate_entry_logs','record_entry_exit','verify_qr_codes'])
+                    <a class="nav-link nav-sub-link {{ request()->routeIs('admin.gate-entry-logs*') ? 'active' : '' }}" href="{{ route('admin.gate-entry-logs.index') }}">
+                        <i class="ti ti-door"></i>
+                        <span>Gate Entry Logs</span>
+                    </a>
+                    @endcanany
+
+                    @can('admin_access')
+                    <a class="nav-link nav-sub-link {{ request()->routeIs('admin.cleanup*') ? 'active' : '' }}" href="{{ route('admin.cleanup.index') }}">
+                        <i class="ti ti-trash"></i>
+                        <span>Bulk Cleanup</span>
+                    </a>
+                    @endcan
+
                 </div>
             </div>
-            @endhasanyrole
+            @endcanany
             
             <!-- 10. Settings Section -->
             <div class="nav-section">
@@ -504,50 +736,59 @@
                     <i class="ti ti-chevron-right section-arrow"></i>
                 </div>
                 <div class="nav-section-content" data-section-content="settings">
-                    
-                    @php
-                        $user = auth()->user();
-                        $role = $user->getRoleNames()->first();
-                    @endphp
-                    
+
                     <!-- Admin: Full System Settings -->
-                    @role('admin')
+                    @canany(['view_settings','edit_settings'])
                     <a class="nav-link nav-sub-link {{ request()->routeIs('settings.index') ? 'active' : '' }}" href="{{ route('settings.index') }}">
                         <i class="ti ti-settings"></i>
                         <span>System Settings</span>
                     </a>
-                    @endrole
+                    @endcanany
                     
                     <!-- Super Admin: Multi-tenant Settings -->
-                    @role('super-admin')
+                    @can('manage_tenants')
                     <a class="nav-link nav-sub-link {{ request()->routeIs('admin.tenants*') ? 'active' : '' }}" href="{{ route('admin.tenants.index') }}">
                         <i class="ti ti-building"></i>
                         <span>Tenant Management</span>
                     </a>
-                    @endrole
+                    @endcan
                     
                     <!-- HR Officer: HR Settings -->
-                    @role('hr-officer')
+                    @can('view_settings')
                     <a class="nav-link nav-sub-link {{ request()->routeIs('settings.hr') ? 'active' : '' }}" href="{{ route('settings.hr') }}">
                         <i class="ti ti-briefcase"></i>
                         <span>HR Settings</span>
                     </a>
-                    <a class="nav-link nav-sub-link {{ request()->routeIs('settings.policies') ? 'active' : '' }}" href="{{ route('settings.policies') }}">
-                        <i class="ti ti-file-text"></i>
-                        <span>Leave Policies</span>
+                    @endcan
+
+                    <!-- University Policies -->
+                    @can('view_policies')
+                    <a class="nav-link nav-sub-link {{ request()->routeIs('policies*') && ! request()->routeIs('policies.settings') ? 'active' : '' }}" href="{{ route('policies.index') }}">
+                        <i class="ti ti-book"></i>
+                        <span>University Policies</span>
                     </a>
-                    @endrole
+                    <a class="nav-link nav-sub-link {{ request()->routeIs('policies.settings') ? 'active' : '' }}" href="{{ route('policies.settings') }}">
+                        <i class="ti ti-adjustments"></i>
+                        <span>Policy Settings</span>
+                    </a>
+                    @endcan
                     
                     <!-- Database Schema Viewer - Admin only -->
-                    @role('admin')
+                    @can('admin_access')
                     <a class="nav-link nav-sub-link {{ request()->routeIs('admin.database-schema*') ? 'active' : '' }}" href="{{ route('admin.database-schema.index') }}">
                         <i class="ti ti-database"></i>
                         <span>Database Schema</span>
                     </a>
-                    @endrole
+                    
+                    <!-- Admin: Wipe demo/test requests by date/time -->
+                    <a class="nav-link nav-sub-link {{ request()->routeIs('admin.cleanup*') ? 'active' : '' }}" href="{{ route('admin.cleanup.index') }}">
+                        <i class="ti ti-trash"></i>
+                        <span>Bulk Cleanup</span>
+                    </a>
+                    @endcan
                     
                     <!-- All Staff: My Preferences -->
-                    @hasanyrole('staff|hod|dean|hr-officer|dvca|dvc-pfa|deputy-hod|dept-secretary|vice-chancellor')
+                    @auth
                     <a class="nav-link nav-sub-link {{ request()->routeIs('profile.settings') ? 'active' : '' }}" href="{{ route('profile.settings') }}">
                         <i class="ti ti-user"></i>
                         <span>My Preferences</span>
@@ -556,7 +797,7 @@
                         <i class="ti ti-bell"></i>
                         <span>Notification Settings</span>
                     </a>
-                    @endhasanyrole
+                    @endauth
                     
                 </div>
             </div>
@@ -567,7 +808,9 @@
 
 <!-- Sidebar Footer -->
 <div class="sidebar-fixed-footer">
+    @auth
     <x-sidebar-user />
+    @endauth
     <x-sidebar-footer />
 </div>
 
@@ -862,7 +1105,7 @@
 <script>
 // Collapsible Sidebar Sections
 document.addEventListener('DOMContentLoaded', function() {
-    const sections = ['overview', 'institute', 'hr', 'leave', 'messages', 'permission', 'central-registry', 'vc', 'admin', 'settings'];
+    const sections = ['overview', 'institute', 'hr', 'leave', 'messages', 'oversight', 'permission', 'central-registry', 'academic-records', 'vc', 'admin', 'settings'];
     const sidebarArea = document.getElementById('sidebarArea');
     
     function closeAllSections() {
@@ -939,23 +1182,12 @@ document.addEventListener('DOMContentLoaded', function() {
     observer.observe(sidebarArea, { attributes: true });
 });
 
-// Fetch unread message count for sidebar badge
-function fetchUnreadCount() {
-    fetch('{{ route("messages.unread-count") }}')
-        .then(response => response.json())
-        .then(data => {
-            const badge = document.getElementById('unreadMessagesBadge');
-            if (badge) {
-                if (data.unread_count > 0) {
-                    badge.textContent = data.unread_count > 99 ? '99+' : data.unread_count;
-                    badge.style.display = 'inline-block';
-                } else {
-                    badge.style.display = 'none';
-                }
-            }
-        })
-        .catch(error => console.error('Error fetching unread count:', error));
-}
+// The #unreadMessagesBadge element above is now filled by
+// loadUnreadMessageCount() in components/topbar.blade.php - that function
+// updates both the topbar's own badge and this sidebar badge from a single
+// fetch, instead of this file independently polling the same
+// /messages/unread-count endpoint on its own 30s timer while topbar polled
+// it on a separate 15s timer.
 
 // Fetch pending access requests count (for VC)
 function fetchPendingRequestsCount() {
@@ -977,11 +1209,9 @@ function fetchPendingRequestsCount() {
 
 // Fetch immediately on page load
 document.addEventListener('DOMContentLoaded', function() {
-    fetchUnreadCount();
     fetchPendingRequestsCount();
-    
+
     // Fetch every 30 seconds (for real-time updates)
-    setInterval(fetchUnreadCount, 30000);
     setInterval(fetchPendingRequestsCount, 30000);
 });
 </script>

@@ -1,20 +1,22 @@
 <?php
+
 // database/seeders/CampusSeeder.php
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use App\Models\University;
 use App\Models\Campus;
+use App\Models\University;
+use Illuminate\Database\Seeder;
 
 class CampusSeeder extends Seeder
 {
     public function run()
     {
         $university = University::where('name', 'St Martine\'s University of Testing UniLeave')->first();
-        
-        if (!$university) {
+
+        if (! $university) {
             $this->command->error('No university found. Run UniversitySeeder first.');
+
             return;
         }
 
@@ -30,7 +32,7 @@ class CampusSeeder extends Seeder
             Campus::updateOrCreate(
                 [
                     'university_id' => $university->id,
-                    'name' => $campus['name']
+                    'name' => $campus['name'],
                 ],
                 [
                     'code' => $campus['code'],

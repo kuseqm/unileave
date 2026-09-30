@@ -15,7 +15,7 @@ return new class extends Migration
             $table->string('action'); // opened, replied, forwarded, actioned, escalated
             $table->text('notes')->nullable();
             $table->timestamps();
-            
+
             $table->index(['message_id', 'action']);
             $table->index('user_id');
         });

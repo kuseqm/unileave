@@ -61,13 +61,17 @@
                     </div>
                     
                     <div class="row g-1 mt-1">
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <div class="text-muted" style="font-size: 0.6rem;">Start Date</div>
                             <div style="font-size: 0.75rem;">{{ \Carbon\Carbon::parse($leaveRequest->start_date)->format('d M Y') }}</div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <div class="text-muted" style="font-size: 0.6rem;">End Date</div>
                             <div style="font-size: 0.75rem;">{{ \Carbon\Carbon::parse($leaveRequest->end_date)->format('d M Y') }}</div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-muted" style="font-size: 0.6rem;">Expected Return Date</div>
+                            <div style="font-size: 0.75rem;">{{ $leaveRequest->expected_return_date ? \Carbon\Carbon::parse($leaveRequest->expected_return_date)->format('d M Y') : 'N/A' }}</div>
                         </div>
                     </div>
                     
@@ -185,7 +189,7 @@
                             ['key' => 'dean', 'label' => 'Dean', 'level' => 2],
                             ['key' => 'hr_approval', 'label' => 'HR', 'level' => 3],
                             ['key' => 'dvc', 'label' => 'DVC', 'level' => 4],
-                            ['key' => 'hr_final', 'label' => 'Final', 'level' => 5],
+                            ['key' => 'hr_final', 'label' => 'Final Logistics', 'level' => 5],
                         ];
                         
                         // Track completed stages from approval logs
@@ -477,4 +481,6 @@
     }
 }
 </style>
+
+<x-live-refresh :url="route('leave-requests.show.heartbeat', $leaveRequest->id)" />
 @endsection

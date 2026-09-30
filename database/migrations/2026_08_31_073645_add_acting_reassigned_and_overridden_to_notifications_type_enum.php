@@ -1,0 +1,36 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Support\Facades\DB;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        DB::statement("ALTER TABLE notifications MODIFY COLUMN type ENUM(
+            'acting_request','approval_pending','approval_pending_urgent','approval_granted',
+            'approval_complete','approval_rejected','hold_accepted','hold_declined','leave_cancelled',
+            'document_uploaded','leave_approved_final','balance_updated','reminder',
+            'letter_pending_approval','letter_pending_signature','letter_approved','letter_signed',
+            'letter_rejected','letter_progress_update','letter_completed',
+            'acting_reassigned','acting_overridden'
+        ) NOT NULL");
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        DB::statement("ALTER TABLE notifications MODIFY COLUMN type ENUM(
+            'acting_request','approval_pending','approval_pending_urgent','approval_granted',
+            'approval_complete','approval_rejected','hold_accepted','hold_declined','leave_cancelled',
+            'document_uploaded','leave_approved_final','balance_updated','reminder',
+            'letter_pending_approval','letter_pending_signature','letter_approved','letter_signed',
+            'letter_rejected','letter_progress_update','letter_completed'
+        ) NOT NULL");
+    }
+};

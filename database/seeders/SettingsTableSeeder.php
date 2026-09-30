@@ -39,7 +39,7 @@ class SettingsTableSeeder extends Seeder
                 'description' => 'How dates are displayed',
                 'sort_order' => 3,
             ],
-            
+
             // Leave Policy Settings
             [
                 'key' => 'max_annual_leave',
@@ -68,7 +68,7 @@ class SettingsTableSeeder extends Seeder
                 'description' => 'Maximum days that can be carried over to next year',
                 'sort_order' => 12,
             ],
-            
+
             // Notification Settings
             [
                 'key' => 'email_notifications',
@@ -98,6 +98,6 @@ class SettingsTableSeeder extends Seeder
         }
 
         $this->command->info('Settings seeded successfully!');
-        $this->command->info('Total settings: ' . DB::table('settings')->count());
+        $this->command->info('Total settings: '.DB::table('settings')->count());
     }
 }

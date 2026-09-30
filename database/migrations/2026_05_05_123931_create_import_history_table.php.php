@@ -29,7 +29,7 @@ return new class extends Migration
             $table->timestamp('processing_completed_at')->nullable();
             $table->date('retention_expiry')->nullable();
             $table->timestamps();
-            
+
             // Foreign key
             $table->foreign('user_id')->references('id')->on('staff')->onDelete('cascade');
         });

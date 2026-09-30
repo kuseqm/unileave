@@ -21,6 +21,7 @@ class LeaveLetter extends Model
         'type',
         'generated_by',
         'generated_by_role',
+        'signature_path',
         'signatories',
         'cc_recipients',
         'payment_status',
@@ -70,8 +71,12 @@ class LeaveLetter extends Model
     public function getVerificationUrlAttribute()
     {
         if ($this->secure_code) {
-            return route('verify.letter', $this->secure_code);
+            // verify.show is the unified link - it also checks TravelLetter
+            // and ReportLog, so one URL format works for every code the
+            // system issues, not just this model's.
+            return route('verify.show', $this->secure_code);
         }
+
         return null;
     }
 
@@ -80,7 +85,7 @@ class LeaveLetter extends Model
      */
     public function getIsVerifiedAttribute()
     {
-        return !is_null($this->verified_at);
+        return ! is_null($this->verified_at);
     }
 
     /**
@@ -195,15 +200,15 @@ class LeaveLetter extends Model
     public function updatePaymentStatus($status, $deduction = null, $notes = null)
     {
         $updateData = ['payment_status' => $status];
-        
+
         if ($deduction !== null) {
             $updateData['salary_deduction'] = $deduction;
         }
-        
+
         if ($notes !== null) {
             $updateData['financial_notes'] = $notes;
         }
-        
+
         $this->update($updateData);
     }
 }

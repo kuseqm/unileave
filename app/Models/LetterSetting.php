@@ -55,8 +55,8 @@ class LetterSetting extends Model
     public static function getForUniversity($universityId)
     {
         $settings = self::where('university_id', $universityId)->first();
-        
-        if (!$settings) {
+
+        if (! $settings) {
             $settings = self::create([
                 'university_id' => $universityId,
                 'default_file_capacity' => 500,
@@ -70,7 +70,7 @@ class LetterSetting extends Model
                 'default_header_bg_color' => '#f8f9fa',
             ]);
         }
-        
+
         return $settings;
     }
 }

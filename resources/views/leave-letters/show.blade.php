@@ -10,12 +10,12 @@
         ['name' => $letter->letter_number, 'url' => '#']
     ]" />
     
-    <x-page-header title="LEAVE APPROVAL LETTER" description="{{ $letter->letter_number }}">
+    <x-page-header title="{{ $letter->type === 'application' ? 'LEAVE APPLICATION LETTER' : 'LEAVE APPROVAL LETTER' }}" description="{{ $letter->letter_number }}">
         <div>
             <a href="{{ route('leave-letters.index') }}" class="btn btn-outline-secondary btn-sm rounded-sm">
                 <i class="ti ti-arrow-left me-1"></i> Back
             </a>
-            <a href="{{ route('leave-letters.print', $letter->id) }}" target="_blank" class="btn btn-primary btn-sm rounded-sm">
+            <a href="{{ route('leave-letters.print', $letter->id) }}?embedded=1" target="_blank" class="btn btn-primary btn-sm rounded-sm">
                 <i class="ti ti-printer me-1"></i> Print
             </a>
             <a href="{{ route('leave-letters.download-pdf', $letter->id) }}" class="btn btn-success btn-sm rounded-sm">
@@ -24,63 +24,105 @@
         </div>
     </x-page-header>
     
-    <div class="row justify-content-center">
+    <div class="row g-2">
         <div class="col-lg-8">
             <div class="card rounded-sm" id="letterContent">
-                <div class="card-body p-4">
-                    <!-- Letter Header -->
-                    <div class="text-center mb-4">
-                        @if($university && $university->logo)
-                            <img src="{{ Storage::url($university->logo) }}" alt="University Logo" style="max-height: 80px;">
-                        @endif
-                        <h3 class="mt-2 mb-0">{{ $university->name ?? 'University' }}</h3>
-                        <p class="text-muted small">{{ $university->address ?? '' }}</p>
-                        <hr>
-                    </div>
-                    
-                    <!-- Letter Reference -->
-                    <div class="mb-3">
-                        <strong>Ref:</strong> {{ $letter->letter_number }}<br>
-                        <strong>Date:</strong> {{ $letter->created_at->format('d M Y') }}
-                    </div>
-                    
-                    <!-- Letter Subject -->
-                    <div class="mb-3">
-                        <strong>SUBJECT: {{ $letter->title }}</strong>
-                    </div>
-                    
-                    <!-- Letter Content -->
-                    <div class="mb-4">
-                        {!! nl2br(e($letter->content)) !!}
-                    </div>
-                    
-                    <!-- Leave Details -->
-                    <div class="mb-4 p-2 bg-light rounded-sm">
-                        <strong>Leave Details:</strong>
-                        <ul class="mb-0 mt-1">
-                            <li>Staff: {{ $letter->leaveRequest->staff->full_name ?? 'N/A' }}</li>
-                            <li>Staff ID: {{ $letter->leaveRequest->staff->staff_id ?? 'N/A' }}</li>
-                            <li>Leave Type: {{ $letter->leaveRequest->leaveType->name ?? 'N/A' }}</li>
-                            <li>Period: {{ \Carbon\Carbon::parse($letter->leaveRequest->start_date)->format('d M Y') }} - {{ \Carbon\Carbon::parse($letter->leaveRequest->end_date)->format('d M Y') }}</li>
-                            <li>Total Days: {{ $letter->leaveRequest->days }} days</li>
-                        </ul>
-                    </div>
-                    
-                    <!-- Signatory -->
-                    <div class="text-end mt-5">
-                        <p>Yours sincerely,</p>
-                        <div class="mt-4">
-                            <p><strong>{{ $letter->generated_by ?? 'Human Resources Department' }}</strong><br>
-                            {{ $letter->generated_by_role ?? 'HR Officer' }}</p>
-                        </div>
-                    </div>
-                    
-                    <!-- Footer -->
-                    <hr>
-                    <div class="text-center small text-muted">
-                        <i class="ti ti-lock"></i> Secure Document - Verification Code: {{ $letter->secure_code }}
+                <div class="card-body p-0">
+                    <iframe src="{{ route('leave-letters.preview', $letter->id) }}?embedded=1" title="{{ $letter->letter_number }}" style="width: 100%; height: 82vh; border: 0; border-radius: 0 0 4px 4px;"></iframe>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <!-- Letter Status -->
+            <div class="card rounded-sm">
+                <div class="card-header py-1 px-2 bg-light">
+                    <div class="d-flex align-items-center">
+                        <i class="ti ti-info-circle text-primary me-1" style="font-size: 0.8rem;"></i>
+                        <span style="font-size: 0.7rem; font-weight: 600;">Letter Status</span>
                     </div>
                 </div>
+                <div class="card-body p-2">
+                    <div class="mb-2">
+                        <div class="text-muted" style="font-size: 0.6rem;">Status</div>
+                        <span class="badge {{ $letter->stage === 'generated' ? 'bg-success' : 'bg-secondary' }} rounded-sm" style="font-size: 0.65rem;">
+                            {{ ucfirst($letter->stage) }}
+                        </span>
+                    </div>
+                    <div class="mb-2">
+                        <div class="text-muted" style="font-size: 0.6rem;">Signed By</div>
+                        <div style="font-size: 0.75rem;">{{ $letter->generated_by ?? 'N/A' }}</div>
+                        <div class="text-muted" style="font-size: 0.65rem;">{{ $letter->generated_by_role ?? 'N/A' }}</div>
+                    </div>
+                    <div class="mb-2">
+                        <div class="text-muted" style="font-size: 0.6rem;">Issued On</div>
+                        <div style="font-size: 0.75rem;">{{ $letter->created_at->format('d M Y, H:i') }}</div>
+                    </div>
+                    <div class="mb-2">
+                        <div class="text-muted" style="font-size: 0.6rem;">Printed</div>
+                        <div style="font-size: 0.75rem;">
+                            @if($letter->is_printed)
+                                <i class="ti ti-check text-success"></i> Yes ({{ $letter->print_count }}x)
+                            @else
+                                <i class="ti ti-x text-muted"></i> Not yet
+                            @endif
+                        </div>
+                    </div>
+                    <div>
+                        <div class="text-muted" style="font-size: 0.6rem;">Verification Code</div>
+                        <div class="font-monospace" style="font-size: 0.65rem;">{{ $letter->secure_code }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Related Leave Request -->
+            <div class="card rounded-sm mt-2">
+                <div class="card-header py-1 px-2 bg-light">
+                    <div class="d-flex align-items-center">
+                        <i class="ti ti-calendar-event text-primary me-1" style="font-size: 0.8rem;"></i>
+                        <span style="font-size: 0.7rem; font-weight: 600;">Related Leave Request</span>
+                    </div>
+                </div>
+                <div class="card-body p-2">
+                    <div class="mb-2">
+                        <div class="text-muted" style="font-size: 0.6rem;">Leave Type</div>
+                        <div style="font-size: 0.75rem;">{{ $letter->leaveRequest->leaveType->name ?? 'N/A' }}</div>
+                    </div>
+                    <div class="mb-2">
+                        <div class="text-muted" style="font-size: 0.6rem;">Period</div>
+                        <div style="font-size: 0.75rem;">
+                            {{ \Carbon\Carbon::parse($letter->leaveRequest->start_date)->format('d M Y') }} -
+                            {{ \Carbon\Carbon::parse($letter->leaveRequest->end_date)->format('d M Y') }}
+                        </div>
+                    </div>
+                    <div class="mb-2">
+                        <div class="text-muted" style="font-size: 0.6rem;">Request Status</div>
+                        <span class="badge bg-success rounded-sm" style="font-size: 0.65rem;">
+                            {{ ucfirst($letter->leaveRequest->status ?? 'N/A') }}
+                        </span>
+                    </div>
+                    <a href="{{ route('leave-requests.show', $letter->leave_request_id) }}" class="btn btn-outline-secondary btn-sm rounded-sm w-100 mt-1" style="font-size: 0.7rem;">
+                        <i class="ti ti-external-link me-1"></i> View Full Request
+                    </a>
+                </div>
+            </div>
+
+            <!-- About This Letter -->
+            <x-alert-light class="mt-2 mb-0 py-2 px-2 rounded-sm">
+
+                <div class="d-flex align-items-start gap-1">
+                    <i class="ti ti-shield-check text-success mt-0" style="font-size: 0.7rem;"></i>
+                    <div>
+                        <strong class="d-block" style="font-size: 0.65rem;">About This Letter</strong>
+                        @if($letter->type === 'application')
+                        <small class="text-muted" style="font-size: 0.6rem;">This is your own leave application letter, in your own words, signed by you when you submitted the request.</small><br>
+                        @else
+                        <small class="text-muted" style="font-size: 0.6rem;">This letter was generated and signed at the point of final HR approval - not from your original application text.</small><br>
+                        @endif
+                        <small class="text-muted" style="font-size: 0.6rem;">Use Print or PDF to get a physical or shareable copy. The verification code lets anyone confirm this letter is authentic.</small>
+                    </div>
+                
+</x-alert-light>
             </div>
         </div>
     </div>

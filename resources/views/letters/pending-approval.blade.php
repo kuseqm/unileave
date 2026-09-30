@@ -13,19 +13,9 @@
     <x-page-header title="PENDING APPROVALS" description="Letters awaiting your approval">
     </x-page-header>
     
-    @if(session('success'))
-    <div class="alert alert-success alert-dismissible fade show py-1 px-2 mb-2 rounded-sm" style="font-size: 0.7rem;" role="alert">
-        <i class="ti ti-check-circle me-1"></i> {{ session('success') }}
-        <button type="button" class="btn-close py-0" style="font-size: 0.6rem;" data-bs-dismiss="alert"></button>
-    </div>
-    @endif
+    <x-alert-success />
     
-    @if(session('error'))
-    <div class="alert alert-danger alert-dismissible fade show py-1 px-2 mb-2 rounded-sm" style="font-size: 0.7rem;" role="alert">
-        <i class="ti ti-alert-circle me-1"></i> {{ session('error') }}
-        <button type="button" class="btn-close py-0" style="font-size: 0.6rem;" data-bs-dismiss="alert"></button>
-    </div>
-    @endif
+    <x-alert-danger />
     
     @php
         $user = auth()->user();
@@ -49,20 +39,23 @@
     
     <!-- Stats Cards -->
     <div class="row g-2 mb-3">
-        <x-stats-card value="{{ $letters->total() }}" label="Pending Letters" subtext="awaiting your {{ $currentLevel }} approval" color="warning" />
-        <x-stats-card value="{{ $letters->where('submitted_at', '>=', now()->subDays(7))->count() }}" label="This Week" subtext="submitted in last 7 days" color="info" />
-        <x-stats-card value="{{ $letters->where('submitted_at', '>=', now()->subDay())->count() }}" label="Today" subtext="submitted in last 24 hours" color="danger" />
+        <x-stats-card value="{{ $stats['total'] }}" label="Pending Letters" subtext="awaiting your {{ $currentLevel }} approval" color="warning" />
+        <x-stats-card value="{{ $stats['this_week'] }}" label="This Week" subtext="submitted in last 7 days" color="info" />
+        <x-stats-card value="{{ $stats['today'] }}" label="Today" subtext="submitted in last 24 hours" color="danger" />
+        <x-stats-card value="{{ $stats['overdue'] }}" label="Overdue" subtext="waiting over 7 days" color="dark" />
     </div>
     
     <!-- Info Alert -->
-    <div class="alert alert-info py-1 px-2 mb-2 rounded-sm" style="font-size: 0.65rem;">
-        <i class="ti ti-info-circle me-1"></i>
-        <strong>Your Role:</strong> {{ ucfirst($role) }} | 
+    <x-alert-info>
+    <strong>Your Role:</strong> {{ ucfirst($role) }} | 
         <strong>{{ $levelDescription }}</strong> |
         <strong>Approval Action:</strong> Click "Approve" to approve this letter. Your name, timestamp, and IP address will be recorded for audit purposes.
-    </div>
+</x-alert-info>
     
-    <div class="card rounded-sm">
+    <div class="row g-2">
+        <!-- Pending Approvals Table - main column -->
+        <div class="col-lg-8">
+            <div class="card rounded-sm">
         <div class="card-header py-1 px-2 bg-light">
             <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
                 <div class="d-flex align-items-center">
@@ -131,27 +124,27 @@
                                     </a>
                                     
                                     @if($role === 'hod' && !$letter->hod_approved_at)
-                                        <form action="{{ route('letters.hod.approve', $letter->id) }}" method="POST" class="d-inline" onsubmit="return confirmApproval('HOD')">
+                                        <form action="{{ route('letters.hod.approve', $letter->id) }}" method="POST" class="d-inline">
                                             @csrf
-                                            <button type="submit" class="btn btn-sm btn-success rounded-sm" style="font-size: 0.6rem; padding: 0.15rem 0.4rem;" title="Approve as HOD">
+                                            <button type="button" class="btn btn-sm btn-success rounded-sm" style="font-size: 0.6rem; padding: 0.15rem 0.4rem;" title="Approve as HOD" onclick="confirmApproval(this, 'HOD')">
                                                 <i class="ti ti-check"></i>
                                             </button>
                                         </form>
                                     @endif
-                                    
+
                                     @if($role === 'dean' && $letter->hod_approved_at && !$letter->dean_approved_at)
-                                        <form action="{{ route('letters.dean.approve', $letter->id) }}" method="POST" class="d-inline" onsubmit="return confirmApproval('Dean')">
+                                        <form action="{{ route('letters.dean.approve', $letter->id) }}" method="POST" class="d-inline">
                                             @csrf
-                                            <button type="submit" class="btn btn-sm btn-success rounded-sm" style="font-size: 0.6rem; padding: 0.15rem 0.4rem;" title="Approve as Dean">
+                                            <button type="button" class="btn btn-sm btn-success rounded-sm" style="font-size: 0.6rem; padding: 0.15rem 0.4rem;" title="Approve as Dean" onclick="confirmApproval(this, 'Dean')">
                                                 <i class="ti ti-check"></i>
                                             </button>
                                         </form>
                                     @endif
-                                    
+
                                     @if(in_array($role, ['dvca', 'dvc-pfa']) && $letter->hod_approved_at && $letter->dean_approved_at && !$letter->dvc_approved_at)
-                                        <form action="{{ route('letters.dvc.approve', $letter->id) }}" method="POST" class="d-inline" onsubmit="return confirmApproval('DVC')">
+                                        <form action="{{ route('letters.dvc.approve', $letter->id) }}" method="POST" class="d-inline">
                                             @csrf
-                                            <button type="submit" class="btn btn-sm btn-success rounded-sm" style="font-size: 0.6rem; padding: 0.15rem 0.4rem;" title="Approve as DVC">
+                                            <button type="button" class="btn btn-sm btn-success rounded-sm" style="font-size: 0.6rem; padding: 0.15rem 0.4rem;" title="Approve as DVC" onclick="confirmApproval(this, 'DVC')">
                                                 <i class="ti ti-check"></i>
                                             </button>
                                         </form>
@@ -177,12 +170,51 @@
             {{ $letters->links() }}
         </div>
         @endif
+            </div>
+        </div>
+
+        <!-- Information - narrow column -->
+        <div class="col-lg-4">
+            <div class="card rounded-sm">
+                <div class="card-header py-1 px-2 bg-light">
+                    <div class="d-flex align-items-center">
+                        <i class="ti ti-info-circle text-info me-1" style="font-size: 0.8rem;"></i>
+                        <span style="font-size: 0.7rem; font-weight: 600;">Information</span>
+                    </div>
+                </div>
+                <div class="card-body py-2 px-2">
+                    <div class="mb-2">
+                        <div class="fw-semibold" style="font-size: 0.7rem;"><i class="ti ti-flag me-1 text-primary"></i> Approval Chain</div>
+                        <ul class="mb-0 ps-3" style="font-size: 0.65rem; color: #555;">
+                            <li>HOD approves first</li>
+                            <li>Dean approves next</li>
+                            <li>DVC approves last, before it moves to signature</li>
+                        </ul>
+                    </div>
+
+                    <x-alert-light class="mb-0 py-1 px-2 rounded-sm">
+                        <div class="d-flex align-items-start gap-1">
+                            <i class="ti ti-tips text-warning mt-0" style="font-size: 0.7rem;"></i>
+                            <div>
+                                <strong class="d-block" style="font-size: 0.65rem;">Tips</strong>
+                                <small class="text-muted" style="font-size: 0.6rem;">&bull; Only your role's approval action shows on each row</small><br>
+                                <small class="text-muted" style="font-size: 0.6rem;">&bull; Approvals are logged with name, time, and IP for audit</small>
+                            </div>
+                        </div>
+                    </x-alert-light>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
 <script>
-    function confirmApproval(level) {
-        return confirm('Are you sure you want to approve this letter as ' + level + '?\n\nYour name, timestamp, and IP address will be recorded for audit purposes.\n\nThis action cannot be undone.');
+    function confirmApproval(btn, level) {
+        confirmAction(
+            'Are you sure you want to approve this letter as ' + level + '?\n\nYour name, timestamp, and IP address will be recorded for audit purposes.\n\nThis action cannot be undone.',
+            function () { btn.closest('form').submit(); },
+            { danger: false, confirmText: 'Approve' }
+        );
     }
 </script>
 @endsection

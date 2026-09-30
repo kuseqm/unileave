@@ -18,72 +18,20 @@
         </div>
     </div>
     
-    <!-- Page Header Card -->
-    <div class="card rounded-sm mb-2">
-        <div class="card-body py-2 px-3">
-            <div class="d-flex align-items-center justify-content-between">
-                <div>
-                    <h1 class="h5 mb-0" style="color: #3B82F6; font-weight: 700;">IMPORT STAFF</h1>
-                    <p class="text-muted mb-0" style="font-size: 0.7rem;">Bulk import staff members via Excel/CSV template</p>
-                </div>
-                <div class="d-flex gap-2">
-                    <a href="{{ route('staff.index') }}" class="btn btn-sm btn-outline-secondary rounded-sm" style="font-size: 0.7rem; padding: 0.2rem 0.5rem;">
-                        <i class="ti ti-arrow-left me-1"></i> Back
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- Page Header -->
+    <x-page-header title="IMPORT STAFF" description="Bulk import staff members via Excel/CSV template" backUrl="{{ route('staff.index') }}" />
     
-    @if(session('success'))
-    <div class="alert alert-success alert-dismissible fade show py-1 px-2 mb-2 rounded-sm" style="font-size: 0.7rem;" role="alert">
-        <i class="ti ti-check-circle me-1"></i> {{ session('success') }}
-        <button type="button" class="btn-close py-0" style="font-size: 0.6rem;" data-bs-dismiss="alert"></button>
-    </div>
-    @endif
+    <x-alert-success />
     
-    @if(session('error'))
-    <div class="alert alert-danger alert-dismissible fade show py-1 px-2 mb-2 rounded-sm" style="font-size: 0.7rem;" role="alert">
-        <i class="ti ti-alert-circle me-1"></i> {{ session('error') }}
-        <button type="button" class="btn-close py-0" style="font-size: 0.6rem;" data-bs-dismiss="alert"></button>
-    </div>
-    @endif
+    <x-alert-danger />
     
     <!-- Stats Cards Row -->
     @hasanyrole('admin|hr-officer')
     <div class="row g-2 mb-3">
-        <div class="col-6 col-md-3">
-            <div class="card rounded-sm text-center">
-                <div class="card-body py-2 px-2">
-                    <div class="text-primary fw-bold" style="font-size: 1.4rem;">{{ $stats['total_imports'] }}</div>
-                    <div class="text-muted" style="font-size: 0.7rem;">Total Imports</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="card rounded-sm text-center">
-                <div class="card-body py-2 px-2">
-                    <div class="text-success fw-bold" style="font-size: 1.4rem;">{{ $stats['completed_imports'] ?? 0 }}</div>
-                    <div class="text-muted" style="font-size: 0.7rem;">Completed</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="card rounded-sm text-center">
-                <div class="card-body py-2 px-2">
-                    <div class="text-warning fw-bold" style="font-size: 1.4rem;">{{ $stats['processing_imports'] ?? 0 }}</div>
-                    <div class="text-muted" style="font-size: 0.7rem;">Processing</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="card rounded-sm text-center">
-                <div class="card-body py-2 px-2">
-                    <div class="text-danger fw-bold" style="font-size: 1.4rem;">{{ $stats['failed_imports'] }}</div>
-                    <div class="text-muted" style="font-size: 0.7rem;">Failed</div>
-                </div>
-            </div>
-        </div>
+        <x-stats-card value="{{ $stats['total_imports'] }}" label="Total Imports" subtext="all time" />
+        <x-stats-card value="{{ $stats['completed_imports'] ?? 0 }}" label="Completed" subtext="successfully imported" color="success" />
+        <x-stats-card value="{{ $stats['processing_imports'] ?? 0 }}" label="Processing" subtext="in progress" color="warning" />
+        <x-stats-card value="{{ $stats['failed_imports'] }}" label="Failed" subtext="need attention" color="danger" />
     </div>
     @endhasanyrole
     
@@ -141,6 +89,7 @@
                     <div class="mb-2">
                         <label class="form-label" style="font-size: 0.65rem; font-weight: 600;">Step 1: Select Location</label>
                         
+                        @if($isSuperAdmin)
                         <div class="mb-1">
                             <label class="form-label" style="font-size: 0.65rem;">University</label>
                             <select id="university_id" name="university_id" class="form-select form-select-sm rounded-sm" style="font-size: 0.7rem; padding: 0.2rem 0.3rem;" required>
@@ -150,13 +99,31 @@
                                 @endforeach
                             </select>
                         </div>
-                        
+
                         <div class="mb-1">
                             <label class="form-label" style="font-size: 0.65rem;">Campus</label>
                             <select id="campus_id" name="campus_id" class="form-select form-select-sm rounded-sm" style="font-size: 0.7rem; padding: 0.2rem 0.3rem;" disabled>
                                 <option value="">Select University First</option>
                             </select>
                         </div>
+                        @else
+                        <div class="mb-1">
+                            <label class="form-label" style="font-size: 0.65rem;">Institute</label>
+                            <div class="form-control form-control-sm rounded-sm bg-light" style="font-size: 0.7rem; padding: 0.2rem 0.3rem;">
+                                {{ auth()->user()->university->name ?? 'Your institute' }}
+                            </div>
+                        </div>
+
+                        <div class="mb-1">
+                            <label class="form-label" style="font-size: 0.65rem;">Campus</label>
+                            <select id="campus_id" name="campus_id" class="form-select form-select-sm rounded-sm" style="font-size: 0.7rem; padding: 0.2rem 0.3rem;">
+                                <option value="">Select Campus</option>
+                                @foreach($campuses as $campus)
+                                <option value="{{ $campus->id }}">{{ $campus->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        @endif
                         
                         <div class="mb-1">
                             <label class="form-label" style="font-size: 0.65rem;">School/Faculty</label>
@@ -231,7 +198,11 @@
                             <i class="ti ti-steps me-1"></i> Step-by-Step Guide
                         </div>
                         <ol class="mb-0 ps-3" style="font-size: 0.7rem; line-height: 1.6;">
+                            @if($isSuperAdmin)
                             <li>Select <strong>University</strong> → <strong>Campus</strong> → <strong>School/Faculty</strong> → <strong>Department</strong></li>
+                            @else
+                            <li>Select <strong>Campus</strong> → <strong>School/Faculty</strong> → <strong>Department</strong></li>
+                            @endif
                             <li>Click <strong>"Download Template"</strong> to get the Excel file</li>
                             <li>Open the downloaded Excel file</li>
                             <li>Fill in your staff data starting from <strong>Row 3</strong> (Row 2 is an example - delete it or overwrite)</li>
@@ -288,10 +259,9 @@
                     </div>
                     
                     <!-- Quick Tips -->
-                    <div class="alert alert-info py-1 px-2 mb-0 rounded-sm" style="font-size: 0.65rem;">
-                        <i class="ti ti-lightbulb me-1"></i>
-                        <strong>Pro Tip:</strong> Always use <strong>Test Mode</strong> on your first attempt to catch any errors before actual import!
-                    </div>
+                    <x-alert-info>
+    <strong>Pro Tip:</strong> Always use <strong>Test Mode</strong> on your first attempt to catch any errors before actual import!
+</x-alert-info>
                 </div>
             </div>
         </div>
@@ -429,8 +399,16 @@
 </div>
 
 <script>
+// A plain admin has no University select (pinned to their own institute
+// server-side) - this stands in for it wherever the value is read, since
+// the actual number is ignored server-side for them anyway.
+function currentUniversityId() {
+    const el = document.getElementById('university_id');
+    return el ? el.value : 'own';
+}
+
 // Campus loading
-document.getElementById('university_id').addEventListener('change', function() {
+document.getElementById('university_id')?.addEventListener('change', function() {
     var universityId = this.value;
     var campusSelect = document.getElementById('campus_id');
     var schoolSelect = document.getElementById('school_id');
@@ -494,7 +472,7 @@ document.getElementById('school_id').addEventListener('change', function() {
 
 // Download template - includes school_id
 document.getElementById('downloadTemplateBtn').addEventListener('click', function() {
-    var universityId = document.getElementById('university_id').value;
+    var universityId = currentUniversityId();
     var campusId = document.getElementById('campus_id').value;
     var schoolId = document.getElementById('school_id').value;
     var departmentId = document.getElementById('department_id').value;
@@ -509,7 +487,7 @@ document.getElementById('downloadTemplateBtn').addEventListener('click', functio
 
 // Enable upload after selection
 document.getElementById('department_id').addEventListener('change', function() {
-    var universityId = document.getElementById('university_id').value;
+    var universityId = currentUniversityId();
     var campusId = document.getElementById('campus_id').value;
     var schoolId = document.getElementById('school_id').value;
     var departmentId = this.value;
@@ -587,7 +565,9 @@ function viewDetails(id) {
                             <p class="mb-0">${data.created_at}</p>
                         </div>
                     </div>
-                    ${data.errors && data.errors.length > 0 ? `<div class="mt-2"><label class="text-muted">Errors</label><div class="alert alert-danger p-1 mt-1 rounded-sm" style="max-height: 150px; overflow-y: auto; font-size: 0.65rem;"><ul class="mb-0 ps-3">${data.errors.map(e => `<li>${e}</li>`).join('')}</ul></div></div>` : ''}
+                    ${data.errors && data.errors.length > 0 ? `<div class="mt-2"><label class="text-muted">Errors</label><x-alert-danger :session="false">
+    <ul class="mb-0 ps-3">${data.errors.map(e => `<li>${e}</li>`).join('')}</ul>
+</x-alert-danger></div>` : ''}
                 </div>
             `;
             new bootstrap.Modal(document.getElementById('viewDetailsModal')).show();
@@ -596,7 +576,7 @@ function viewDetails(id) {
 
 // Delete Import Function
 function deleteImport(id) {
-    if (confirm('Are you sure you want to delete this import record? This action cannot be undone.')) {
+    confirmAction('Are you sure you want to delete this import record? This action cannot be undone.', function () {
         fetch(`/admin/import/delete/${id}`, {
             method: 'DELETE',
             headers: {
@@ -615,7 +595,7 @@ function deleteImport(id) {
         .catch(error => {
             alert('Error deleting record: ' + error);
         });
-    }
+    });
 }
 </script>
 @endsection

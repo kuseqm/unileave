@@ -1,0 +1,11 @@
+<x-letter.verification-letter
+    :letter="$letter"
+    :content="$content"
+    :university="$university"
+    :forPdf="$forPdf"
+    :downloadUrl="$downloadUrl"
+    :embedded="$embedded"
+    :autoPrint="$autoPrint"
+    :qrCodeImage="$qrCodeImage"
+    :isDraft="$isDraft"
+/>

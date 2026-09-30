@@ -88,14 +88,14 @@
                     @endphp
                     
                     @if($isActive)
-                    <div class="alert alert-danger py-1 px-2 mb-2 rounded-sm" style="font-size: 0.65rem;">
-                        <i class="ti ti-alert-circle me-1"></i>
-                        <strong>This blackout period is currently ACTIVE!</strong>
+                    <x-alert-danger :session="false">
+    <strong>This blackout period is currently ACTIVE!</strong>
                         <small>Staff cannot apply for leave during this period.</small>
-                    </div>
+</x-alert-danger>
                     @endif
                     
-                    <div class="alert alert-light border mb-2 py-1 px-2 rounded-sm">
+                    <x-alert-light class="mb-2 py-1 px-2 rounded-sm">
+
                         <div class="d-flex align-items-start gap-1">
                             <i class="ti ti-calendar text-primary mt-0" style="font-size: 0.7rem;"></i>
                             <div>
@@ -104,10 +104,12 @@
                                 <small class="text-muted" style="font-size: 0.6rem;">• Ends: {{ \Carbon\Carbon::parse($blackout->end_date)->format('d M Y') }}</small><br>
                                 <small class="text-muted" style="font-size: 0.6rem;">• Duration: {{ \Carbon\Carbon::parse($blackout->start_date)->diffInDays($blackout->end_date) + 1 }} days</small>
                             </div>
-                        </div>
+                        
+</x-alert-light>
                     </div>
                     
-                    <div class="alert alert-light border mb-2 py-1 px-2 rounded-sm">
+                    <x-alert-light class="mb-2 py-1 px-2 rounded-sm">
+
                         <div class="d-flex align-items-start gap-1">
                             <i class="ti ti-tips text-warning mt-0" style="font-size: 0.7rem;"></i>
                             <div>
@@ -120,10 +122,12 @@
                                     @endif
                                 </small>
                             </div>
-                        </div>
+                        
+</x-alert-light>
                     </div>
                     
-                    <div class="alert alert-light border mb-0 py-1 px-2 rounded-sm">
+                    <x-alert-light class="mb-0 py-1 px-2 rounded-sm">
+
                         <div class="d-flex align-items-start gap-1">
                             <i class="ti ti-user-check text-success mt-0" style="font-size: 0.7rem;"></i>
                             <div>
@@ -136,7 +140,8 @@
                                     @endif
                                 </small>
                             </div>
-                        </div>
+                        
+</x-alert-light>
                     </div>
                 </div>
             </div>

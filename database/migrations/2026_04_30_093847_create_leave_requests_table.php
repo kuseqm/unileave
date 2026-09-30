@@ -21,7 +21,7 @@ return new class extends Migration
             $table->integer('current_approval_level')->default(1);
             $table->text('letter_content')->nullable();
             $table->timestamps();
-            
+
             $table->index('staff_id');
             $table->index('leave_type_id');
             $table->index('status');

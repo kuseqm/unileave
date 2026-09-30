@@ -29,19 +29,9 @@
         </div>
     </div>
     
-    @if(session('success'))
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        <i class="ti ti-check-circle me-1"></i> {{ session('success') }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-    @endif
+    <x-alert-success />
     
-    @if(session('error'))
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        <i class="ti ti-alert-circle me-1"></i> {{ session('error') }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-    @endif
+    <x-alert-danger />
     
     <div class="row g-4">
         
@@ -179,14 +169,16 @@
                         </ul>
                     </div>
                     
-                    <div class="alert alert-light border mb-0">
+                    <x-alert-light class="mb-0">
+
                         <div class="d-flex align-items-start gap-2">
                             <i class="ti ti-help text-primary mt-1"></i>
                             <div>
                                 <strong class="d-block">Need Help?</strong>
                                 <small class="text-muted">Contact the system administrator for assistance</small>
                             </div>
-                        </div>
+                        
+</x-alert-light>
                     </div>
                 </div>
             </div>

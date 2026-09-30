@@ -15,7 +15,7 @@ return new class extends Migration
             $table->enum('email_type', ['work', 'personal', 'alternative'])->default('work');
             $table->boolean('is_primary')->default(false);
             $table->timestamps();
-            
+
             $table->index('staff_id');
         });
     }

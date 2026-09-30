@@ -13,12 +13,7 @@
     <x-page-header title="PROFILE SETTINGS" description="Customize your account preferences">
     </x-page-header>
     
-    @if(session('success'))
-    <div class="alert alert-success alert-dismissible fade show py-1 px-2 mb-2 rounded-sm" role="alert">
-        <i class="ti ti-check-circle me-1"></i> {{ session('success') }}
-        <button type="button" class="btn-close py-0" data-bs-dismiss="alert"></button>
-    </div>
-    @endif
+    <x-alert-success />
     
     <div class="row">
         <div class="col-md-6">
@@ -63,7 +58,22 @@
                                 <option value="UTC" {{ $timezone && $timezone->value == 'UTC' ? 'selected' : '' }}>UTC</option>
                             </select>
                         </div>
-                        
+
+                        <div class="mb-3">
+                            <label class="form-label">Clock Format</label>
+                            <select name="clock_format" class="form-select form-select-sm">
+                                <option value="24" {{ ! $clockFormat || $clockFormat->value == '24' ? 'selected' : '' }}>24-hour (14:30:00)</option>
+                                <option value="12" {{ $clockFormat && $clockFormat->value == '12' ? 'selected' : '' }}>12-hour (2:30:00 PM)</option>
+                            </select>
+                            <div class="form-text" style="font-size: 0.7rem;">Controls the live clock shown in the top bar.</div>
+                        </div>
+
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" role="switch" name="show_hebrew_date" value="1" id="show_hebrew_date" {{ $showHebrewDate && $showHebrewDate->value == 'true' ? 'checked' : '' }}>
+                            <label class="form-check-label" for="show_hebrew_date">Also show the Hebrew calendar date</label>
+                            <div class="form-text" style="font-size: 0.7rem;">Shown alongside the Gregorian date in the top bar, below the clock.</div>
+                        </div>
+
                         <button type="submit" class="btn btn-primary btn-sm rounded-sm">Save Settings</button>
                     </form>
                 </div>

@@ -20,16 +20,32 @@
     $currentLevelInt = (int)$leaveRequest->current_approval_level;
     $actingStatus = $leaveRequest->acting_status;
     $isFullyApproved = $leaveRequest->status == 'approved';
-    
+
+    // Some stages don't apply to every request, and showing them anyway
+    // reads as "still waiting on this person" when nobody will ever act on
+    // it: the VC's own leave skips straight to HR Logistics; an HOD's own
+    // leave has nobody else to review the HOD stage, so it's skipped; a
+    // Dean's own leave (or a school with no Dean assigned at all) skips
+    // the Dean stage the same way; HR staff sit administratively parallel
+    // to HOD/Dean, so their own leave skips both of those stages too, even
+    // when the real HOD/Dean is a totally different, unrelated person.
+    $isVC = $leaveRequest->staff->hasRole('vice-chancellor');
+    $isOwnHr = $leaveRequest->staff->hasRole('hr-officer') || $leaveRequest->staff->hasRole('hr-manager');
+    $isOwnHod = ($leaveRequest->staff->department->hod_staff_id ?? null) == $leaveRequest->staff_id;
+    $isOwnDean = ($leaveRequest->staff->department->school->dean_staff_id ?? null) == $leaveRequest->staff_id;
+    $hasDean = (bool) ($leaveRequest->staff->department->school->dean_staff_id ?? null);
+
     $stages = [
-        ['key' => 'acting', 'label' => 'Acting Staff', 'description' => 'Staff member to hold position', 'level' => null],
-        ['key' => 'hod', 'label' => 'HOD', 'description' => 'Head of Department approval', 'level' => 1],
-        ['key' => 'dean', 'label' => 'Dean', 'description' => 'Dean of School approval', 'level' => 2],
-        ['key' => 'hr', 'label' => 'HR', 'description' => 'Human Resources review', 'level' => 3],
-        ['key' => 'dvc', 'label' => 'DVC', 'description' => 'Deputy Vice Chancellor approval', 'level' => 4],
-        ['key' => 'hr_final', 'label' => 'HR Logistics', 'description' => 'Final processing', 'level' => 5],
+        ['key' => 'acting', 'label' => 'Acting Staff', 'description' => 'Staff member to hold position', 'level' => null, 'applicable' => true],
+        ['key' => 'hod', 'label' => 'HOD', 'description' => 'Head of Department approval', 'level' => 1, 'applicable' => ! $isVC && ! $isOwnHr && ! $isOwnHod],
+        ['key' => 'dean', 'label' => 'Dean', 'description' => 'Dean of School approval', 'level' => 2, 'applicable' => ! $isVC && ! $isOwnHr && ! $isOwnDean && $hasDean],
+        ['key' => 'hr', 'label' => 'HR', 'description' => 'Human Resources review', 'level' => 3, 'applicable' => ! $isVC],
+        ['key' => 'dvc', 'label' => 'DVC', 'description' => 'Deputy Vice Chancellor approval', 'level' => 4, 'applicable' => ! $isVC],
+        ['key' => 'hr_final', 'label' => 'HR Logistics', 'description' => 'Final processing', 'level' => 5, 'applicable' => true],
     ];
-    
+
+    $stages = array_values(array_filter($stages, fn ($stage) => $stage['applicable']));
+
     // Determine status for each stage
     foreach ($stages as $i => $stage) {
         if ($stage['key'] == 'acting') {

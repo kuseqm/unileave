@@ -20,16 +20,15 @@
     </x-page-header>
     
     @if($errors->any())
-    <div class="alert alert-danger alert-dismissible fade show py-1 px-2 mb-2 rounded-sm" style="font-size: 0.7rem;" role="alert">
-        <i class="ti ti-alert-circle me-1"></i>
-        <strong>Please fix the following errors:</strong>
+    <x-alert-danger :session="false">
+    <strong>Please fix the following errors:</strong>
         <ul class="mb-0 mt-1 ps-3">
             @foreach($errors->all() as $error)
                 <li>{{ $error }}</li>
             @endforeach
         </ul>
         <button type="button" class="btn-close py-0" style="font-size: 0.6rem;" data-bs-dismiss="alert"></button>
-    </div>
+</x-alert-danger>
     @endif
     
     <div class="row g-2">
@@ -128,34 +127,40 @@
                     </div>
                 </div>
                 <div class="card-body py-2 px-2">
-                    <div class="alert alert-light border mb-2 py-1 px-2 rounded-sm">
+                    <x-alert-light class="mb-2 py-1 px-2 rounded-sm">
+
                         <div class="d-flex align-items-start gap-1">
                             <i class="ti ti-folder text-primary mt-0" style="font-size: 0.7rem;"></i>
                             <div>
                                 <strong class="d-block" style="font-size: 0.65rem;">What is a Letter File?</strong>
                                 <small class="text-muted" style="font-size: 0.6rem;">A physical or logical grouping of letters (e.g., volume 1, volume 2).</small>
                             </div>
-                        </div>
+                        
+</x-alert-light>
                     </div>
                     
-                    <div class="alert alert-light border mb-2 py-1 px-2 rounded-sm">
+                    <x-alert-light class="mb-2 py-1 px-2 rounded-sm">
+
                         <div class="d-flex align-items-start gap-1">
                             <i class="ti ti-list-numbers text-success mt-0" style="font-size: 0.7rem;"></i>
                             <div>
                                 <strong class="d-block" style="font-size: 0.65rem;">Serial Range</strong>
                                 <small class="text-muted" style="font-size: 0.6rem;">The range of serial numbers assigned to this file. Leave End Serial empty for unlimited.</small>
                             </div>
-                        </div>
+                        
+</x-alert-light>
                     </div>
                     
-                    <div class="alert alert-light border mb-0 py-1 px-2 rounded-sm">
+                    <x-alert-light class="mb-0 py-1 px-2 rounded-sm">
+
                         <div class="d-flex align-items-start gap-1">
                             <i class="ti ti-automatic text-warning mt-0" style="font-size: 0.7rem;"></i>
                             <div>
                                 <strong class="d-block" style="font-size: 0.65rem;">Auto-creation</strong>
                                 <small class="text-muted" style="font-size: 0.6rem;">When a file reaches its capacity, a new file is automatically created if enabled in the format settings.</small>
                             </div>
-                        </div>
+                        
+</x-alert-light>
                     </div>
                 </div>
             </div>

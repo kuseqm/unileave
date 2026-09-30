@@ -1,28 +1,30 @@
 <?php
+
 // database/seeders/LeaveBalanceSeeder.php
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use App\Models\User;
-use App\Models\LeaveType;
 use App\Models\LeaveBalance;
+use App\Models\LeaveType;
+use App\Models\User;
+use Illuminate\Database\Seeder;
 
 class LeaveBalanceSeeder extends Seeder
 {
     public function run()
     {
         $currentYear = date('Y');
-        
+
         $staffMembers = User::whereIn('staff_category', ['academic', 'administrative'])->get();
-        
+
         $annualLeave = LeaveType::where('code', 'LC1')->first();
         $sickLeave = LeaveType::where('code', 'LC2')->first();
         $compassionateLeave = LeaveType::where('code', 'LC3')->first();
         $maternityLeave = LeaveType::where('code', 'LC4')->first();
 
-        if (!$annualLeave || !$sickLeave || !$compassionateLeave || !$maternityLeave) {
+        if (! $annualLeave || ! $sickLeave || ! $compassionateLeave || ! $maternityLeave) {
             $this->command->error('Leave types not found. Run LeaveTypeSeeder first.');
+
             return;
         }
 
@@ -49,6 +51,6 @@ class LeaveBalanceSeeder extends Seeder
             }
         }
 
-        $this->command->info('✓ Leave balances created for ' . $staffMembers->count() . ' staff members');
+        $this->command->info('✓ Leave balances created for '.$staffMembers->count().' staff members');
     }
 }

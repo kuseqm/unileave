@@ -21,7 +21,7 @@ return new class extends Migration
             $table->boolean('override_allowed')->default(false);
             $table->foreignId('created_by')->constrained('staff')->onDelete('cascade');
             $table->timestamps();
-            
+
             $table->index('university_id');
             $table->index(['start_date', 'end_date']);
         });

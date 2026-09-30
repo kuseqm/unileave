@@ -5,35 +5,39 @@
 @section('content')
 <div class="container-fluid px-2">
     
-    <!-- Breadcrumb + Welcome Row -->
-    <div class="row align-items-center mb-3">
-        <div class="col">
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb mb-0" style="font-size: 0.75rem;">
-                    <li class="breadcrumb-item"><a href="{{ route('dashboard') }}" class="text-muted">Home</a></li>
-                    <li class="breadcrumb-item active">Dashboard</li>
-                </ol>
-            </nav>
-        </div>
-    </div>
+    <x-breadcrumb :items="[
+        ['name' => 'Home', 'url' => route('dashboard')],
+        ['name' => 'Dashboard', 'url' => '#']
+    ]" />
+
+    <x-page-header title="DASHBOARD" description="Overview of leave requests, staff, and department activity" />
     
-    <!-- Stat Cards - Using x-stats-card component with clickable links -->
+    <!-- Stat Cards - Role-based so users only see meaningful numbers -->
     <div class="row g-2 mb-3">
-        <x-stats-card id="stat-total-staff" value="{{ number_format($totalStaff ?? 0) }}" label="Total Staff" subtext="↑ +{{ number_format($newStaffThisMonth ?? 0) }} this month" icon="users" link="{{ $statsLinks['total_staff'] ?? null }}" />
-        
-        <x-stats-card id="stat-pending" value="{{ number_format($pendingApprovalsCount ?? 0) }}" label="Pending" subtext="awaiting approval" color="warning" icon="clock" link="{{ $statsLinks['pending_approvals'] ?? route('approvals') }}" />
-        
-        <x-stats-card id="stat-on-leave" value="{{ number_format($onLeaveToday ?? 0) }}" label="On Leave" subtext="currently away" color="success" icon="calendar" link="{{ $statsLinks['on_leave'] ?? null }}" />
-        
-        <x-stats-card id="stat-leave-used" value="{{ number_format($leaveUsed ?? 0) }}" label="Days Used" subtext="this year" icon="chart-pie" link="{{ $statsLinks['leave_used'] ?? null }}" />
-        
-        <x-stats-card id="stat-low-balance" value="{{ number_format($lowBalanceCount ?? 0) }}" label="Low Balance" subtext="below 5 days" color="danger" icon="alert-triangle" link="{{ $statsLinks['low_balance'] ?? null }}" />
-        
-        <x-stats-card id="stat-upcoming" value="{{ number_format($upcomingLeave ?? 0) }}" label="Upcoming" subtext="next 7 days" color="info" icon="calendar-event" link="{{ $statsLinks['upcoming_leave'] ?? null }}" />
-        
-        <x-stats-card value="{{ number_format($totalDepartments ?? 0) }}" label="Depts" subtext="active" icon="building" link="{{ $statsLinks['total_departments'] ?? null }}" />
-        
-        <x-stats-card value="{{ number_format($leaveTypesCount ?? 0) }}" label="Leave Types" subtext="policies" icon="tags" link="{{ $statsLinks['leave_types'] ?? null }}" />
+        @role('staff')
+            <x-stats-card value="{{ number_format($myTotalRequests ?? 0) }}" label="My Requests" subtext="all time" icon="list" link="{{ $statsLinks['total_requests'] ?? null }}" />
+            <x-stats-card value="{{ number_format($myPendingRequests ?? 0) }}" label="My Pending" subtext="awaiting approval" color="warning" icon="clock" link="{{ $statsLinks['pending_requests'] ?? null }}" />
+            <x-stats-card value="{{ number_format($myApprovedRequests ?? 0) }}" label="My Approved" subtext="granted" color="success" icon="check" link="{{ $statsLinks['approved_requests'] ?? null }}" />
+            <x-stats-card value="{{ number_format($myLeaveBalance ?? 0) }}" label="Leave Balance" subtext="days remaining" color="info" icon="calendar" />
+        @endrole
+
+        @hasanyrole('unit_head|hod|dean|dvca|dvc-pfa')
+            <x-stats-card value="{{ number_format($pendingApprovalsCount ?? 0) }}" label="Pending Approvals" subtext="awaiting decision" color="warning" icon="clock" link="{{ $statsLinks['pending_approvals'] ?? route('leave-requests.pending') }}" />
+            <x-stats-card value="{{ number_format($totalStaff ?? 0) }}" label="Staff" subtext="in your scope" icon="users" link="{{ $statsLinks['total_staff'] ?? null }}" />
+            <x-stats-card value="{{ number_format($leaveUsed ?? 0) }}" label="Leave Days Used" subtext="this year" icon="chart-pie" />
+            <x-stats-card value="{{ number_format($upcomingLeave ?? 0) }}" label="Upcoming Leave" subtext="next 7 days" color="info" icon="calendar-event" />
+        @endhasanyrole
+
+        @hasanyrole('admin|hr-officer|hr-manager')
+            <x-stats-card value="{{ number_format($totalStaff ?? 0) }}" label="Total Staff" subtext="↑ +{{ number_format($newStaffThisMonth ?? 0) }} this month" icon="users" link="{{ $statsLinks['total_staff'] ?? null }}" />
+            <x-stats-card value="{{ number_format($pendingApprovalsCount ?? 0) }}" label="Pending" subtext="awaiting approval" color="warning" icon="clock" link="{{ $statsLinks['pending_approvals'] ?? route('approvals') }}" />
+            <x-stats-card value="{{ number_format($onLeaveToday ?? 0) }}" label="On Leave" subtext="currently away" color="success" icon="calendar" />
+            <x-stats-card value="{{ number_format($leaveUsed ?? 0) }}" label="Days Used" subtext="this year" icon="chart-pie" />
+            <x-stats-card value="{{ number_format($lowBalanceCount ?? 0) }}" label="Low Balance" subtext="below 5 days" color="danger" icon="alert-triangle" link="{{ $statsLinks['low_balance'] ?? null }}" />
+            <x-stats-card value="{{ number_format($upcomingLeave ?? 0) }}" label="Upcoming" subtext="next 7 days" color="info" icon="calendar-event" />
+            <x-stats-card value="{{ number_format($totalDepartments ?? 0) }}" label="Depts" subtext="active" icon="building" link="{{ $statsLinks['total_departments'] ?? null }}" />
+            <x-stats-card value="{{ number_format($leaveTypesCount ?? 0) }}" label="Leave Types" subtext="policies" icon="tags" link="{{ $statsLinks['leave_types'] ?? null }}" />
+        @endhasanyrole
     </div>
     
     <!-- Main Content -->
@@ -43,7 +47,7 @@
         <div class="col-lg-7">
             <!-- Recent Leave Requests Table - Clickable Rows -->
             <div class="card">
-                <div class="card-header py-2 px-3 d-flex justify-content-between align-items-center">
+                <div class="card-header py-2 px-3 d-flex justify-content-between align-items-center bg-light">
                     <span style="font-size: 0.8rem; font-weight: 600;">Recent Leave Requests</span>
                     <div>
                         <a href="{{ route('leave-requests.status') }}" style="font-size: 0.7rem; margin-right: 0.5rem;">
@@ -150,12 +154,12 @@
             <!-- Department Leave Requests Card - Clickable Rows -->
             @hasanyrole('admin|hr-officer')
             <div class="card mt-2">
-                <div class="card-header py-2 px-3 d-flex justify-content-between align-items-center">
+                <div class="card-header py-2 px-3 d-flex justify-content-between align-items-center bg-light">
                     <span style="font-size: 0.8rem; font-weight: 600;">Department Leave Requests</span>
                     <a href="{{ route('admin.departments.index') }}" style="font-size: 0.7rem;">Manage Departments →</a>
                 </div>
                 <div class="card-body p-0">
-                    @forelse($departmentLeaveStats ?? [] as $dept)
+                    @foreach($departmentLeaveStats as $dept)
                     <div class="d-flex justify-content-between align-items-center px-3 py-2" style="font-size: 0.75rem; border-bottom: 1px solid #E8E2D5; cursor: pointer;" onclick="window.location='{{ route('staff.index', ['department_id' => $dept->id]) }}'">
                         <span class="hover-link">{{ $dept->name }}</span>
                         <div class="d-flex align-items-center gap-3">
@@ -165,9 +169,10 @@
                             </div>
                         </div>
                     </div>
-                    @empty
-                    <div class="text-center py-3 text-muted" style="font-size: 0.75rem;">No department data available</div>
-                    @endforelse
+                    @endforeach
+                    <div class="p-2 border-top">
+                        <x-pagination :items="$departmentLeaveStats" id="dept" pageParam="dept_page" perPageParam="dept_per_page" :perPageOptions="[10, 20, 50]" />
+                    </div>
                 </div>
             </div>
             @endhasanyrole
@@ -177,7 +182,7 @@
         <div class="col-lg-5">
             <!-- Quick Actions Card -->
             <div class="card">
-                <div class="card-header py-2 px-3">
+                <div class="card-header py-2 px-3 bg-light">
                     <span style="font-size: 0.8rem; font-weight: 600;">Quick Actions</span>
                 </div>
                 <div class="card-body p-2">
@@ -209,7 +214,7 @@
             <!-- Low Balance Alerts - Clickable Staff Names -->
             @hasanyrole('admin|hr-officer')
             <div class="card mt-2">
-                <div class="card-header py-2 px-3 d-flex justify-content-between align-items-center">
+                <div class="card-header py-2 px-3 d-flex justify-content-between align-items-center bg-light">
                     <span style="font-size: 0.8rem; font-weight: 600;">⚠️ Low Balance Alerts</span>
                     <a href="{{ route('staff.index', ['filter' => 'low_balance']) }}" style="font-size: 0.7rem;">View All →</a>
                 </div>
@@ -246,7 +251,7 @@
             @endphp
             @if($unresponsiveCount > 0)
             <div class="card mt-2 border-danger">
-                <div class="card-header py-2 px-3 bg-danger-subtle border-danger">
+                <div class="card-header py-2 px-3 bg-light border-danger">
                     <div class="d-flex align-items-center">
                         <i class="ti ti-alert-circle text-danger me-1" style="font-size: 0.8rem;"></i>
                         <span style="font-size: 0.75rem; font-weight: 600;">⚠️ Unresponsive Acting Staff</span>
@@ -254,16 +259,14 @@
                     </div>
                 </div>
                 <div class="card-body p-2">
-                    <div class="alert alert-danger py-1 px-2 mb-0 rounded-sm" style="font-size: 0.65rem; cursor: pointer;" 
-                         onclick="window.location='{{ route('leave-requests.hold-position-for-me') }}'">
-                        <i class="ti ti-clock me-1"></i>
+                    <x-alert-danger :session="false" icon="ti-clock" class="mb-0" style="font-size: 0.65rem; cursor: pointer;" onclick="window.location='{{ route('leave-requests.hold-position-for-me') }}'">
                         <strong>{{ $unresponsiveCount }}</strong> leave request(s) have been waiting for acting staff response for over 48 hours.
                         <div class="mt-1">
                             <span class="text-danger fw-semibold" style="font-size: 0.65rem;">
                                 Click to review pending acting requests →
                             </span>
                         </div>
-                    </div>
+                    </x-alert-danger>
                 </div>
             </div>
             @endif
@@ -274,7 +277,7 @@
             
             <!-- Active Blackouts - Clickable Rows -->
             <div class="card mt-2">
-                <div class="card-header py-2 px-3 d-flex justify-content-between align-items-center">
+                <div class="card-header py-2 px-3 d-flex justify-content-between align-items-center bg-light">
                     <span style="font-size: 0.8rem; font-weight: 600;">🚫 Active Blackouts</span>
                     <a href="{{ route('blackout.index') }}" style="font-size: 0.7rem;">Manage →</a>
                 </div>
@@ -298,7 +301,7 @@
             <!-- Recent Approvals - Clickable Rows -->
             @role('admin')
             <div class="card mt-2">
-                <div class="card-header py-2 px-3 d-flex justify-content-between align-items-center">
+                <div class="card-header py-2 px-3 d-flex justify-content-between align-items-center bg-light">
                     <span style="font-size: 0.8rem; font-weight: 600;">✅ Recent Approvals</span>
                     <a href="{{ route('leave-requests.status', ['filter' => 'approved']) }}" style="font-size: 0.7rem;">View All →</a>
                 </div>
@@ -325,13 +328,13 @@
     <div class="row g-2 mt-2">
         <div class="col-12">
             <div class="card">
-                <div class="card-header py-2 px-3 d-flex justify-content-between align-items-center">
+                <div class="card-header py-2 px-3 d-flex justify-content-between align-items-center bg-light">
                     <span style="font-size: 0.8rem; font-weight: 600;">Leave Type Distribution</span>
                     <a href="{{ route('reports.index') }}" style="font-size: 0.7rem;">View Reports →</a>
                 </div>
                 <div class="card-body p-2">
                     <div class="row g-2">
-                        @forelse($leaveTypeStats ?? [] as $type)
+                        @foreach($leaveTypeStats as $type)
                         <div class="col-md-3 text-center py-2" style="cursor: pointer;" onclick="window.location='{{ route('leave-requests.status', ['leave_type' => $type->id]) }}'">
                             <div class="text-muted" style="font-size: 0.7rem;" class="hover-link">{{ $type->name }}</div>
                             <div class="fw-bold" style="font-size: 1rem;">{{ $type->request_count ?? 0 }}</div>
@@ -340,9 +343,10 @@
                                 <div class="progress-bar bg-primary" style="width: {{ $type->percentage ?? 0 }}%"></div>
                             </div>
                         </div>
-                        @empty
-                        <div class="col-12 text-center py-3 text-muted" style="font-size: 0.75rem;">No leave type data available</div>
-                        @endforelse
+                        @endforeach
+                    </div>
+                    <div class="pt-2">
+                        <x-pagination :items="$leaveTypeStats" id="lt" pageParam="lt_page" perPageParam="lt_per_page" :perPageOptions="[10, 20, 50]" />
                     </div>
                 </div>
             </div>

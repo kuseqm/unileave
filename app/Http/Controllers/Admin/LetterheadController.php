@@ -11,14 +11,15 @@ class LetterheadController extends Controller
 {
     public function index()
     {
-        $university = University::first();
+        $university = auth()->user()->university ?? University::first();
+
         return view('admin.settings.letterhead', compact('university'));
     }
-    
+
     public function update(Request $request)
     {
-        $university = University::first();
-        
+        $university = auth()->user()->university ?? University::first();
+
         $validated = $request->validate([
             'name' => 'required|string|max:191',
             'code' => 'required|string|max:50',
@@ -31,6 +32,7 @@ class LetterheadController extends Controller
             'uni_name_font_weight' => 'nullable|in:normal,bold',
             'primary_color' => 'nullable|string',
             'secondary_color' => 'nullable|string',
+            'header_footer_bg_color' => 'nullable|string',
             'primary_line_color' => 'nullable|string',
             'secondary_line_color' => 'nullable|string',
             'primary_line_thickness' => 'nullable|string',
@@ -55,46 +57,47 @@ class LetterheadController extends Controller
             'motto_font_color' => 'nullable|string',
             'motto_font_style' => 'nullable|in:normal,italic',
         ]);
-        
+
         if ($request->hasFile('logo')) {
             if ($university->logo_path && Storage::disk('public')->exists($university->logo_path)) {
                 Storage::disk('public')->delete($university->logo_path);
             }
-            
-            $filename = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $request->file('logo')->getClientOriginalName());
+
+            $filename = time().'_'.preg_replace('/[^a-zA-Z0-9._-]/', '', $request->file('logo')->getClientOriginalName());
             $path = $request->file('logo')->storeAs('university-logos', $filename, 'public');
             $validated['logo_path'] = $path;
         }
-        
+
         $university->update($validated);
-        
+
         return redirect()->route('admin.settings.letterhead')
             ->with('success', 'Letterhead settings updated successfully!');
     }
-    
+
     public function preview(Request $request)
     {
-        $university = University::first();
+        $university = auth()->user()->university ?? University::first();
         $previewUniversity = clone $university;
-        
+
         // ✅ UPDATED field mappings (removed social media URL fields)
         $fieldMappings = [
             'name', 'office_title', 'office_title_font_size', 'office_title_font_color', 'office_title_font_weight',
             'uni_name_font_size', 'uni_name_font_weight', 'primary_color', 'secondary_color',
+            'header_footer_bg_color',
             'primary_line_color', 'secondary_line_color', 'primary_line_thickness', 'secondary_line_thickness',
             'phone', 'phone_secondary', 'email', 'email_secondary', 'website',
             // ✅ Only social media names (no URLs)
             'social_media_1_name', 'social_media_2_name', 'social_media_3_name',
             'address', 'postal_box', 'city', 'country',
-            'motto', 'motto_font_size', 'motto_font_color', 'motto_font_style'
+            'motto', 'motto_font_size', 'motto_font_color', 'motto_font_style',
         ];
-        
+
         foreach ($fieldMappings as $field) {
             if ($request->has($field)) {
                 $previewUniversity->$field = $request->$field;
             }
         }
-        
+
         return view('components.letter.header', ['university' => $previewUniversity])->render();
     }
 }

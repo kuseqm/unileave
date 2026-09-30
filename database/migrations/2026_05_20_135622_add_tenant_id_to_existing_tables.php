@@ -39,7 +39,7 @@ return new class extends Migration
         });
 
         // Add tenant_id to users table if not already
-        if (!Schema::hasColumn('users', 'tenant_id')) {
+        if (! Schema::hasColumn('users', 'tenant_id')) {
             Schema::table('users', function (Blueprint $table) {
                 $table->foreignId('tenant_id')->nullable()->after('id')->constrained('tenants')->onDelete('cascade');
             });

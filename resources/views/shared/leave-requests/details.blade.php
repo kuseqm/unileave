@@ -19,7 +19,8 @@
     </x-page-header>
     
     <!-- Status Alert -->
-    <div class="alert alert-light border mb-3 py-1 px-2 rounded-sm" style="font-size: 0.7rem;">
+    <x-alert-light class="mb-3 py-1 px-2 rounded-sm" style="font-size: 0.7rem;">
+
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
             <div>
                 <i class="ti ti-info-circle me-1 text-primary"></i>
@@ -51,7 +52,8 @@
                     </span>
                 @endif
             </div>
-        </div>
+        
+</x-alert-light>
     </div>
     
     <div class="row g-2">
@@ -315,7 +317,7 @@
                                 {{ $doc->file_name }}
                                 <span class="text-muted ms-1">({{ round($doc->file_size / 1024) }} KB)</span>
                             </div>
-                            <a href="{{ Storage::url($doc->file_path) }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-sm" style="font-size: 0.55rem; padding: 0.1rem 0.4rem;">
+                            <a href="{{ route('leave-requests.documents.download', $doc->id) }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-sm" style="font-size: 0.55rem; padding: 0.1rem 0.4rem;">
                                 <i class="ti ti-download"></i> View
                             </a>
                         </div>
@@ -323,13 +325,51 @@
                 </div>
             </div>
             @endif
-            
-            <!-- Print Letter Button (only for approved leaves) -->
-            @if($leaveRequest->status === 'approved')
+
+            <!-- Quick Approve link - role + stage-aware shortcut straight to
+                 whichever review page actually owns the current approval
+                 level, mirroring the same defensive level-matching
+                 LeaveRequestController::canUserApprove() uses elsewhere
+                 (current_approval_level is stored inconsistently as either
+                 an int or a string depending on how the row was written). -->
+            @if($leaveRequest->status === 'pending')
+                @php
+                    $currentLevel = $leaveRequest->current_approval_level;
+                    $isDvcLevel = ($currentLevel == \App\Models\LeaveRequest::LEVEL_DVC) || $currentLevel == 'dvc' || $currentLevel == '4';
+                    $isHrLevel = ($currentLevel == \App\Models\LeaveRequest::LEVEL_HR) || $currentLevel == 'hr' || $currentLevel == '3';
+                @endphp
+                @if($isDvcLevel && auth()->user()->hasAnyRole(['dvca', 'dvc-pfa']))
+                <div class="mt-2">
+                    <a href="{{ route('leave-requests.dvc-review', $leaveRequest->id) }}"
+                       class="btn btn-success btn-sm rounded-sm w-100 d-block text-center"
+                       style="font-size: 0.7rem; padding: 0.25rem 0.5rem;">
+                        <i class="ti ti-check me-1"></i> Review &amp; Approve (DVC)
+                    </a>
+                </div>
+                @elseif($isHrLevel && auth()->user()->hasAnyRole(['hr-officer', 'hr-manager']))
+                <div class="mt-2">
+                    <a href="{{ route('leave-requests.hr-review', $leaveRequest->id) }}"
+                       class="btn btn-success btn-sm rounded-sm w-100 d-block text-center"
+                       style="font-size: 0.7rem; padding: 0.25rem 0.5rem;">
+                        <i class="ti ti-check me-1"></i> Review &amp; Approve (HR)
+                    </a>
+                </div>
+                @endif
+            @endif
+
+            <!-- Print Letter Button (only for approved leaves with a generated letter) -->
+            @if($leaveRequest->status === 'approved' && $leaveRequest->latest_letter)
             <div class="mt-2">
-                <button class="btn btn-outline-primary btn-sm rounded-sm w-100" style="font-size: 0.7rem; padding: 0.25rem 0.5rem;">
+                {{-- embedded=1 hides the letter page's own toolbar and goes
+                     straight to the print dialog (see leave-approval.blade.php) -
+                     same convention already used by every other "Print" entry
+                     point in the app, opened in a new tab so this page stays put. --}}
+                <a href="{{ route('leave-letters.print', $leaveRequest->latest_letter->id) }}?embedded=1"
+                   target="_blank"
+                   class="btn btn-outline-primary btn-sm rounded-sm w-100 d-block text-center"
+                   style="font-size: 0.7rem; padding: 0.25rem 0.5rem;">
                     <i class="ti ti-printer me-1"></i> Print Approval Letter
-                </button>
+                </a>
             </div>
             @endif
         </div>

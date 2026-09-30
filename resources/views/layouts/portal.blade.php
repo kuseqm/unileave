@@ -4,13 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Portal')</title>
+    <title>{{ app_abbreviation() }} | @yield('title', 'Portal')</title>
     
     <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{{ asset('css/vendor/bootstrap.min.css') }}" rel="stylesheet">
     
     <!-- Tabler Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+    <link rel="stylesheet" href="{{ asset('css/vendor/tabler-icons.min.css') }}">
     
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -261,10 +261,10 @@
                 </button>
             </form>
             <span class="divider">|</span>
-            <span class="footer-text">{{ date('Y') }} UniLeave</span>
+            <span class="footer-text">{{ date('Y') }} Staff Management System</span>
         </div>
     </div>
     
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ asset('js/vendor/bootstrap.bundle.min.js') }}"></script>
 </body>
 </html>

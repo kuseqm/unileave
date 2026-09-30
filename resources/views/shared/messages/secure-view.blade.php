@@ -34,10 +34,9 @@
                                 <label class="form-label">One-Time Code</label>
                                 <input type="text" name="one_time_code" class="form-control text-center" style="font-size: 1.2rem; letter-spacing: 2px;" placeholder="XXXX-XXXX-XXXX" required autocomplete="off">
                             </div>
-                            <div class="alert alert-info small">
-                                <i class="ti ti-info-circle me-1"></i>
-                                This code is valid for 24 hours and can only be used once.
-                            </div>
+                            <x-alert-info>
+    This code is valid for 24 hours and can only be used once.
+</x-alert-info>
                             <div class="d-flex justify-content-center">
                                 <button type="submit" class="btn btn-primary btn-sm px-4">
                                     <i class="ti ti-unlock me-1"></i> Access Message
@@ -46,10 +45,9 @@
                         </form>
                     @else
                         <!-- Message Content (Only shown after code is validated) -->
-                        <div class="alert alert-success small mb-3">
-                            <i class="ti ti-check-circle me-1"></i>
-                            Access granted. This access is being logged for audit purposes.
-                        </div>
+                        <x-alert-success>
+    Access granted. This access is being logged for audit purposes.
+</x-alert-success>
 
                         <div class="border rounded p-3 mb-3">
                             <div class="border-bottom pb-2 mb-2">
@@ -79,17 +77,16 @@
                                     <strong>Attachments:</strong>
                                     <ul>
                                         @foreach($message->attachments as $attachment)
-                                            <li><a href="{{ Storage::url($attachment->file_path) }}" target="_blank">{{ $attachment->file_name }}</a></li>
+                                            <li><a href="{{ route('messages.attachments.download', $attachment->id) }}" target="_blank">{{ $attachment->file_name }}</a></li>
                                         @endforeach
                                     </ul>
                                 </div>
                             @endif
                         </div>
 
-                        <div class="alert alert-warning small">
-                            <i class="ti ti-alert-triangle me-1"></i>
-                            This access has been logged. Any further access will require a new request and approval.
-                        </div>
+                        <x-alert-warning>
+    This access has been logged. Any further access will require a new request and approval.
+</x-alert-warning>
 
                         <div class="text-center">
                             <a href="{{ route('messages.admin-list') }}" class="btn btn-secondary btn-sm">

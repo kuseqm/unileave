@@ -10,12 +10,12 @@ return new class extends Migration
     {
         Schema::table('departments', function (Blueprint $table) {
             // Add unit_head_staff_id column (for non-academic staff)
-            if (!Schema::hasColumn('departments', 'unit_head_staff_id')) {
+            if (! Schema::hasColumn('departments', 'unit_head_staff_id')) {
                 $table->unsignedBigInteger('unit_head_staff_id')->nullable()->after('hod_staff_id');
                 $table->foreign('unit_head_staff_id')
-                      ->references('id')
-                      ->on('staff')
-                      ->onDelete('set null');
+                    ->references('id')
+                    ->on('staff')
+                    ->onDelete('set null');
             }
         });
     }

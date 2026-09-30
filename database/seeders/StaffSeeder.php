@@ -2,13 +2,13 @@
 
 namespace Database\Seeders;
 
+use App\Models\Campus;
+use App\Models\Department;
+use App\Models\University;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
-use App\Models\User;
-use App\Models\University;
-use App\Models\Campus;
-use App\Models\Department;
 
 class StaffSeeder extends Seeder
 {
@@ -16,29 +16,31 @@ class StaffSeeder extends Seeder
     {
         // CREATE ROLES FIRST
         $roles = ['admin', 'staff', 'hod', 'dean', 'dvca', 'dvc-pfa', 'acting-dvc', 'hr-officer', 'hr-manager'];
-        
+
         foreach ($roles as $roleName) {
             Role::firstOrCreate([
                 'name' => $roleName,
                 'guard_name' => 'web',
             ]);
         }
-        
+
         $this->command->info('✓ Roles created successfully!');
-        
+
         // FIND REFERENCES
         $university = University::where('name', 'St Martine\'s University of Testing UniLeave')->first();
-        if (!$university) {
+        if (! $university) {
             $this->command->error('University not found. Run UniversitySeeder first.');
+
             return;
         }
-        
+
         $mainCampus = Campus::where('name', 'Main Campus - Dodoma')->first();
-        if (!$mainCampus) {
+        if (! $mainCampus) {
             $this->command->error('Main Campus not found. Run CampusSeeder first.');
+
             return;
         }
-        
+
         // Get departments
         $cseDept = Department::where('name', 'Department of Computer Science')->first();
         $accDept = Department::where('name', 'Department of Accounting and Finance')->first();
@@ -48,15 +50,15 @@ class StaffSeeder extends Seeder
         $hrDept = Department::where('name', 'Human Resources')->first();
         $epsDept = Department::where('name', 'Department of Educational Psychology')->first();
         $curDept = Department::where('name', 'Department of Curriculum Studies')->first();
-        
+
         $defaultDept = $cseDept ?? $accDept ?? Department::first();
-        
+
         $tempPassword = Hash::make('Temp@123');
-        
+
         // ============================================
         // CREATE ALL 27 USERS WITH TITLE AND MIDDLE NAME
         // ============================================
-        
+
         $users = [
             // 1. Admin
             [
@@ -71,7 +73,7 @@ class StaffSeeder extends Seeder
                 'joining_date' => '2020-01-01',
                 'role' => 'admin',
             ],
-            
+
             // 2. HR Officer
             [
                 'staff_id' => '1001',
@@ -85,7 +87,7 @@ class StaffSeeder extends Seeder
                 'joining_date' => '2018-01-15',
                 'role' => 'hr-officer',
             ],
-            
+
             // 3. DVCA
             [
                 'staff_id' => '1002',
@@ -99,7 +101,7 @@ class StaffSeeder extends Seeder
                 'joining_date' => '2008-01-15',
                 'role' => 'dvca',
             ],
-            
+
             // 4. DVC-PFA
             [
                 'staff_id' => '1003',
@@ -113,7 +115,7 @@ class StaffSeeder extends Seeder
                 'joining_date' => '2008-01-15',
                 'role' => 'dvc-pfa',
             ],
-            
+
             // 5. Dean - Business
             [
                 'staff_id' => '1004',
@@ -127,7 +129,7 @@ class StaffSeeder extends Seeder
                 'joining_date' => '2010-01-15',
                 'role' => 'dean',
             ],
-            
+
             // 6. Dean - Law
             [
                 'staff_id' => '1005',
@@ -141,7 +143,7 @@ class StaffSeeder extends Seeder
                 'joining_date' => '2010-06-01',
                 'role' => 'dean',
             ],
-            
+
             // 7. Dean - Science & Tech
             [
                 'staff_id' => '1006',
@@ -155,7 +157,7 @@ class StaffSeeder extends Seeder
                 'joining_date' => '2010-03-15',
                 'role' => 'dean',
             ],
-            
+
             // 8. Dean - Education
             [
                 'staff_id' => '1007',
@@ -169,7 +171,7 @@ class StaffSeeder extends Seeder
                 'joining_date' => '2011-01-10',
                 'role' => 'dean',
             ],
-            
+
             // 9. Dean - Health Sciences
             [
                 'staff_id' => '1008',
@@ -183,7 +185,7 @@ class StaffSeeder extends Seeder
                 'joining_date' => '2012-07-20',
                 'role' => 'dean',
             ],
-            
+
             // 10. HOD - Accounting
             [
                 'staff_id' => '1009',
@@ -197,7 +199,7 @@ class StaffSeeder extends Seeder
                 'joining_date' => '2015-01-15',
                 'role' => 'hod',
             ],
-            
+
             // 11. HOD - Marketing
             [
                 'staff_id' => '1010',
@@ -211,7 +213,7 @@ class StaffSeeder extends Seeder
                 'joining_date' => '2016-02-10',
                 'role' => 'hod',
             ],
-            
+
             // 12. HOD - Public Law
             [
                 'staff_id' => '1011',
@@ -225,7 +227,7 @@ class StaffSeeder extends Seeder
                 'joining_date' => '2015-06-20',
                 'role' => 'hod',
             ],
-            
+
             // 13. HOD - Private Law
             [
                 'staff_id' => '1012',
@@ -239,7 +241,7 @@ class StaffSeeder extends Seeder
                 'joining_date' => '2017-03-15',
                 'role' => 'hod',
             ],
-            
+
             // 14. HOD - Computer Science
             [
                 'staff_id' => '1013',
@@ -253,7 +255,7 @@ class StaffSeeder extends Seeder
                 'joining_date' => '2014-09-01',
                 'role' => 'hod',
             ],
-            
+
             // 15. HOD - IT
             [
                 'staff_id' => '1014',
@@ -267,7 +269,7 @@ class StaffSeeder extends Seeder
                 'joining_date' => '2016-07-15',
                 'role' => 'hod',
             ],
-            
+
             // 16. HOD - Psychology
             [
                 'staff_id' => '1015',
@@ -281,7 +283,7 @@ class StaffSeeder extends Seeder
                 'joining_date' => '2018-01-10',
                 'role' => 'hod',
             ],
-            
+
             // 17. HOD - Curriculum
             [
                 'staff_id' => '1016',
@@ -295,7 +297,7 @@ class StaffSeeder extends Seeder
                 'joining_date' => '2017-09-20',
                 'role' => 'hod',
             ],
-            
+
             // 18-22. Academic Staff
             [
                 'staff_id' => '1017',
@@ -357,7 +359,7 @@ class StaffSeeder extends Seeder
                 'joining_date' => '2021-06-30',
                 'role' => 'staff',
             ],
-            
+
             // 23-27. Administrative Staff
             [
                 'staff_id' => '1022',
@@ -424,7 +426,7 @@ class StaffSeeder extends Seeder
         foreach ($users as $userData) {
             $role = $userData['role'];
             unset($userData['role']);
-            
+
             $userData['password'] = $tempPassword;
             $userData['university_id'] = $university->id;
             $userData['campus_id'] = $mainCampus->id;
@@ -432,10 +434,10 @@ class StaffSeeder extends Seeder
             $userData['password_change_required'] = true;
             $userData['created_at'] = now();
             $userData['updated_at'] = now();
-            
+
             $existing = User::where('email', $userData['email'])->first();
-            
-            if (!$existing) {
+
+            if (! $existing) {
                 $user = User::create($userData);
                 $user->assignRole($role);
                 $this->command->info("✓ Created: {$userData['email']} as {$role}");
@@ -448,7 +450,7 @@ class StaffSeeder extends Seeder
         $hodUser = User::where('email', 'michael.mushi@smut.ac.tz')->first();
         if ($hodUser && $cseDept) {
             $cseDept->update(['hod_staff_id' => $hodUser->id]);
-            $this->command->info("✓ Updated HOD for Computer Science department");
+            $this->command->info('✓ Updated HOD for Computer Science department');
         }
 
         $this->command->info('✓ Staff seeded successfully!');

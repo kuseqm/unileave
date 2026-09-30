@@ -15,7 +15,7 @@ return new class extends Migration
             $table->enum('phone_type', ['mobile', 'work', 'home', 'alternative', 'emergency'])->default('mobile');
             $table->boolean('is_primary')->default(false);
             $table->timestamps();
-            
+
             $table->index('staff_id');
         });
     }

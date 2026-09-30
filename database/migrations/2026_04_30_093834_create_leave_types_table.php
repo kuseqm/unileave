@@ -13,10 +13,10 @@ return new class extends Migration
             $table->string('code', 10)->unique();
             $table->string('name', 100);
             $table->text('description')->nullable();
-            
+
             // ✅ ADD THIS - Annual entitlement days
             $table->integer('days_allowed')->nullable();
-            
+
             $table->boolean('requires_certificate')->default(false);
             $table->boolean('requires_letter')->default(false);
             $table->boolean('deduct_balance')->default(true);

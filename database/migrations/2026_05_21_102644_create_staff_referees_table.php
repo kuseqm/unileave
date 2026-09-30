@@ -20,7 +20,7 @@ return new class extends Migration
             $table->integer('years_known')->nullable();
             $table->boolean('is_contact_allowed')->default(true);
             $table->timestamps();
-            
+
             $table->index('staff_id');
         });
     }

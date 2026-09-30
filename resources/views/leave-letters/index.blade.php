@@ -24,84 +24,85 @@
         <x-stats-card value="{{ $stats['printed'] }}" label="Printed" subtext="already printed" color="info" icon="printer" />
     </div>
     
-    <!-- Letters Table -->
-    <div class="card rounded-sm">
-        <div class="card-header py-1 px-2 bg-light">
-            <div class="d-flex align-items-center">
-                <i class="ti ti-file-text text-primary me-1" style="font-size: 0.7rem;"></i>
-                <span style="font-weight: 600; font-size: 0.7rem;">Leave Approval Letters</span>
+    <!-- Search Card -->
+    <x-search-card
+        placeholder="Search by letter number or title..."
+        id="leaveLettersSearchInput"
+        name="search"
+        :value="request('search')"
+        :showStatusFilter="true"
+        :statusOptions="['draft' => 'Draft', 'generated' => 'Generated']"
+    >
+        <div id="leaveLettersSearchStats" class="text-muted" style="font-size: 0.65rem;">
+            {{ $letters->total() }} letters total
+        </div>
+    </x-search-card>
+
+    <div class="row g-2">
+        <!-- Letters Table - main column -->
+        <div class="col-lg-8">
+            <div class="card rounded-sm">
+                <div class="card-header py-1 px-2 bg-light">
+                    <div class="d-flex align-items-center">
+                        <i class="ti ti-file-text text-primary me-1" style="font-size: 0.7rem;"></i>
+                        <span style="font-weight: 600; font-size: 0.7rem;">Leave Approval Letters</span>
+                    </div>
+                </div>
+                <div id="leaveLettersResults">
+                    @include('leave-letters._results')
+                </div>
             </div>
         </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-sm mb-0" style="font-size: 0.7rem;">
-                    <thead class="bg-light">
-                        <tr>
-                            <th class="ps-2 py-1">Letter No.</th>
-                            <th class="py-1">Title</th>
-                            <th class="py-1">Leave Type</th>
-                            <th class="py-1">Status</th>
-                            <th class="py-1">Date</th>
-                            <th class="pe-2 py-1 text-center">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($letters as $letter)
-                        <tr>
-                            <td class="ps-2 py-1">
-                                <span class="fw-semibold">{{ $letter->letter_number }}</span>
-                            </td>
-                            <td class="py-1">{{ Str::limit($letter->title, 40) }}</td>
-                            <td class="py-1">{{ $letter->leaveRequest->leaveType->name ?? 'N/A' }}</td>
-                            <td class="py-1">
-                                @if($letter->stage == 'draft')
-                                    <span class="badge bg-secondary-subtle text-secondary rounded-pill">Draft</span>
-                                @elseif($letter->stage == 'generated')
-                                    <span class="badge bg-success-subtle text-success rounded-pill">Generated</span>
-                                @else
-                                    <span class="badge bg-primary-subtle text-primary rounded-pill">{{ ucfirst($letter->stage) }}</span>
-                                @endif
-                            </td>
-                            <td class="py-1">{{ $letter->created_at->format('d M Y') }}</td>
-                            <td class="pe-2 py-1 text-center">
-                                <div class="d-flex gap-1 justify-content-center">
-                                    <a href="{{ route('leave-letters.show', $letter->id) }}" 
-                                       class="btn btn-sm btn-outline-info rounded-sm" 
-                                       title="View Letter">
-                                        <i class="ti ti-eye"></i>
-                                    </a>
-                                    <a href="{{ route('leave-letters.print', $letter->id) }}" 
-                                       target="_blank"
-                                       class="btn btn-sm btn-outline-primary rounded-sm" 
-                                       title="Print">
-                                        <i class="ti ti-printer"></i>
-                                    </a>
-                                    <a href="{{ route('leave-letters.download-pdf', $letter->id) }}" 
-                                       class="btn btn-sm btn-outline-success rounded-sm" 
-                                       title="Download PDF">
-                                        <i class="ti ti-download"></i>
-                                    </a>
-                                </div>
-                            </td>
-                        </tr>
-                        @empty
-                        <tr>
-                            <td colspan="6" class="text-center py-4 text-muted">
-                                <i class="ti ti-file-text mb-2 d-block" style="font-size: 1.5rem;"></i>
-                                <p>No leave letters found</p>
-                                <small>When you submit a leave request with letter content, it will appear here.</small>
-                            </td>
-                        </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+
+        <!-- Information - narrow column -->
+        <div class="col-lg-4">
+            <div class="card rounded-sm">
+                <div class="card-header py-1 px-2 bg-light">
+                    <div class="d-flex align-items-center">
+                        <i class="ti ti-info-circle text-info me-1" style="font-size: 0.8rem;"></i>
+                        <span style="font-size: 0.7rem; font-weight: 600;">Information</span>
+                    </div>
+                </div>
+                <div class="card-body py-2 px-2">
+                    <div class="mb-2">
+                        <div class="fw-semibold" style="font-size: 0.7rem;"><i class="ti ti-flag me-1 text-primary"></i> Understanding Status</div>
+                        <ul class="mb-0 ps-3" style="font-size: 0.65rem; color: #555;">
+                            <li><span class="badge bg-secondary-subtle text-secondary rounded-sm">Draft</span> - not yet finalized</li>
+                            <li><span class="badge bg-success-subtle text-success rounded-sm">Generated</span> - ready to view or print</li>
+                        </ul>
+                    </div>
+
+                    <x-alert-light class="mb-0 py-1 px-2 rounded-sm">
+                        <div class="d-flex align-items-start gap-1">
+                            <i class="ti ti-tips text-warning mt-0" style="font-size: 0.7rem;"></i>
+                            <div>
+                                <strong class="d-block" style="font-size: 0.65rem;">Tips</strong>
+                                <small class="text-muted" style="font-size: 0.6rem;">&bull; Letters are generated once your leave request is fully approved</small>
+                            </div>
+                        </div>
+                    </x-alert-light>
+                </div>
             </div>
         </div>
-        @if($letters->hasPages())
-        <div class="card-footer py-1 px-2">
-            {{ $letters->links() }}
-        </div>
-        @endif
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    initLiveSearch({
+        url: '{{ route('leave-letters.index') }}',
+        resultsSelector: '#leaveLettersResults',
+        statsSelector: '#leaveLettersSearchStats',
+        searchInputSelector: '#leaveLettersSearchInput',
+        suggestionsSelector: '#leaveLettersSearchInputSuggestions',
+        recentSearchesKey: 'leaveLettersRecentSearches',
+        statLabel: 'letters',
+        perPage: 15,
+        filterSelectors: ['#statusFilter'],
+        extraParams: () => ({
+            stage: document.getElementById('statusFilter')?.value || '',
+        }),
+    });
+});
+</script>
 @endsection

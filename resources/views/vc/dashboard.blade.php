@@ -82,42 +82,10 @@
     
     <!-- Stats Cards -->
     <div class="row g-2 mb-3">
-        <div class="col-md-3">
-            <div class="card rounded-sm text-center h-100">
-                <div class="card-body py-2">
-                    <div class="text-primary fw-bold" style="font-size: 1.5rem;">{{ number_format($totalRequests ?? 0) }}</div>
-                    <div class="text-muted" style="font-size: 0.65rem;">Total Leave Requests</div>
-                    <div class="small text-muted">Filtered period</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card rounded-sm text-center h-100">
-                <div class="card-body py-2">
-                    <div class="text-success fw-bold" style="font-size: 1.5rem;">{{ $activeOnLeave ?? 0 }}</div>
-                    <div class="text-muted" style="font-size: 0.65rem;">Active Staff on Leave</div>
-                    <div class="small text-muted">Currently away</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card rounded-sm text-center h-100">
-                <div class="card-body py-2">
-                    <div class="text-warning fw-bold" style="font-size: 1.5rem;">{{ $pendingApprovals ?? 0 }}</div>
-                    <div class="text-muted" style="font-size: 0.65rem;">Pending Approvals</div>
-                    <div class="small text-muted">Awaiting decision</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card rounded-sm text-center h-100">
-                <div class="card-body py-2">
-                    <div class="text-info fw-bold" style="font-size: 1.5rem;">{{ $avgApprovalTime ?? 0 }}</div>
-                    <div class="text-muted" style="font-size: 0.65rem;">Avg Approval Time</div>
-                    <div class="small text-muted">Days to finalize</div>
-                </div>
-            </div>
-        </div>
+        <x-stats-card value="{{ number_format($totalRequests ?? 0) }}" label="Total Leave Requests" subtext="filtered period" />
+        <x-stats-card value="{{ $activeOnLeave ?? 0 }}" label="Active Staff on Leave" subtext="currently away" color="success" />
+        <x-stats-card value="{{ $pendingApprovals ?? 0 }}" label="Pending Approvals" subtext="awaiting decision" color="warning" />
+        <x-stats-card value="{{ $avgApprovalTime ?? 0 }}" label="Avg Approval Time" subtext="days to finalize" color="info" />
     </div>
     
     <div class="row g-2">
@@ -379,16 +347,14 @@
                 </div>
                 <div class="card-body p-2">
                     @forelse($alerts ?? [] as $alert)
-                    <div class="alert alert-{{ $alert['type'] }} py-1 px-2 mb-2 rounded-sm" style="font-size: 0.65rem;">
-                        <i class="{{ $alert['icon'] }} me-1"></i>
-                        <strong>{{ $alert['title'] }}</strong>
+                    <x-alert :type="$alert['type']" :icon="$alert['icon']" :title="$alert['title']" class="mb-2" style="font-size: 0.65rem;">
                         <div class="mt-1">{{ $alert['message'] }}</div>
                         @if(isset($alert['action_url']) && $alert['action_url'] != '#')
                         <div class="mt-1">
                             <a href="{{ $alert['action_url'] }}" class="small">{{ $alert['action_text'] ?? 'View' }} →</a>
                         </div>
                         @endif
-                    </div>
+                    </x-alert>
                     @empty
                     <div class="text-center text-muted py-2" style="font-size: 0.65rem;">
                         <i class="ti ti-check-circle me-1"></i>

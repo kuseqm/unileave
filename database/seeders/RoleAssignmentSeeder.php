@@ -2,8 +2,9 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\User;
+use Illuminate\Database\Seeder;
+use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
 class RoleAssignmentSeeder extends Seeder
@@ -22,7 +23,7 @@ class RoleAssignmentSeeder extends Seeder
             'acting-dvc' => 'Acting DVC - Temporary DVC',
             'hr-officer' => 'HR Officer - Final approvals, reports',
             'hr-manager' => 'HR Manager - Override balance, audit logs',
-            
+
             // NEW ROLES
             'vice-chancellor' => 'Vice Chancellor - Institution-wide oversight dashboard',
             'internal-auditor' => 'Internal Auditor - Read-only access to all leave data for compliance',
@@ -44,18 +45,18 @@ class RoleAssignmentSeeder extends Seeder
             ['name' => 'view_institution_dashboard', 'guard_name' => 'web'],
             ['name' => 'view_all_leave_summary', 'guard_name' => 'web'],
             ['name' => 'view_institution_reports', 'guard_name' => 'web'],
-            
+
             // Internal Auditor permissions
             ['name' => 'view_audit_trail', 'guard_name' => 'web'],
             ['name' => 'view_compliance_reports', 'guard_name' => 'web'],
             ['name' => 'export_audit_data', 'guard_name' => 'web'],
             ['name' => 'view_all_leave_history', 'guard_name' => 'web'],
-            
+
             // Deputy HOD permissions
             ['name' => 'approve_department_leave', 'guard_name' => 'web'],
             ['name' => 'delegate_approval', 'guard_name' => 'web'],
             ['name' => 'view_department_reports', 'guard_name' => 'web'],
-            
+
             // Department Secretary permissions
             ['name' => 'prepare_leave_documents', 'guard_name' => 'web'],
             ['name' => 'submit_leave_on_behalf', 'guard_name' => 'web'],
@@ -63,7 +64,7 @@ class RoleAssignmentSeeder extends Seeder
         ];
 
         foreach ($permissions as $perm) {
-            \Spatie\Permission\Models\Permission::firstOrCreate($perm);
+            Permission::firstOrCreate($perm);
         }
 
         // Assign permissions to new roles
@@ -126,17 +127,17 @@ class RoleAssignmentSeeder extends Seeder
             'esther.mrema@smut.ac.tz' => 'staff',
             'daniel.mlay@smut.ac.tz' => 'staff',
             'sarah.mwaipopo@smut.ac.tz' => 'staff',
-            
+
             // NEW ASSIGNMENTS FOR NEW ROLES (update emails as needed)
             // Vice Chancellor - needs a user email
             // 'vice.chancellor@smut.ac.tz' => 'vice-chancellor',
-            
+
             // Internal Auditor - needs a user email
             // 'auditor@smut.ac.tz' => 'internal-auditor',
-            
+
             // Deputy HOD - example (replace with actual emails)
             // 'deputy.hod.accounting@smut.ac.tz' => 'deputy-hod',
-            
+
             // Department Secretary - example (replace with actual emails)
             // 'secretary.accounting@smut.ac.tz' => 'dept-secretary',
         ];
@@ -148,6 +149,7 @@ class RoleAssignmentSeeder extends Seeder
                 $existingRoles = $user->getRoleNames();
                 if ($existingRoles->count() > 0 && $existingRoles->first() !== $roleName) {
                     $this->command->warn("User {$email} already has role '{$existingRoles->first()}', skipping '{$roleName}'");
+
                     continue;
                 }
                 $user->assignRole($roleName);

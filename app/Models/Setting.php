@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class Setting extends Model
 {
@@ -12,8 +12,8 @@ class Setting extends Model
     protected $table = 'settings';
 
     protected $fillable = [
-        'key', 'value', 'type', 'group', 'label', 'description', 
-        'options', 'role', 'user_id', 'tenant_id', 'sort_order', 'is_encrypted'
+        'key', 'value', 'type', 'group', 'label', 'description',
+        'options', 'role', 'user_id', 'tenant_id', 'sort_order', 'is_encrypted',
     ];
 
     protected $casts = [
@@ -41,6 +41,7 @@ class Setting extends Model
                         return $this->value;
                     }
                 }
+
                 return $this->value;
         }
     }

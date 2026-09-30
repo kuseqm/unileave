@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class UnifiedAuditTrail extends Model
 {
@@ -73,12 +73,13 @@ class UnifiedAuditTrail extends Model
             'App\Models\TravelPermission' => 'Travel Permission',
             'App\Models\Letter' => 'Letter',
         ];
+
         return $types[$this->auditable_type] ?? 'Unknown';
     }
 
     public function getEventBadgeAttribute()
     {
-        return match($this->event) {
+        return match ($this->event) {
             'created' => '<span class="badge bg-success">Created</span>',
             'updated' => '<span class="badge bg-info">Updated</span>',
             'deleted' => '<span class="badge bg-danger">Deleted</span>',
@@ -88,7 +89,7 @@ class UnifiedAuditTrail extends Model
             'approved' => '<span class="badge bg-success">Approved</span>',
             'rejected' => '<span class="badge bg-danger">Rejected</span>',
             'accessed_via_code' => '<span class="badge bg-warning">Secure Access</span>',
-            default => '<span class="badge bg-secondary">' . $this->event . '</span>',
+            default => '<span class="badge bg-secondary">'.$this->event.'</span>',
         };
     }
 }

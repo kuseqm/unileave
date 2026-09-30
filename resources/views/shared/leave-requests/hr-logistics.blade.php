@@ -12,12 +12,7 @@
     <x-page-header title="HR LOGISTICS" description="Final processing of approved leave requests">
     </x-page-header>
     
-    @if(session('success'))
-    <div class="alert alert-success alert-dismissible fade show py-1 px-2 mb-2 rounded-sm" role="alert">
-        <i class="ti ti-check-circle me-1"></i> {{ session('success') }}
-        <button type="button" class="btn-close py-0" data-bs-dismiss="alert"></button>
-    </div>
-    @endif
+    <x-alert-success />
     
     <div class="row">
         <div class="col-lg-8">
@@ -77,8 +72,8 @@
                         </div>
                         
                         <div style="font-size: 0.75rem; line-height: 1.5;">
-                            <p>Date: {{ now()->format('d F Y') }}</p>
-                            <p>Ref: LTR/{{ $leaveRequest->id }}/{{ date('Y') }}</p>
+                            <p>Ref: SJUT/HR/{{ date('Y') }}/{{ str_pad(\App\Models\LeaveLetter::whereYear('created_at', date('Y'))->count() + 1, 4, '0', STR_PAD_LEFT) }}</p>
+                            <p>Date: {{ now()->format('jS F Y') }}</p>
                             <br>
                             <p>To: <strong>{{ $leaveRequest->staff->full_name }}</strong><br>
                             {{ $leaveRequest->staff->staff_id }}<br>
@@ -86,7 +81,9 @@
                             <br>
                             <p>Dear <strong>{{ $leaveRequest->staff->first_name }}</strong>,</p>
                             <br>
-                            <p>Your leave request has been <strong>APPROVED</strong> as follows:</p>
+                            <p>RE: LEAVE APPROVAL - {{ $leaveRequest->leaveType->name ?? 'N/A' }}</p>
+                            <br>
+                            <p>1. Your leave request has been <strong>APPROVED</strong> as follows:</p>
                             <br>
                             <table style="width: 100%; border-collapse: collapse;">
                                 <tr>
@@ -95,11 +92,11 @@
                                 </tr>
                                 <tr>
                                     <td>Start Date:</td>
-                                    <td><strong>{{ \Carbon\Carbon::parse($leaveRequest->start_date)->format('d F Y') }}</strong></td>
+                                    <td><strong>{{ \Carbon\Carbon::parse($leaveRequest->start_date)->format('jS F Y') }}</strong></td>
                                 </tr>
                                 <tr>
                                     <td>End Date:</td>
-                                    <td><strong>{{ \Carbon\Carbon::parse($leaveRequest->end_date)->format('d F Y') }}</strong></td>
+                                    <td><strong>{{ \Carbon\Carbon::parse($leaveRequest->end_date)->format('jS F Y') }}</strong></td>
                                 </tr>
                                 <tr>
                                     <td>Total Days:</td>
@@ -107,12 +104,12 @@
                                 </tr>
                             </table>
                             <br>
-                            <p>During your leave, <strong>{{ $leaveRequest->actingStaff->full_name ?? 'N/A' }}</strong> will hold your position.</p>
+                            <p>2. During your leave, <strong>{{ $leaveRequest->actingStaff->full_name ?? 'N/A' }}</strong> will hold your position.</p>
                             <br>
-                            <p>Please ensure proper handover before proceeding on leave.</p>
+                            <p>3. Please ensure proper handover before proceeding on leave.</p>
                             <br>
                             <div class="mt-4">
-                                <p>Yours Sincerely,</p>
+                                <p>Kind regards,</p>
                                 <br><br>
                                 <p><strong>Human Resources Department</strong></p>
                             </div>
@@ -152,7 +149,18 @@
                                 <label class="form-check-label" for="generateLetter" style="font-size: 0.7rem;">Generate Approval Letter</label>
                             </div>
                         </div>
-                        
+
+                        <div id="letterSignatureBlock" class="mb-3">
+                            <x-signature-pad
+                                name="signature_data"
+                                id="hr-logistics-signature"
+                                label="Your Signature"
+                                help-text="Sign to confirm and finalize this approval letter. This signature is printed on the letter."
+                                :height="110"
+                                :required="false"
+                            />
+                        </div>
+
                         <div class="mb-3">
                             <div class="form-check form-switch">
                                 <input type="hidden" name="send_notification" value="0">
@@ -160,9 +168,9 @@
                                 <label class="form-check-label" for="sendNotification" style="font-size: 0.7rem;">Notify Staff</label>
                             </div>
                         </div>
-                        
+
                         <hr>
-                        
+
                         <button type="submit" class="btn btn-success btn-sm w-100">
                             <i class="ti ti-check"></i> Complete & Approve
                         </button>
@@ -196,4 +204,30 @@
         </div>
     </div>
 </div>
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const generateLetter = document.getElementById('generateLetter');
+    const signatureBlock = document.getElementById('letterSignatureBlock');
+    const signatureData = document.getElementById('hr-logistics-signature-data');
+    const form = generateLetter?.closest('form');
+
+    function syncSignatureVisibility() {
+        if (!signatureBlock) return;
+        signatureBlock.style.display = generateLetter.checked ? '' : 'none';
+    }
+
+    generateLetter?.addEventListener('change', syncSignatureVisibility);
+    syncSignatureVisibility();
+
+    form?.addEventListener('submit', function (e) {
+        if (generateLetter?.checked && !signatureData?.value) {
+            e.preventDefault();
+            alert('Please sign to finalize the approval letter, or uncheck "Generate Approval Letter".');
+        }
+    });
+});
+</script>
+@endpush
 @endsection

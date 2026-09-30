@@ -25,8 +25,9 @@ class MessageTemplate extends Model
     {
         $subject = $this->subject_template;
         foreach ($data as $key => $value) {
-            $subject = str_replace('{' . $key . '}', $value, $subject);
+            $subject = str_replace('{'.$key.'}', $value, $subject);
         }
+
         return $subject;
     }
 
@@ -34,8 +35,9 @@ class MessageTemplate extends Model
     {
         $body = $this->body_template;
         foreach ($data as $key => $value) {
-            $body = str_replace('{' . $key . '}', $value, $body);
+            $body = str_replace('{'.$key.'}', $value, $body);
         }
+
         return $body;
     }
 }

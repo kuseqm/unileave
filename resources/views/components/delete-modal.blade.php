@@ -22,68 +22,68 @@
                 <p style="font-size: 0.75rem;">{{ $message }}</p>
                 
                 @if($warning)
-                <div class="alert alert-warning py-1 px-2 mb-0 rounded-sm" style="font-size: 0.65rem;">
-                    <i class="ti ti-alert-circle me-1"></i> {{ $warning }}
-                </div>
+                <x-alert-warning>
+    {{ $warning }}
+</x-alert-warning>
                 @endif
                 
                 @if($cascadeWarning)
-                <div class="alert alert-danger py-1 px-2 mt-2 rounded-sm" style="font-size: 0.65rem;">
-                    <i class="ti ti-trash me-1"></i> <strong>Cascade Deletion Warning:</strong><br>
+                <x-alert-danger :session="false">
+    <strong>Cascade Deletion Warning:</strong><br>
                     {{ $cascadeWarning }}
-                </div>
+</x-alert-danger>
                 @endif
                 
                 <!-- Type-specific warnings -->
                 @if($type == 'blackout')
-                <div class="alert alert-info py-1 px-2 mt-2 rounded-sm" style="font-size: 0.65rem;">
-                    <i class="ti ti-calendar me-1"></i> <strong>Impact:</strong><br>
+                <x-alert-info>
+    <strong>Impact:</strong><br>
                     - Staff will be able to apply for leave during this period<br>
                     - No leave requests will be affected (only future applications)
-                </div>
+</x-alert-info>
                 @endif
                 
                 @if($type == 'university')
-                <div class="alert alert-danger py-1 px-2 mt-2 rounded-sm" style="font-size: 0.65rem;">
-                    <i class="ti ti-building me-1"></i> <strong>This will permanently delete:</strong><br>
+                <x-alert-danger :session="false">
+    <strong>This will permanently delete:</strong><br>
                     - All campuses under this university<br>
                     - All departments under those campuses<br>
                     - All staff assignments to those departments
-                </div>
+</x-alert-danger>
                 @endif
                 
                 @if($type == 'campus')
-                <div class="alert alert-danger py-1 px-2 mt-2 rounded-sm" style="font-size: 0.65rem;">
-                    <i class="ti ti-map-pin me-1"></i> <strong>This will permanently delete:</strong><br>
+                <x-alert-danger :session="false">
+    <strong>This will permanently delete:</strong><br>
                     - All departments under this campus<br>
                     - All staff assignments to those departments
-                </div>
+</x-alert-danger>
                 @endif
                 
                 @if($type == 'department')
-                <div class="alert alert-danger py-1 px-2 mt-2 rounded-sm" style="font-size: 0.65rem;">
-                    <i class="ti ti-building-community me-1"></i> <strong>This will permanently delete:</strong><br>
+                <x-alert-danger :session="false">
+    <strong>This will permanently delete:</strong><br>
                     - All staff assignments to this department<br>
                     - Staff will need to be reassigned
-                </div>
+</x-alert-danger>
                 @endif
                 
                 @if($type == 'leave_type')
-                <div class="alert alert-warning py-1 px-2 mt-2 rounded-sm" style="font-size: 0.65rem;">
-                    <i class="ti ti-calendar-stats me-1"></i> <strong>Note:</strong><br>
+                <x-alert-warning>
+    <strong>Note:</strong><br>
                     - Existing leave requests of this type will NOT be deleted<br>
                     - They will show as "Unknown Type"<br>
                     - Future applications cannot use this type
-                </div>
+</x-alert-warning>
                 @endif
                 
                 @if($type == 'staff')
-                <div class="alert alert-danger py-1 px-2 mt-2 rounded-sm" style="font-size: 0.65rem;">
-                    <i class="ti ti-user-x me-1"></i> <strong>This will:</strong><br>
+                <x-alert-danger :session="false">
+    <strong>This will:</strong><br>
                     - Remove all access for this staff member<br>
                     - Archive their leave request history<br>
                     - Remove them from acting staff assignments
-                </div>
+</x-alert-danger>
                 @endif
             </div>
             <div class="modal-footer py-1 px-2">

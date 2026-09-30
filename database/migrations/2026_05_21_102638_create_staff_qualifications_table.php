@@ -23,7 +23,7 @@ return new class extends Migration
             $table->foreignId('verified_by')->nullable()->constrained('staff')->onDelete('set null');
             $table->timestamp('verified_at')->nullable();
             $table->timestamps();
-            
+
             $table->index('staff_id');
         });
     }

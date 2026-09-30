@@ -147,16 +147,15 @@
                     @if($leaveRequest->late_return_days > 0)
                     <div class="row g-1 mt-1">
                         <div class="col-md-12">
-                            <div class="alert alert-warning py-1 px-2 rounded-sm" style="font-size: 0.65rem;">
-                                <i class="ti ti-alert-triangle me-1"></i>
-                                <strong>Late Return:</strong> {{ $leaveRequest->late_return_days }} day(s) late
+                            <x-alert-warning>
+    <strong>Late Return:</strong> {{ $leaveRequest->late_return_days }} day(s) late
                                 @if($leaveRequest->late_return_penalty > 0)
                                     <br>Penalty Applied: ${{ number_format($leaveRequest->late_return_penalty, 2) }}
                                 @endif
                                 @if($leaveRequest->late_return_reason)
                                     <br><strong>Reason:</strong> {{ $leaveRequest->late_return_reason }}
                                 @endif
-                            </div>
+</x-alert-warning>
                         </div>
                     </div>
                     @endif
@@ -289,7 +288,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <a href="{{ Storage::url($doc->file_path) }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-sm" style="font-size: 0.55rem;">
+                                <a href="{{ route('leave-requests.documents.download', $doc->id) }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-sm" style="font-size: 0.55rem;">
                                     <i class="ti ti-download me-1"></i> View
                                 </a>
                             </div>
@@ -552,10 +551,9 @@
                         </div>
                     </div>
                     @if($leaveRequest->rejection_reason)
-                    <div class="alert alert-danger py-1 px-2 mt-1 rounded-sm" style="font-size: 0.65rem;">
-                        <i class="ti ti-alert-circle me-1"></i>
-                        <strong>Rejection Reason:</strong> {{ $leaveRequest->rejection_reason }}
-                    </div>
+                    <x-alert-danger :session="false">
+    <strong>Rejection Reason:</strong> {{ $leaveRequest->rejection_reason }}
+</x-alert-danger>
                     @endif
                 </div>
             </div>
@@ -677,7 +675,48 @@
                 </div>
             </div>
             @endif
-            
+
+            <!-- ============================================ -->
+            <!-- TRAVEL ALLOWANCE CARD -->
+            <!-- ============================================ -->
+            @if($leaveRequest->travel_allowance_decided_by)
+            <div class="card rounded-sm mb-2">
+                <div class="card-header py-1 px-2 bg-light">
+                    <div class="d-flex align-items-center">
+                        <i class="ti ti-plane-departure text-info me-1" style="font-size: 0.7rem;"></i>
+                        <span style="font-weight: 600; font-size: 0.7rem;">✈️ Travel Allowance</span>
+                    </div>
+                </div>
+                <div class="card-body py-2 px-2">
+                    @if($leaveRequest->travel_allowance_granted)
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-success-subtle text-success rounded-pill" style="font-size: 0.7rem;">
+                                <i class="ti ti-check-circle me-1"></i> Granted
+                            </span>
+                            <span class="text-muted" style="font-size: 0.6rem;">TZS {{ number_format($leaveRequest->travel_allowance_amount, 2) }}</span>
+                        </div>
+                    @else
+                        <span class="badge bg-secondary-subtle text-secondary rounded-pill" style="font-size: 0.7rem;">
+                            <i class="ti ti-x-circle me-1"></i> Not Granted
+                        </span>
+                    @endif
+
+                    @if($leaveRequest->travel_allowance_notes)
+                    <div class="mt-2">
+                        <div class="text-muted" style="font-size: 0.6rem;">Notes:</div>
+                        <div class="p-1 bg-light rounded-sm" style="font-size: 0.65rem;">{{ $leaveRequest->travel_allowance_notes }}</div>
+                    </div>
+                    @endif
+
+                    <div class="text-muted mt-1" style="font-size: 0.55rem;">
+                        <i class="ti ti-user-check me-1"></i>
+                        Decided by: {{ $leaveRequest->travelAllowanceDecidedBy->full_name ?? 'HR Officer' }}
+                        on {{ \Carbon\Carbon::parse($leaveRequest->travel_allowance_decided_at)->format('d M Y') }}
+                    </div>
+                </div>
+            </div>
+            @endif
+
             <!-- Official Letter Card (Only for Approved) -->
             @if($leaveRequest->status === 'approved')
             <div class="card rounded-sm mb-2" id="letterCard">
@@ -697,8 +736,14 @@
                 </div>
                 <div class="card-body p-2" id="letterContent">
                     @php
-                        $university = \App\Models\University::first();
-                        $letter = $leaveRequest->letters()->latest()->first();
+                        $university = $leaveRequest->staff->university;
+                        // A request can carry two letters - HR's own approval
+                        // letter and the applicant's separately-signed
+                        // application letter - so this card (labeled
+                        // "Official Approval Letter") must pin the type
+                        // explicitly rather than take whichever was created
+                        // last.
+                        $letter = $leaveRequest->letters()->where('type', 'approval')->latest()->first();
                     @endphp
                     
                     <div class="letter-container" style="font-family: 'Times New Roman', serif; font-size: 0.75rem; line-height: 1.4;">
@@ -759,10 +804,9 @@
                                 <i class="ti ti-lock"></i> Secure Document - Verification Code: {{ $letter->secure_code ?? 'N/A' }}
                             </div>
                         @else
-                            <div class="alert alert-info py-1 px-2 rounded-sm text-center" style="font-size: 0.7rem;">
-                                <i class="ti ti-file-text me-1"></i>
-                                Letter will be generated upon HR Logistics completion.
-                            </div>
+                            <x-alert-info>
+    Letter will be generated upon HR Logistics completion.
+</x-alert-info>
                         @endif
                     </div>
                 </div>
@@ -780,7 +824,8 @@
                 <div class="card-body py-2 px-2">
                     
                     <!-- Your Decision / Your Role Section -->
-                    <div class="alert alert-light border mb-2 py-1 px-2 rounded-sm">
+                    <x-alert-light class="mb-2 py-1 px-2 rounded-sm">
+
                         <div class="d-flex align-items-start gap-1">
                             <i class="ti ti-user-check text-success mt-0" style="font-size: 0.7rem;"></i>
                             <div>
@@ -851,11 +896,13 @@
                                     </span>
                                 </div>
                             </div>
-                        </div>
+                        
+</x-alert-light>
                     </div>
                     
                     <!-- Document Access -->
-                    <div class="alert alert-light border mb-2 py-1 px-2 rounded-sm">
+                    <x-alert-light class="mb-2 py-1 px-2 rounded-sm">
+
                         <div class="d-flex align-items-start gap-1">
                             <i class="ti ti-file me-1 text-primary"></i>
                             <div>
@@ -872,11 +919,13 @@
                                     @endhasanyrole
                                 </small>
                             </div>
-                        </div>
+                        
+</x-alert-light>
                     </div>
                     
                     <!-- Need Help -->
-                    <div class="alert alert-light border mb-0 py-1 px-2 rounded-sm">
+                    <x-alert-light class="mb-0 py-1 px-2 rounded-sm">
+
                         <div class="d-flex align-items-start gap-1">
                             <i class="ti ti-clock text-primary mt-0" style="font-size: 0.7rem;"></i>
                             <div>
@@ -885,7 +934,8 @@
                                     Contact HR department for any questions about this request.
                                 </small>
                             </div>
-                        </div>
+                        
+</x-alert-light>
                     </div>
                 </div>
             </div>

@@ -2,7 +2,7 @@
 
 use App\Models\Setting;
 
-if (!function_exists('setting')) {
+if (! function_exists('setting')) {
     /**
      * Get a setting value with role hierarchy
      * Priority: User > Role > Global
@@ -10,7 +10,7 @@ if (!function_exists('setting')) {
     function setting($key, $default = null, $role = null, $userId = null)
     {
         $query = Setting::where('key', $key);
-        
+
         // Priority 1: User-specific setting
         if ($userId) {
             $userSetting = Setting::where('key', $key)
@@ -20,7 +20,7 @@ if (!function_exists('setting')) {
                 return getTypedValue($userSetting);
             }
         }
-        
+
         // Priority 2: Role-specific setting
         if ($role) {
             $roleSetting = Setting::where('key', $key)
@@ -30,22 +30,22 @@ if (!function_exists('setting')) {
                 return getTypedValue($roleSetting);
             }
         }
-        
+
         // Priority 3: Global setting
         $globalSetting = Setting::where('key', $key)
             ->whereNull('role')
             ->whereNull('user_id')
             ->first();
-        
+
         if ($globalSetting) {
             return getTypedValue($globalSetting);
         }
-        
+
         return $default;
     }
 }
 
-if (!function_exists('getTypedValue')) {
+if (! function_exists('getTypedValue')) {
     function getTypedValue($setting)
     {
         switch ($setting->type) {
@@ -59,16 +59,36 @@ if (!function_exists('getTypedValue')) {
                 if ($setting->is_encrypted && $setting->value) {
                     try {
                         return decrypt($setting->value);
-                    } catch (\Exception $e) {
+                    } catch (Exception $e) {
                         return $setting->value;
                     }
                 }
+
                 return $setting->value;
         }
     }
 }
 
-if (!function_exists('set_setting')) {
+if (! function_exists('app_abbreviation')) {
+    /**
+     * Initials of config('app.name'), for the browser tab title - so it
+     * follows APP_NAME automatically (Staff Management System -> SMS,
+     * University Management System -> UMS) instead of a name hardcoded
+     * separately in every layout. Strips a trailing "(...)" suffix like
+     * "(DEMO)" first, since that shouldn't contribute its own initial.
+     */
+    function app_abbreviation(): string
+    {
+        $name = preg_replace('/\s*\(.*?\)\s*/', ' ', config('app.name', 'App'));
+
+        return collect(preg_split('/\s+/', trim($name)))
+            ->filter()
+            ->map(fn ($word) => mb_strtoupper(mb_substr($word, 0, 1)))
+            ->implode('');
+    }
+}
+
+if (! function_exists('set_setting')) {
     function set_setting($key, $value, $type = 'text', $group = 'general', $role = null, $userId = null, $label = null, $description = null)
     {
         if ($type === 'text') {
@@ -82,7 +102,7 @@ if (!function_exists('set_setting')) {
                 $type = 'number';
             }
         }
-        
+
         return Setting::updateOrCreate(
             [
                 'key' => $key,

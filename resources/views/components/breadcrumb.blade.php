@@ -1,7 +1,7 @@
 @props(['items' => []])
 
-<nav aria-label="breadcrumb">
-    <ol class="breadcrumb mb-2" style="font-size: 0.75rem;">
+<nav aria-label="breadcrumb" class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+    <ol class="breadcrumb mb-0" style="font-size: 0.75rem;">
         <li class="breadcrumb-item"><a href="{{ route('dashboard') }}" class="text-muted">Home</a></li>
         @foreach($items as $item)
             @if($loop->last)
@@ -11,4 +11,5 @@
             @endif
         @endforeach
     </ol>
+    <x-academic-year-badge />
 </nav>

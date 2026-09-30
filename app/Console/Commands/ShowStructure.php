@@ -17,10 +17,10 @@ class ShowStructure extends Command
     {
         $root = base_path();
         $exclude = ['vendor', 'node_modules', 'storage', '.git', 'bootstrap/cache'];
-        
+
         $this->line('Project Folder Structure:');
         $this->line('');
-        
+
         $output = $this->buildTree($root, '', $exclude, 0);
         $this->line($output);
     }
@@ -37,30 +37,31 @@ class ShowStructure extends Command
 
         // Scan the directory
         $items = array_diff(scandir($dir), ['.', '..']);
-        
+
         // Filter out excluded folders AND filter out any files (keep only directories)
-        $items = array_filter($items, function($item) use ($dir, $exclude) {
-            $path = $dir . DIRECTORY_SEPARATOR . $item;
+        $items = array_filter($items, function ($item) use ($dir, $exclude) {
+            $path = $dir.DIRECTORY_SEPARATOR.$item;
+
             // Keep it ONLY if it is a directory AND not in the excluded list
-            return is_dir($path) && !in_array($item, $exclude);
+            return is_dir($path) && ! in_array($item, $exclude);
         });
-        
+
         sort($items);
-        
+
         $count = count($items);
         $output = '';
         $i = 0;
-        
+
         foreach ($items as $item) {
             $i++;
             $isLast = ($i == $count);
-            $path = $dir . DIRECTORY_SEPARATOR . $item;
-            
+            $path = $dir.DIRECTORY_SEPARATOR.$item;
+
             // Since we already filtered files, we only have directories here
-            $output .= $prefix . ($isLast ? '└── ' : '├── ') . $item . '/' . "\n";
-            $output .= $this->buildTree($path, $prefix . ($isLast ? '    ' : '│   '), $exclude, $depth + 1);
+            $output .= $prefix.($isLast ? '└── ' : '├── ').$item.'/'."\n";
+            $output .= $this->buildTree($path, $prefix.($isLast ? '    ' : '│   '), $exclude, $depth + 1);
         }
-        
+
         return $output;
     }
 }

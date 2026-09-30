@@ -18,185 +18,83 @@
         </a>
     </x-page-header>
     
-    <!-- Stats Cards with Clickable Links (using built-in link parameter) -->
+    <!-- Stats Cards -->
     <div class="row g-2 mb-3">
-        <x-stats-card 
-            value="{{ $stats['total'] }}" 
-            label="Total Requests" 
-            subtext="all time"
-            icon="clipboard-list"
-            link="{{ route('leave-requests.status', ['filter' => 'all']) }}" />
-        
-        <x-stats-card 
-            value="{{ $stats['pending'] }}" 
-            label="Pending" 
-            subtext="awaiting approval" 
-            color="warning"
-            icon="clock"
-            link="{{ route('leave-requests.status', ['filter' => 'pending']) }}" />
-        
-        <x-stats-card 
-            value="{{ $stats['approved'] }}" 
-            label="Approved" 
-            subtext="granted" 
-            color="success"
-            icon="check"
-            link="{{ route('leave-requests.status', ['filter' => 'approved']) }}" />
-        
-        <x-stats-card 
-            value="{{ $stats['rejected'] }}" 
-            label="Rejected" 
-            subtext="denied" 
-            color="danger"
-            icon="x"
-            link="{{ route('leave-requests.status', ['filter' => 'rejected']) }}" />
-        
-        <x-stats-card 
-            value="{{ $stats['cancelled'] }}" 
-            label="Cancelled" 
-            subtext="cancelled by you" 
-            color="secondary"
-            icon="trash"
-            link="{{ route('leave-requests.status', ['filter' => 'cancelled']) }}" />
+        <x-stats-card value="{{ $stats['total'] }}" label="Total Requests" subtext="all time" icon="clipboard-list" />
+        <x-stats-card value="{{ $stats['pending'] }}" label="Pending" subtext="awaiting approval" color="warning" icon="clock" />
+        <x-stats-card value="{{ $stats['approved'] }}" label="Approved" subtext="granted" color="success" icon="check" />
+        <x-stats-card value="{{ $stats['rejected'] }}" label="Rejected" subtext="denied" color="danger" icon="x" />
     </div>
+
+    <x-alert-success />
     
-    @if(session('success'))
-    <div class="alert alert-success alert-dismissible fade show py-1 px-2 mb-2 rounded-sm" style="font-size: 0.7rem;" role="alert">
-        <i class="ti ti-check-circle me-1"></i> {{ session('success') }}
-        <button type="button" class="btn-close py-0" style="font-size: 0.6rem;" data-bs-dismiss="alert"></button>
-    </div>
-    @endif
+    <x-alert-danger />
     
-    @if(session('error'))
-    <div class="alert alert-danger alert-dismissible fade show py-1 px-2 mb-2 rounded-sm" style="font-size: 0.7rem;" role="alert">
-        <i class="ti ti-alert-circle me-1"></i> {{ session('error') }}
-        <button type="button" class="btn-close py-0" style="font-size: 0.6rem;" data-bs-dismiss="alert"></button>
-    </div>
-    @endif
-    
-    <!-- Requests List -->
-    <div class="card rounded-sm">
-        <div class="card-header py-2 px-3 bg-light">
-            <div class="d-flex align-items-center justify-content-between">
-                <div class="d-flex align-items-center">
-                    <i class="ti ti-list text-primary me-1" style="font-size: 0.8rem;"></i>
-                    <span style="font-size: 0.75rem; font-weight: 600;">My Leave Requests</span>
+    <!-- Search Card -->
+    <x-search-card
+        placeholder="Search by leave type..."
+        id="statusSearchInput"
+        name="search"
+        :value="request('search')"
+        :showStatusFilter="true"
+        :statusOptions="['pending' => 'Pending', 'approved' => 'Approved', 'rejected' => 'Rejected', 'cancelled' => 'Cancelled']"
+    >
+        <div id="statusSearchStats" class="text-muted" style="font-size: 0.65rem;">
+            {{ $leaveRequests->total() }} requests total
+        </div>
+    </x-search-card>
+
+    <div class="row g-2">
+        <!-- Requests List - main column -->
+        <div class="col-lg-8">
+            <div class="card rounded-sm">
+                <div class="card-header py-2 px-3 bg-light">
+                    <div class="d-flex align-items-center">
+                        <i class="ti ti-list text-primary me-1" style="font-size: 0.8rem;"></i>
+                        <span style="font-size: 0.75rem; font-weight: 600;">My Leave Requests</span>
+                    </div>
                 </div>
-                <div class="text-muted" style="font-size: 0.6rem;">
-                    Showing {{ $leaveRequests->firstItem() ?? 0 }} to {{ $leaveRequests->lastItem() ?? 0 }} of {{ $leaveRequests->total() ?? 0 }}
+                <div id="statusResults">
+                    @include('shared.leave-requests._status-results')
                 </div>
             </div>
         </div>
-        <div class="card-body p-0">
-            @forelse($leaveRequests as $request)
-            <div class="request-item p-3 border-bottom">
-                <!-- Request Header -->
-                <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-2">
-                    <div>
-                        <div class="d-flex align-items-center gap-2 flex-wrap">
-                            <span class="fw-semibold" style="font-size: 0.85rem;">
-                                {{ $request->leaveType->name ?? 'Leave Request' }}
-                            </span>
-                            <span class="badge {{ 
-                                $request->status == 'pending' ? 'bg-warning-subtle text-warning' : 
-                                ($request->status == 'approved' ? 'bg-success-subtle text-success' : 
-                                ($request->status == 'rejected' ? 'bg-danger-subtle text-danger' : 'bg-secondary-subtle text-secondary')) 
-                            }} rounded-sm px-2 py-1" style="font-size: 0.6rem;">
-                                {{ ucfirst($request->status) }}
-                            </span>
-                            @if($request->current_approval_level)
-                            <span class="badge bg-info-subtle text-info rounded-sm px-2 py-1" style="font-size: 0.6rem;">
-                                @php
-                                    $levelNames = [1 => 'HOD', 2 => 'Dean', 3 => 'HR', 4 => 'DVC', 5 => 'HR Logistics'];
-                                @endphp
-                                {{ $levelNames[$request->current_approval_level] ?? 'Processing' }}
-                            </span>
-                            @endif
-                        </div>
-                        <div class="text-muted" style="font-size: 0.65rem; margin-top: 4px;">
-                            <i class="ti ti-calendar me-1"></i>
-                            {{ \Carbon\Carbon::parse($request->start_date)->format('M d, Y') }} - 
-                            {{ \Carbon\Carbon::parse($request->end_date)->format('M d, Y') }}
-                            <span class="mx-1">•</span>
-                            <i class="ti ti-clock me-1"></i>{{ $request->days }} days
-                        </div>
-                    </div>
-                    <div>
-                        <a href="{{ route('leave-requests.show', $request->id) }}" class="btn btn-outline-secondary btn-sm rounded-sm" style="font-size: 0.6rem; padding: 0.2rem 0.5rem;">
-                            <i class="ti ti-eye me-1"></i> Details
-                        </a>
-                        @if($request->status == 'pending' && !$request->current_approval_level)
-                        <button onclick="cancelRequest({{ $request->id }})" class="btn btn-outline-danger btn-sm rounded-sm" style="font-size: 0.6rem; padding: 0.2rem 0.5rem;">
-                            <i class="ti ti-x me-1"></i> Cancel
-                        </button>
-                        @endif
+
+        <!-- Information - narrow column -->
+        <div class="col-lg-4">
+            <div class="card rounded-sm">
+                <div class="card-header py-1 px-2 bg-light">
+                    <div class="d-flex align-items-center">
+                        <i class="ti ti-info-circle text-info me-1" style="font-size: 0.8rem;"></i>
+                        <span style="font-size: 0.7rem; font-weight: 600;">Information</span>
                     </div>
                 </div>
-                
-                <!-- Approval Tracker (using FULL tracker with details) -->
-                <div class="mt-2">
-                    <x-approval-tracker-full :leaveRequest="$request" />
-                </div>
-                
-                <!-- Brief Timeline Summary -->
-                @if($request->approvalLogs && $request->approvalLogs->isNotEmpty())
-                <div class="mt-2 pt-2 border-top" style="border-color: #E8E2D5;">
-                    <div class="d-flex flex-wrap gap-3 align-items-center">
-                        <span class="text-muted" style="font-size: 0.55rem;">Latest activity:</span>
-                        @foreach($request->approvalLogs->take(2) as $log)
-                        <div class="d-flex align-items-center gap-1">
-                            <i class="ti ti-{{ $log->action == 'approved' ? 'check-circle' : ($log->action == 'rejected' ? 'x-circle' : 'clock') }}" 
-                               style="font-size: 0.6rem; color: {{ $log->action == 'approved' ? '#10B981' : ($log->action == 'rejected' ? '#EF4444' : '#F59E0B') }};"></i>
-                            <span style="font-size: 0.6rem;">
-                                {{ ucfirst($log->action) }} @ {{ $log->created_at->format('M d, H:i') }}
-                                @if($log->approver)
-                                by {{ $log->approver->first_name ?? '' }}
-                                @endif
-                            </span>
-                        </div>
-                        @endforeach
-                        @if($request->approvalLogs->count() > 2)
-                        <span class="text-muted" style="font-size: 0.55rem;">+{{ $request->approvalLogs->count() - 2 }} more</span>
-                        @endif
+                <div class="card-body py-2 px-2">
+                    <div class="mb-2">
+                        <div class="fw-semibold" style="font-size: 0.7rem;"><i class="ti ti-flag me-1 text-primary"></i> Understanding Status</div>
+                        <ul class="mb-0 ps-3" style="font-size: 0.65rem; color: #555;">
+                            <li><span class="badge bg-warning-subtle text-warning rounded-sm">Pending</span> - still moving through approval</li>
+                            <li><span class="badge bg-success-subtle text-success rounded-sm">Approved</span> - granted, letter available</li>
+                            <li><span class="badge bg-danger-subtle text-danger rounded-sm">Rejected</span> - denied at some stage</li>
+                            <li><span class="badge bg-secondary-subtle text-secondary rounded-sm">Cancelled</span> - withdrawn by you</li>
+                        </ul>
                     </div>
-                </div>
-                @endif
-            </div>
-            @empty
-            <div class="text-center py-4">
-                <i class="ti ti-calendar-off" style="font-size: 2rem; color: #CBD5E1;"></i>
-                <p class="text-muted mt-2" style="font-size: 0.75rem;">You haven't submitted any leave requests yet.</p>
-                <a href="{{ route('leave-requests.create') }}" class="btn btn-primary btn-sm rounded-sm mt-2" style="font-size: 0.7rem;">
-                    <i class="ti ti-plus me-1"></i> Submit Your First Request
-                </a>
-            </div>
-            @endforelse
-        </div>
-        
-        <!-- Pagination -->
-        @if($leaveRequests->hasPages())
-        <div class="card-footer py-2 px-3 bg-light">
-            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-                <div class="d-flex align-items-center gap-2">
-                    <span class="text-muted" style="font-size: 0.65rem;">Show:</span>
-                    <select id="perPageSelect" class="custom-select-sm" style="font-size: 0.65rem; padding: 0.2rem 1.2rem 0.2rem 0.4rem; border: 1px solid #E8E2D5; border-radius: 4px;">
-                        <option value="10" {{ $leaveRequests->perPage() == 10 ? 'selected' : '' }}>10</option>
-                        <option value="25" {{ $leaveRequests->perPage() == 25 ? 'selected' : '' }}>25</option>
-                        <option value="50" {{ $leaveRequests->perPage() == 50 ? 'selected' : '' }}>50</option>
-                        <option value="100" {{ $leaveRequests->perPage() == 100 ? 'selected' : '' }}>100</option>
-                    </select>
-                </div>
-                
-                <div>
-                    {{ $leaveRequests->appends(request()->query())->links('pagination::bootstrap-5') }}
-                </div>
-                
-                <div class="text-muted" style="font-size: 0.6rem;">
-                    Page {{ $leaveRequests->currentPage() }} of {{ $leaveRequests->lastPage() }}
+
+                    <x-alert-light class="mb-0 py-1 px-2 rounded-sm">
+
+                        <div class="d-flex align-items-start gap-1">
+                            <i class="ti ti-tips text-warning mt-0" style="font-size: 0.7rem;"></i>
+                            <div>
+                                <strong class="d-block" style="font-size: 0.65rem;">Tips</strong>
+                                <small class="text-muted" style="font-size: 0.6rem;">&bull; Use the status filter to narrow down to one stage</small><br>
+                                <small class="text-muted" style="font-size: 0.6rem;">&bull; A pending request can still be cancelled from here</small>
+                            </div>
+
+</x-alert-light>
+                    </div>
                 </div>
             </div>
         </div>
-        @endif
     </div>
 </div>
 
@@ -224,7 +122,7 @@
 <script>
 // Cancel Request Function
 function cancelRequest(requestId) {
-    if (confirm('Are you sure you want to cancel this leave request? This action cannot be undone.')) {
+    confirmAction('Are you sure you want to cancel this leave request? This action cannot be undone.', function () {
         fetch(`/leave-requests/${requestId}/cancel`, {
             method: 'POST',
             headers: {
@@ -244,18 +142,26 @@ function cancelRequest(requestId) {
             console.error('Error:', error);
             alert('An error occurred');
         });
-    }
-}
-
-// Per Page Change Handler
-const perPageSelect = document.getElementById('perPageSelect');
-if (perPageSelect) {
-    perPageSelect.addEventListener('change', function() {
-        const url = new URL(window.location.href);
-        url.searchParams.set('per_page', this.value);
-        url.searchParams.delete('page');
-        window.location.href = url.toString();
     });
 }
+
+document.addEventListener('DOMContentLoaded', function () {
+    initLiveSearch({
+        url: '{{ route('leave-requests.status') }}',
+        resultsSelector: '#statusResults',
+        statsSelector: '#statusSearchStats',
+        searchInputSelector: '#statusSearchInput',
+        suggestionsSelector: '#statusSearchInputSuggestions',
+        recentSearchesKey: 'statusRecentSearches',
+        statLabel: 'requests',
+        perPage: 10,
+        filterSelectors: ['#statusFilter'],
+        extraParams: () => ({
+            status: document.getElementById('statusFilter')?.value || '',
+        }),
+    });
+});
 </script>
+
+<x-live-refresh :url="route('leave-requests.status.heartbeat')" />
 @endsection

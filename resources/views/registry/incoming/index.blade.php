@@ -20,118 +20,105 @@
         </div>
     </x-page-header>
     
-    <!-- Filter Card -->
-    <div class="card rounded-sm mb-2">
-        <div class="card-header py-1 px-2 bg-light">
-            <div class="d-flex align-items-center">
-                <i class="ti ti-filter text-primary me-1" style="font-size: 0.8rem;"></i>
-                <span style="font-size: 0.7rem; font-weight: 600;">Filter Letters</span>
+    <!-- Search Card -->
+    <x-search-card
+        placeholder="Search by ref, sender, subject..."
+        id="incomingSearchInput"
+        name="search"
+        :value="request('search')"
+        :showStatusFilter="true"
+        :showCategoryFilter="true"
+        :showTypeFilter="true"
+        categoryLabel="Office"
+        typeLabel="Priority"
+        :statusOptions="['received' => 'Received', 'assigned' => 'Assigned', 'in_progress' => 'In Progress', 'replied' => 'Replied', 'closed' => 'Closed']"
+        :categoryOptions="$offices->pluck('name', 'id')"
+        :typeOptions="['normal' => 'Normal', 'urgent' => 'Urgent', 'confidential' => 'Confidential']"
+    >
+        <div id="incomingSearchStats" class="text-muted" style="font-size: 0.65rem;">
+            {{ $letters->total() }} letters total
+        </div>
+    </x-search-card>
+
+    <div class="row g-2">
+        <!-- Letters Table Card - main column -->
+        <div class="col-lg-8">
+            <div class="card rounded-sm">
+                <div class="card-header py-1 px-2 bg-light">
+                    <div class="d-flex align-items-center">
+                        <i class="ti ti-list text-primary me-1" style="font-size: 0.8rem;"></i>
+                        <span style="font-size: 0.7rem; font-weight: 600;">Incoming Letters List</span>
+                    </div>
+                </div>
+                <div id="incomingResults">
+                    @include('registry.incoming._results')
+                </div>
             </div>
         </div>
-        <div class="card-body py-2 px-2">
-            <form method="GET" class="row g-1">
-                <div class="col-md-3">
-                    <select name="status" class="form-select form-select-sm" style="font-size: 0.7rem;">
-                        <option value="">All Status</option>
-                        <option value="received" {{ request('status') == 'received' ? 'selected' : '' }}>Received</option>
-                        <option value="assigned" {{ request('status') == 'assigned' ? 'selected' : '' }}>Assigned</option>
-                        <option value="in_progress" {{ request('status') == 'in_progress' ? 'selected' : '' }}>In Progress</option>
-                        <option value="replied" {{ request('status') == 'replied' ? 'selected' : '' }}>Replied</option>
-                        <option value="closed" {{ request('status') == 'closed' ? 'selected' : '' }}>Closed</option>
-                    </select>
+
+        <!-- Information - narrow column -->
+        <div class="col-lg-4">
+            <div class="card rounded-sm">
+                <div class="card-header py-1 px-2 bg-light">
+                    <div class="d-flex align-items-center">
+                        <i class="ti ti-info-circle text-info me-1" style="font-size: 0.8rem;"></i>
+                        <span style="font-size: 0.7rem; font-weight: 600;">Information</span>
+                    </div>
                 </div>
-                <div class="col-md-3">
-                    <select name="office_id" class="form-select form-select-sm" style="font-size: 0.7rem;">
-                        <option value="">All Offices</option>
-                        @foreach($offices as $office)
-                        <option value="{{ $office->id }}" {{ request('office_id') == $office->id ? 'selected' : '' }}>{{ $office->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-md-4">
-                    <input type="text" name="search" class="form-control form-control-sm" placeholder="Search by ref, sender, subject..." value="{{ request('search') }}" style="font-size: 0.7rem;">
-                </div>
-                <div class="col-md-2">
-                    <button type="submit" class="btn btn-primary btn-sm w-100" style="font-size: 0.7rem; padding: 0.2rem 0.5rem;">Filter</button>
-                </div>
-            </form>
-        </div>
-    </div>
-    
-    <!-- Letters Table Card -->
-    <div class="card rounded-sm">
-        <div class="card-header py-1 px-2 bg-light">
-            <div class="d-flex align-items-center">
-                <i class="ti ti-list text-primary me-1" style="font-size: 0.8rem;"></i>
-                <span style="font-size: 0.7rem; font-weight: 600;">Incoming Letters List</span>
-            </div>
-        </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-sm mb-0" style="font-size: 0.7rem;">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Ref Number</th>
-                            <th>Date Received</th>
-                            <th>Sender</th>
-                            <th>Office</th>
-                            <th>Subject</th>
-                            <th>Status</th>
-                            <th>Priority</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($letters as $letter)
-                        <tr>
-                            <td><strong>{{ $letter->ref_number }}</strong></td>
-                            <td>{{ $letter->date_received->format('d/m/Y') }}</td>
-                            <td>{{ \Illuminate\Support\Str::limit($letter->sender, 25) }}</td>
-                            <td>{{ $letter->office->short_name ?? $letter->office->name }}</td>
-                            <td>{{ \Illuminate\Support\Str::limit($letter->subject, 35) }}</td>
-                            <td>
-                                @if($letter->status == 'received')
-                                    <span class="badge bg-warning-subtle text-warning rounded-sm" style="font-size: 0.6rem;">Received</span>
-                                @elseif($letter->status == 'assigned')
-                                    <span class="badge bg-info-subtle text-info rounded-sm" style="font-size: 0.6rem;">Assigned</span>
-                                @elseif($letter->status == 'closed')
-                                    <span class="badge bg-success-subtle text-success rounded-sm" style="font-size: 0.6rem;">Closed</span>
-                                @else
-                                    <span class="badge bg-secondary-subtle text-secondary rounded-sm" style="font-size: 0.6rem;">{{ ucfirst($letter->status) }}</span>
-                                @endif
-                            </td>
-                            <td>
-                                @if($letter->priority == 'urgent')
-                                    <span class="badge bg-danger-subtle text-danger rounded-sm" style="font-size: 0.6rem;">Urgent</span>
-                                @elseif($letter->priority == 'confidential')
-                                    <span class="badge bg-dark-subtle text-dark rounded-sm" style="font-size: 0.6rem;">Confidential</span>
-                                @else
-                                    <span class="badge bg-secondary-subtle text-secondary rounded-sm" style="font-size: 0.6rem;">Normal</span>
-                                @endif
-                            </td>
-                            <td>
-                                <a href="{{ route('registry.incoming.show', $letter->id) }}" class="btn btn-primary btn-sm rounded-sm" style="font-size: 0.6rem; padding: 0.15rem 0.4rem;">
-                                    <i class="ti ti-eye"></i> View
-                                </a>
-                            </td>
-                        </tr>
-                        @empty
-                            <tr>
-                                <td colspan="8" class="text-center py-3 text-muted" style="font-size: 0.7rem;">No incoming letters found. <a href="{{ route('registry.incoming.create') }}">Create one</a></td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        <div class="card-footer py-1 px-2 bg-light">
-            <div class="d-flex justify-content-between align-items-center">
-                <div class="text-muted" style="font-size: 0.6rem;">Showing {{ $letters->firstItem() ?? 0 }} to {{ $letters->lastItem() ?? 0 }} of {{ $letters->total() }} entries</div>
-                <div>
-                    {{ $letters->appends(request()->query())->links('pagination::bootstrap-4') }}
+                <div class="card-body py-2 px-2">
+                    <div class="mb-2">
+                        <div class="fw-semibold" style="font-size: 0.7rem;"><i class="ti ti-flag me-1 text-primary"></i> Understanding Status</div>
+                        <ul class="mb-0 ps-3" style="font-size: 0.65rem; color: #555;">
+                            <li><span class="badge bg-secondary-subtle text-secondary rounded-sm">Received</span> - logged, not yet assigned</li>
+                            <li><span class="badge bg-info-subtle text-info rounded-sm">Assigned</span> - routed to an office</li>
+                            <li><span class="badge bg-warning-subtle text-warning rounded-sm">In Progress</span> - being actioned</li>
+                            <li><span class="badge bg-success-subtle text-success rounded-sm">Replied</span> - a response was sent</li>
+                            <li><span class="badge bg-dark-subtle text-dark rounded-sm">Closed</span> - fully resolved</li>
+                        </ul>
+                    </div>
+
+                    <div class="mb-2">
+                        <div class="fw-semibold" style="font-size: 0.7rem;"><i class="ti ti-link me-1 text-primary"></i> Quick Links</div>
+                        <ul class="mb-0 ps-3" style="font-size: 0.65rem; color: #555;">
+                            <li><a href="{{ route('registry.incoming.create') }}">New Incoming Letter</a> - register a letter received</li>
+                            <li><a href="{{ route('registry.offices.index') }}">Offices</a> - manage routing destinations</li>
+                        </ul>
+                    </div>
+
+                    <x-alert-light class="mb-0 py-1 px-2 rounded-sm">
+                        <div class="d-flex align-items-start gap-1">
+                            <i class="ti ti-tips text-warning mt-0" style="font-size: 0.7rem;"></i>
+                            <div>
+                                <strong class="d-block" style="font-size: 0.65rem;">Tips</strong>
+                                <small class="text-muted" style="font-size: 0.6rem;">&bull; Confidential letters are only visible to the addressed office</small><br>
+                                <small class="text-muted" style="font-size: 0.6rem;">&bull; Use the priority filter to spot urgent items quickly</small>
+                            </div>
+                        </div>
+                    </x-alert-light>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    initLiveSearch({
+        url: '{{ route('registry.incoming.index') }}',
+        resultsSelector: '#incomingResults',
+        statsSelector: '#incomingSearchStats',
+        searchInputSelector: '#incomingSearchInput',
+        suggestionsSelector: '#incomingSearchInputSuggestions',
+        recentSearchesKey: 'incomingRecentSearches',
+        statLabel: 'letters',
+        perPage: 15,
+        filterSelectors: ['#statusFilter', '#categoryFilter', '#typeFilter'],
+        extraParams: () => ({
+            status: document.getElementById('statusFilter')?.value || '',
+            office_id: document.getElementById('categoryFilter')?.value || '',
+            priority: document.getElementById('typeFilter')?.value || '',
+        }),
+    });
+});
+</script>
 @endsection

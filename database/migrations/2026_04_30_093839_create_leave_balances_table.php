@@ -18,7 +18,7 @@ return new class extends Migration
             $table->foreignId('adjusted_by')->nullable()->constrained('staff')->onDelete('set null');
             $table->string('adjustment_reason', 191)->nullable();
             $table->timestamps();
-            
+
             $table->unique(['staff_id', 'leave_type_id', 'year'], 'uk_leave_balances');
             $table->index('staff_id');
             $table->index('year');

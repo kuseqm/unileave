@@ -27,24 +27,16 @@
     </div>
     
     <!-- Alerts -->
-    @if(session('success'))
-    <div class="alert alert-success alert-dismissible fade show py-1 px-2 mb-2 rounded-sm" role="alert">
-        <i class="ti ti-check-circle me-1"></i> {{ session('success') }}
-        <button type="button" class="btn-close py-0" data-bs-dismiss="alert"></button>
-    </div>
-    @endif
+    <x-alert-success />
     
-    @if(session('error'))
-    <div class="alert alert-danger alert-dismissible fade show py-1 px-2 mb-2 rounded-sm" role="alert">
-        <i class="ti ti-alert-circle me-1"></i> {{ session('error') }}
-        <button type="button" class="btn-close py-0" data-bs-dismiss="alert"></button>
-    </div>
-    @endif
+    <x-alert-danger />
     
     <!-- Search Card Component -->
     <x-search-card placeholder="Search departments by name, code or school..." id="searchInput" />
     
-    <!-- Departments Table -->
+    <div class="row g-2">
+        <!-- Departments Table - main column -->
+        <div class="col-lg-8">
     <div class="card rounded-sm">
         <div class="card-header py-1 px-2 bg-light">
             <div class="d-flex align-items-center justify-content-between">
@@ -115,7 +107,7 @@
                                     
                                     <!-- Delete Button -->
                                     <button type="button" 
-                                            onclick="showDeleteModal({{ $department->id }}, '{{ addslashes($department->name) }}')" 
+                                            onclick="showDeleteModal({{ $department->id }}, '{{ addslashes($department->name) }}', 'department', '{{ route('admin.departments.destroy', $department->id) }}')"
                                             class="btn btn-sm btn-outline-danger rounded-sm" 
                                             style="font-size: 0.6rem; padding: 0.15rem 0.4rem;" 
                                             title="Delete Department">
@@ -209,27 +201,43 @@
             </div>
         </div>
     </div>
-</div>
+        </div>
 
-<!-- Delete Confirmation Modal -->
-<div class="modal fade" id="deleteModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content rounded-sm">
-            <div class="modal-header py-1 px-2">
-                <h5 class="modal-title" style="font-size: 0.8rem;">Confirm Delete</h5>
-                <button type="button" class="btn-close py-0" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body py-2 px-2">
-                <p style="font-size: 0.75rem;">Are you sure you want to delete <strong id="deleteDepartmentName"></strong>?</p>
-                <p class="text-danger mb-0" style="font-size: 0.7rem;">This action cannot be undone.</p>
-            </div>
-            <div class="modal-footer py-1 px-2">
-                <button type="button" class="btn btn-secondary btn-sm rounded-sm" data-bs-dismiss="modal" style="font-size: 0.7rem;">Cancel</button>
-                <form id="deleteForm" method="POST" style="display: inline;">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="btn btn-danger btn-sm rounded-sm" style="font-size: 0.7rem;">Delete</button>
-                </form>
+        <!-- Information - narrow column -->
+        <div class="col-lg-4">
+            <div class="card rounded-sm">
+                <div class="card-header py-1 px-2 bg-light">
+                    <div class="d-flex align-items-center">
+                        <i class="ti ti-info-circle text-info me-1" style="font-size: 0.8rem;"></i>
+                        <span style="font-size: 0.7rem; font-weight: 600;">Information</span>
+                    </div>
+                </div>
+                <div class="card-body py-2 px-2">
+                    <div class="mb-2">
+                        <div class="fw-semibold" style="font-size: 0.7rem;"><i class="ti ti-building-community me-1 text-primary"></i> About Departments</div>
+                        <p class="mb-0" style="font-size: 0.65rem; color: #555;">A department sits under a school/faculty and owns courses and staff. Departmental review of results is scoped by which department owns a course - not by a student's home program.</p>
+                    </div>
+
+                    <div class="mb-2">
+                        <div class="fw-semibold" style="font-size: 0.7rem;"><i class="ti ti-link me-1 text-primary"></i> Quick Links</div>
+                        <ul class="mb-0 ps-3" style="font-size: 0.65rem; color: #555;">
+                            <li><a href="{{ route('admin.schools.index') }}">Schools & Faculties</a> - manage the parent schools</li>
+                            <li><a href="{{ route('admin.departments.export') }}">Export Departments</a> - download the current list</li>
+                            <li><a href="{{ route('staff.index') }}">Staff</a> - manage staff assigned to departments</li>
+                        </ul>
+                    </div>
+
+                    <x-alert-light class="mb-0 py-1 px-2 rounded-sm">
+                        <div class="d-flex align-items-start gap-1">
+                            <i class="ti ti-tips text-warning mt-0" style="font-size: 0.7rem;"></i>
+                            <div>
+                                <strong class="d-block" style="font-size: 0.65rem;">Tips</strong>
+                                <small class="text-muted" style="font-size: 0.6rem;">&bull; Click the eye icon to view a department's full details</small><br>
+                                <small class="text-muted" style="font-size: 0.6rem;">&bull; Deactivating a department does not remove its staff or courses</small>
+                            </div>
+                        </div>
+                    </x-alert-light>
+                </div>
             </div>
         </div>
     </div>
@@ -302,12 +310,6 @@
 </style>
 
 <script>
-function showDeleteModal(id, name) {
-    document.getElementById('deleteDepartmentName').innerText = name;
-    document.getElementById('deleteForm').action = '/admin/departments/' + id;
-    new bootstrap.Modal(document.getElementById('deleteModal')).show();
-}
-
 // Search Functionality
 const searchInput = document.getElementById('searchInput');
 if (searchInput) {

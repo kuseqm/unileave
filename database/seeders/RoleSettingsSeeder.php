@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\Setting;
+use Illuminate\Database\Seeder;
 
 class RoleSettingsSeeder extends Seeder
 {
@@ -249,6 +249,6 @@ class RoleSettingsSeeder extends Seeder
         }
 
         $this->command->info('Role-specific settings seeded successfully!');
-        $this->command->info('Total settings: ' . Setting::count());
+        $this->command->info('Total settings: '.Setting::count());
     }
 }

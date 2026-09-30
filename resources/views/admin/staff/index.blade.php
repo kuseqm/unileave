@@ -32,231 +32,62 @@
     </div>
     
     <!-- Alerts -->
-    @if(session('success'))
-    <div class="alert alert-success alert-dismissible fade show py-1 px-2 mb-2 rounded-sm" style="font-size: 0.7rem;" role="alert">
-        <i class="ti ti-check-circle me-1"></i> {{ session('success') }}
-        <button type="button" class="btn-close py-0" style="font-size: 0.6rem;" data-bs-dismiss="alert"></button>
-    </div>
-    @endif
+    <x-alert-success />
     
-    @if(session('error'))
-    <div class="alert alert-danger alert-dismissible fade show py-1 px-2 mb-2 rounded-sm" style="font-size: 0.7rem;" role="alert">
-        <i class="ti ti-alert-circle me-1"></i> {{ session('error') }}
-        <button type="button" class="btn-close py-0" style="font-size: 0.6rem;" data-bs-dismiss="alert"></button>
-    </div>
-    @endif
+    <x-alert-danger />
     
     <!-- Search Card -->
-    <x-search-card placeholder="Search by name, email or staff ID..." id="searchInput" />
-    
-    <!-- Staff Table -->
-    <div class="card rounded-sm">
-        <div class="card-header py-1 px-2 bg-light">
-            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
-                <div class="d-flex align-items-center">
-                    <i class="ti ti-users text-primary me-1" style="font-size: 0.8rem;"></i>
-                    <span style="font-size: 0.7rem; font-weight: 600;">Staff Directory</span>
-                </div>
-                <div class="text-muted" style="font-size: 0.6rem;">
-                    Showing {{ $staffMembers->firstItem() ?? 0 }} to {{ $staffMembers->lastItem() ?? 0 }} of {{ $staffMembers->total() ?? 0 }} entries
-                </div>
+    <div id="searchCard">
+        <x-search-card placeholder="Search by name, email or staff ID..." id="searchInput" name="search" :value="request('search')">
+            <div id="searchStats" class="text-muted" style="font-size: 0.65rem;">
+                {{ $staffMembers->total() }} staff total
+            </div>
+        </x-search-card>
+    </div>
+
+    <div class="row g-2">
+        <!-- Staff Table - main column -->
+        <div class="col-lg-8">
+            <div id="staffResults">
+                @include('admin.staff._results')
             </div>
         </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-sm mb-0" style="font-size: 0.75rem;" id="staffTable">
-                    <thead class="bg-light">
-                        <tr>
-                            <th class="ps-2 py-1" width="50">SN</th>
-                            <th class="py-1">Name</th>
-                            <th class="py-1">Email</th>
-                            <th class="py-1">Department</th>
-                            <th class="py-1">Category</th>
-                            <th class="py-1">Status</th>
-                            {{-- Show Actions column for admin, HR, or Dean --}}
-                            @if(auth()->user()->hasRole('admin') || auth()->user()->hasRole('hr_manager') || auth()->user()->hasRole('dean'))
-                            <th class="pe-2 py-1" width="100">Actions</th>
-                            @endif
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($staffMembers as $index => $staff)
-                        <tr data-staff-id="{{ $staff->id }}" 
-                            data-name="{{ strtolower($staff->full_name) }}" 
-                            data-email="{{ strtolower($staff->email) }}" 
-                            data-staff-code="{{ strtolower($staff->staff_id ?? '') }}" 
-                            data-category="{{ $staff->staff_category }}" 
-                            data-status="{{ $staff->status }}">
-                            <td class="ps-2 py-1">{{ $staffMembers->firstItem() + $index }}</td>
-                            <td class="py-1">
-                                <span class="fw-semibold">{{ $staff->full_name }}</span>
-                            </td>
-                            <td class="py-1">{{ $staff->email }}</td>
-                            <td class="py-1">{{ $staff->department->name ?? 'N/A' }}</td>
-                            <td class="py-1">
-                                @if($staff->staff_category == 'academic')
-                                    <span class="badge bg-primary-subtle text-primary rounded-sm" style="font-size: 0.6rem;">Academic</span>
-                                @elseif($staff->staff_category == 'administrative')
-                                    <span class="badge bg-info-subtle text-info rounded-sm" style="font-size: 0.6rem;">Administrative</span>
-                                @else
-                                    <span class="badge bg-secondary-subtle text-secondary rounded-sm" style="font-size: 0.6rem;">Supporting</span>
-                                @endif
-                            </td>
-                            <td class="py-1">
-                                @if($staff->status == 'active')
-                                    <span class="badge bg-success-subtle text-success rounded-sm" style="font-size: 0.6rem;">Active</span>
-                                @elseif($staff->status == 'inactive')
-                                    <span class="badge bg-warning-subtle text-warning rounded-sm" style="font-size: 0.6rem;">Inactive</span>
-                                @else
-                                    <span class="badge bg-danger-subtle text-danger rounded-sm" style="font-size: 0.6rem;">Suspended</span>
-                                @endif
-                            </td>
-                            {{-- Show action buttons for admin, HR, or Dean --}}
-                            @if(auth()->user()->hasRole('admin') || auth()->user()->hasRole('hr_manager') || auth()->user()->hasRole('dean'))
-                            <td class="pe-2 py-1">
-                                <div class="d-flex gap-1">
-                                    <!-- View Button (always visible for everyone) -->
-                                    <a href="{{ route('staff.show', $staff->id) }}" 
-                                       class="btn btn-sm btn-outline-info rounded-sm" 
-                                       style="font-size: 0.6rem; padding: 0.15rem 0.4rem;" 
-                                       title="View Staff">
-                                        <i class="ti ti-eye"></i>
-                                    </a>
-                                    
-                                    <!-- Edit Button -->
-                                    <a href="{{ route('staff.edit', $staff->id) }}" 
-                                       class="btn btn-sm btn-outline-primary rounded-sm" 
-                                       style="font-size: 0.6rem; padding: 0.15rem 0.4rem;" 
-                                       title="Edit Staff">
-                                        <i class="ti ti-edit"></i>
-                                    </a>
-                                    
-                                    <!-- Delete Button -->
-                                    <button type="button" 
-                                            onclick="showDeleteModal({{ $staff->id }}, '{{ addslashes($staff->full_name) }}')" 
-                                            class="btn btn-sm btn-outline-danger rounded-sm" 
-                                            style="font-size: 0.6rem; padding: 0.15rem 0.4rem;" 
-                                            title="Delete Staff">
-                                        <i class="ti ti-trash"></i>
-                                    </button>
-                                </div>
-                            </td>
-                            @endif
-                        </tr>
-                        @empty
-                        <tr>
-                            @if(auth()->user()->hasRole('admin') || auth()->user()->hasRole('hr_manager') || auth()->user()->hasRole('dean'))
-                            <td colspan="7" class="text-center py-3 text-muted" style="font-size: 0.7rem;">No staff members found</td>
-                            @else
-                            <td colspan="6" class="text-center py-3 text-muted" style="font-size: 0.7rem;">No staff members found</td>
-                            @endif
-                        </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        
-        <!-- Pagination Footer -->
-        <div class="card-footer py-2 px-2 bg-light">
-            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-                <!-- Per Page Dropdown -->
-                <div class="d-flex align-items-center gap-2">
-                    <span class="text-muted" style="font-size: 0.65rem;">Show:</span>
-                    <select id="perPageSelect" class="custom-select-sm" style="font-size: 0.65rem; padding: 0.2rem 1.2rem 0.2rem 0.4rem; border: 1px solid #E8E2D5; border-radius: 4px; background: white;">
-                        <option value="10" {{ $staffMembers->perPage() == 10 ? 'selected' : '' }}>10</option>
-                        <option value="25" {{ $staffMembers->perPage() == 25 ? 'selected' : '' }}>25</option>
-                        <option value="50" {{ $staffMembers->perPage() == 50 ? 'selected' : '' }}>50</option>
-                        <option value="100" {{ $staffMembers->perPage() == 100 ? 'selected' : '' }}>100</option>
-                    </select>
-                    <span class="text-muted" style="font-size: 0.65rem;">per page</span>
-                </div>
-                
-                <!-- Custom Pagination Links -->
-                @if ($staffMembers->hasPages())
-                <div class="custom-pagination">
-                    <div class="pagination-links">
-                        {{-- First Page --}}
-                        @if ($staffMembers->onFirstPage())
-                            <span class="pagination-item disabled">«</span>
-                        @else
-                            <a href="{{ $staffMembers->url(1) }}" class="pagination-item">«</a>
-                        @endif
-                        
-                        {{-- Previous Page --}}
-                        @if ($staffMembers->onFirstPage())
-                            <span class="pagination-item disabled">‹</span>
-                        @else
-                            <a href="{{ $staffMembers->previousPageUrl() }}" class="pagination-item">‹</a>
-                        @endif
-                        
-                        {{-- Page Numbers --}}
-                        @php
-                            $currentPage = $staffMembers->currentPage();
-                            $lastPage = $staffMembers->lastPage();
-                            $start = max(1, $currentPage - 2);
-                            $end = min($lastPage, $currentPage + 2);
-                            
-                            if ($start > 1) {
-                                echo '<a href="' . $staffMembers->url(1) . '" class="pagination-item">1</a>';
-                                if ($start > 2) echo '<span class="pagination-item dots">...</span>';
-                            }
-                            
-                            for ($i = $start; $i <= $end; $i++) {
-                                if ($i == $currentPage) {
-                                    echo '<span class="pagination-item active">' . $i . '</span>';
-                                } else {
-                                    echo '<a href="' . $staffMembers->url($i) . '" class="pagination-item">' . $i . '</a>';
-                                }
-                            }
-                            
-                            if ($end < $lastPage) {
-                                if ($end < $lastPage - 1) echo '<span class="pagination-item dots">...</span>';
-                                echo '<a href="' . $staffMembers->url($lastPage) . '" class="pagination-item">' . $lastPage . '</a>';
-                            }
-                        @endphp
-                        
-                        {{-- Next Page --}}
-                        @if ($staffMembers->hasMorePages())
-                            <a href="{{ $staffMembers->nextPageUrl() }}" class="pagination-item">›</a>
-                        @else
-                            <span class="pagination-item disabled">›</span>
-                        @endif
-                        
-                        {{-- Last Page --}}
-                        @if ($staffMembers->hasMorePages())
-                            <a href="{{ $staffMembers->url($staffMembers->lastPage()) }}" class="pagination-item">»</a>
-                        @else
-                            <span class="pagination-item disabled">»</span>
-                        @endif
+
+        <!-- Information - narrow column -->
+        <div class="col-lg-4">
+            <div class="card rounded-sm">
+                <div class="card-header py-1 px-2 bg-light">
+                    <div class="d-flex align-items-center">
+                        <i class="ti ti-info-circle text-info me-1" style="font-size: 0.8rem;"></i>
+                        <span style="font-size: 0.7rem; font-weight: 600;">Information</span>
                     </div>
                 </div>
-                @endif
-                
-                <!-- Results Info -->
-                <div class="text-muted" style="font-size: 0.6rem;">
-                    Page {{ $staffMembers->currentPage() }} of {{ $staffMembers->lastPage() }}
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+                <div class="card-body py-2 px-2">
+                    <div class="mb-2">
+                        <div class="fw-semibold" style="font-size: 0.7rem;"><i class="ti ti-users me-1 text-primary"></i> About Staff</div>
+                        <p class="mb-0" style="font-size: 0.65rem; color: #555;">Staff records cover academic, administrative and supporting personnel. Each staff member can hold roles and positions used across leave approvals, ID cards and gate access.</p>
+                    </div>
 
-<!-- Delete Confirmation Modal -->
-<div class="modal fade" id="deleteModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content rounded-sm">
-            <div class="modal-header py-1 px-2">
-                <h5 class="modal-title" style="font-size: 0.8rem;">Confirm Delete</h5>
-                <button type="button" class="btn-close py-0" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body py-2 px-2">
-                <p style="font-size: 0.75rem;">Are you sure you want to delete <strong id="deleteStaffName"></strong>?</p>
-                <p class="text-danger mb-0" style="font-size: 0.7rem;">This action cannot be undone.</p>
-            </div>
-            <div class="modal-footer py-1 px-2">
-                <button type="button" class="btn btn-secondary btn-sm rounded-sm" data-bs-dismiss="modal" style="font-size: 0.7rem;">Cancel</button>
-                <a href="#" id="deleteConfirmBtn" class="btn btn-danger btn-sm rounded-sm" style="font-size: 0.7rem;">Delete</a>
+                    <div class="mb-2">
+                        <div class="fw-semibold" style="font-size: 0.7rem;"><i class="ti ti-link me-1 text-primary"></i> Quick Links</div>
+                        <ul class="mb-0 ps-3" style="font-size: 0.65rem; color: #555;">
+                            <li><a href="{{ route('admin.import.staff') }}">Import Staff</a> - bulk upload from Excel</li>
+                            <li><a href="{{ route('admin.roles.index') }}">Roles</a> - manage roles and assignments</li>
+                            <li><a href="{{ route('admin.departments.index') }}">Departments</a> - manage staff's departments</li>
+                        </ul>
+                    </div>
+
+                    <x-alert-light class="mb-0 py-1 px-2 rounded-sm">
+                        <div class="d-flex align-items-start gap-1">
+                            <i class="ti ti-tips text-warning mt-0" style="font-size: 0.7rem;"></i>
+                            <div>
+                                <strong class="d-block" style="font-size: 0.65rem;">Tips</strong>
+                                <small class="text-muted" style="font-size: 0.6rem;">&bull; Search matches name, email or staff ID</small><br>
+                                <small class="text-muted" style="font-size: 0.6rem;">&bull; Only Admin, HR or Dean roles can add or import staff</small>
+                            </div>
+                        </div>
+                    </x-alert-light>
+                </div>
             </div>
         </div>
     </div>
@@ -338,38 +169,144 @@
 </style>
 
 <script>
-function showDeleteModal(id, name) {
-    document.getElementById('deleteStaffName').innerText = name;
-    document.getElementById('deleteConfirmBtn').href = '/staff/' + id;
-    new bootstrap.Modal(document.getElementById('deleteModal')).show();
-}
+// Live search — fetches filtered results in place instead of doing a full
+// page navigation, so it never interrupts you (including when you clear the
+// box back to empty) and can search the whole staff list, not just whatever
+// happens to be on the current page.
+(function () {
+    const staffIndexUrl = '{{ route('staff.index') }}';
+    const resultsEl = document.getElementById('staffResults');
+    const statsEl = document.getElementById('searchStats');
+    const searchInput = document.getElementById('searchInput');
+    const suggestionsEl = document.getElementById('searchInputSuggestions');
+    const recentSearchesKey = 'staffRecentSearches';
+    let perPage = {{ $staffMembers->perPage() }};
+    let currentPage = 1;
+    let debounceTimer;
+    let requestSeq = 0;
 
-// Search Functionality
-const searchInput = document.getElementById('searchInput');
-if (searchInput) {
-    searchInput.addEventListener('keyup', function() {
-        const searchTerm = this.value.toLowerCase();
-        const rows = document.querySelectorAll('#staffTable tbody tr');
-        rows.forEach(row => {
-            if (row.cells.length >= 6) {
-                const name = row.cells[1]?.innerText.toLowerCase() || '';
-                const email = row.cells[2]?.innerText.toLowerCase() || '';
-                const matches = name.includes(searchTerm) || email.includes(searchTerm);
-                row.style.display = matches ? '' : 'none';
-            }
-        });
-    });
-}
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
 
-// Per Page Change Handler
-const perPageSelect = document.getElementById('perPageSelect');
-if (perPageSelect) {
-    perPageSelect.addEventListener('change', function() {
-        const url = new URL(window.location.href);
-        url.searchParams.set('per_page', this.value);
-        url.searchParams.delete('page');
-        window.location.href = url.toString();
+    function getRecentSearches() {
+        try {
+            return JSON.parse(localStorage.getItem(recentSearchesKey)) || [];
+        } catch (e) {
+            return [];
+        }
+    }
+
+    function saveRecentSearch(term) {
+        term = term.trim();
+        if (term === '') {
+            return;
+        }
+        let recent = getRecentSearches().filter(t => t.toLowerCase() !== term.toLowerCase());
+        recent.unshift(term);
+        recent = recent.slice(0, 5);
+        localStorage.setItem(recentSearchesKey, JSON.stringify(recent));
+    }
+
+    function renderSuggestions() {
+        if (!suggestionsEl) {
+            return;
+        }
+        const recent = getRecentSearches();
+        if (recent.length === 0) {
+            suggestionsEl.classList.add('d-none');
+            return;
+        }
+        suggestionsEl.innerHTML = recent.map(term =>
+            `<div class="search-suggestion-item" data-term="${escapeHtml(term)}"><i class="ti ti-history"></i> ${escapeHtml(term)}</div>`
+        ).join('');
+        suggestionsEl.classList.remove('d-none');
+    }
+
+    function hideSuggestions() {
+        suggestionsEl?.classList.add('d-none');
+    }
+
+    function load(page = 1) {
+        currentPage = page;
+        const term = searchInput.value.trim();
+        const params = new URLSearchParams();
+        if (term !== '') {
+            params.set('search', term);
+        }
+        params.set('per_page', perPage);
+        params.set('page', page);
+
+        const seq = ++requestSeq;
+
+        fetch(staffIndexUrl + '?' + params.toString(), {
+            headers: { 'Accept': 'application/json' },
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (seq !== requestSeq) {
+                    return; // a newer request already landed, ignore this stale one
+                }
+                resultsEl.innerHTML = data.html;
+                if (statsEl) {
+                    const blue = n => `<span style="color:#3B82F6; font-weight:700;">${n}</span>`;
+                    statsEl.innerHTML = term !== ''
+                        ? `${blue(data.total)} of ${blue(data.grand_total)} staff match "${escapeHtml(term)}"`
+                        : `${blue(data.grand_total)} staff total`;
+                }
+                history.replaceState(null, '', staffIndexUrl + '?' + params.toString());
+                if (term !== '') {
+                    saveRecentSearch(term);
+                }
+            });
+    }
+
+    searchInput.addEventListener('keyup', function (e) {
+        if (e.key === 'Escape') {
+            hideSuggestions();
+            return;
+        }
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => load(1), 400);
     });
-}
+
+    searchInput.addEventListener('focus', renderSuggestions);
+
+    // Delay so a click on a suggestion registers before the list disappears.
+    searchInput.addEventListener('blur', () => setTimeout(hideSuggestions, 150));
+
+    suggestionsEl?.addEventListener('mousedown', function (e) {
+        const item = e.target.closest('[data-term]');
+        if (item) {
+            searchInput.value = item.dataset.term;
+            hideSuggestions();
+            clearTimeout(debounceTimer);
+            load(1);
+        }
+    });
+
+    resultsEl.addEventListener('click', function (e) {
+        const pageLink = e.target.closest('[data-page]');
+        if (pageLink) {
+            e.preventDefault();
+            load(parseInt(pageLink.dataset.page, 10));
+        }
+    });
+
+    resultsEl.addEventListener('change', function (e) {
+        if (e.target.id === 'perPageSelect') {
+            perPage = e.target.value;
+            load(1);
+        }
+    });
+
+    document.getElementById('resetFilters')?.addEventListener('click', function (e) {
+        e.preventDefault();
+        searchInput.value = '';
+        load(1);
+    });
+})();
 </script>
 @endsection

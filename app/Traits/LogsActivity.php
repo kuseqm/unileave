@@ -3,7 +3,6 @@
 namespace App\Traits;
 
 use App\Models\AuditLog;
-use Illuminate\Support\Facades\Request;
 
 trait LogsActivity
 {
@@ -14,7 +13,7 @@ trait LogsActivity
     {
         AuditLog::log($action, $module, $recordId, $oldValues, $newValues);
     }
-    
+
     /**
      * Log staff creation (manual or bulk)
      */
@@ -33,7 +32,7 @@ trait LogsActivity
             ]
         );
     }
-    
+
     /**
      * Log staff update with old and new values
      */
@@ -47,7 +46,7 @@ trait LogsActivity
             $newValues
         );
     }
-    
+
     /**
      * Log staff deletion
      */
@@ -65,7 +64,7 @@ trait LogsActivity
             null
         );
     }
-    
+
     /**
      * Log bulk import
      */

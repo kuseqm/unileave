@@ -15,8 +15,17 @@
             <h6 class="mb-2">{{ $travelRequest->staff->first_name }} {{ $travelRequest->staff->last_name }} requests you to cover their duties</h6>
             <p><strong>Destination:</strong> {{ $travelRequest->destination }}</p>
             <p><strong>Period:</strong> {{ \Carbon\Carbon::parse($travelRequest->start_date)->format('d M Y') }} - {{ \Carbon\Carbon::parse($travelRequest->end_date)->format('d M Y') }}</p>
-            
-            <form method="POST" action="{{ route('travel-permissions.acting.process', $travelRequest->id) }}">
+
+            @if($travelRequest->handover_notes)
+            <div class="bg-light p-2 rounded-sm mb-2">
+                <strong style="font-size: 0.75rem;"><i class="ti ti-file-description text-success me-1"></i> What you'll be covering:</strong>
+                <div class="mt-1" style="font-size: 0.75rem;">
+                    <x-numbered-paragraphs :text="$travelRequest->handover_notes" />
+                </div>
+            </div>
+            @endif
+
+            <form id="actingResponseForm" method="POST" action="{{ route('travel-permissions.acting.process', $travelRequest->id) }}">
                 @csrf
                 <div class="mb-2">
                     <label class="form-label">Comment (Optional)</label>
@@ -35,7 +44,10 @@
 <script>
 function submitResponse(action) {
     document.getElementById('action_value').value = action;
-    document.querySelector('form').submit();
+    // Not document.querySelector('form') - the layout's hidden logout form
+    // appears earlier in the DOM and would be submitted instead, logging
+    // the acting staff out rather than recording their response.
+    document.getElementById('actingResponseForm').submit();
 }
 </script>
 @endsection

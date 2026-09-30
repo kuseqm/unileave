@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class IncomingLetter extends Model
 {
@@ -121,7 +121,7 @@ class IncomingLetter extends Model
      */
     public function getStatusBadgeClassAttribute()
     {
-        return match($this->status) {
+        return match ($this->status) {
             'received' => 'bg-yellow',
             'assigned' => 'bg-blue',
             'in_progress' => 'bg-cyan',
@@ -136,7 +136,7 @@ class IncomingLetter extends Model
      */
     public function getPriorityBadgeClassAttribute()
     {
-        return match($this->priority) {
+        return match ($this->priority) {
             'urgent' => 'bg-red',
             'confidential' => 'bg-dark',
             default => 'bg-secondary',
@@ -151,6 +151,7 @@ class IncomingLetter extends Model
         if ($this->status === 'closed') {
             return null;
         }
+
         return $this->date_received->diffInDays(now());
     }
 
@@ -164,6 +165,7 @@ class IncomingLetter extends Model
         if ($this->status === 'closed' || $this->status === 'replied') {
             return false;
         }
+
         return $this->days_pending > 5;
     }
 }

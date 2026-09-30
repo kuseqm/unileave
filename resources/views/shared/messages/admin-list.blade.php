@@ -27,33 +27,19 @@
         <x-stats-card value="{{ ucfirst($role) }}" label="Your Role" subtext="access level" color="info" />
     </div>
 
-    <!-- Filters -->
-    <div class="card rounded-sm mb-3">
-        <div class="card-body py-2 px-3">
-            <div class="row g-2">
-                <div class="col-md-4">
-                    <select id="typeFilter" class="form-select form-select-sm">
-                        <option value="all">All Types</option>
-                        <option value="general">General</option>
-                        <option value="approval">Approval</option>
-                        <option value="task">Task</option>
-                        <option value="minute">Minute</option>
-                    </select>
-                </div>
-                <div class="col-md-4">
-                    <select id="statusFilter" class="form-select form-select-sm">
-                        <option value="all">All Status</option>
-                        <option value="active">Active</option>
-                        <option value="deleted">Deleted (Soft)</option>
-                        <option value="archived">Archived</option>
-                    </select>
-                </div>
-                <div class="col-md-4">
-                    <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="Search by subject or sender...">
-                </div>
-            </div>
+    <x-search-card
+        placeholder="Search by subject or sender..."
+        :showTypeFilter="true"
+        typeLabel="Type"
+        :typeOptions="['general' => 'General', 'approval' => 'Approval', 'task' => 'Task', 'minute' => 'Minute']"
+        :showStatusFilter="true"
+        statusLabel="Status"
+        :statusOptions="['active' => 'Active', 'deleted' => 'Deleted (Soft)', 'archived' => 'Archived']"
+    >
+        <div id="messageAdminSearchStats" class="text-muted" style="font-size: 0.65rem;">
+            {{ $messages->total() }} messages
         </div>
-    </div>
+    </x-search-card>
 
     <div class="row g-3">
         <!-- LEFT COLUMN: Message Directory Table (70%) -->
@@ -168,10 +154,9 @@
                         <p class="text-muted mt-1 mb-0" style="font-size: 0.65rem;">Click the <i class="ti ti-history"></i> icon to view message details. From there, HR can request access to content.</p>
                     </div>
                     
-                    <div class="alert alert-info py-1 px-2 mb-0" style="font-size: 0.65rem;">
-                        <i class="ti ti-tips me-1"></i>
-                        <strong>Tip:</strong> Click the <i class="ti ti-history"></i> icon to view full metadata, audit trail, and access request options.
-                    </div>
+                    <x-alert-info>
+    <strong>Tip:</strong> Click the <i class="ti ti-history"></i> icon to view full metadata, audit trail, and access request options.
+</x-alert-info>
                 </div>
             </div>
         </div>
@@ -183,6 +168,7 @@
 const typeFilter = document.getElementById('typeFilter');
 const statusFilter = document.getElementById('statusFilter');
 const searchInput = document.getElementById('searchInput');
+const resetFilters = document.getElementById('resetFilters');
 const rows = document.querySelectorAll('#messageTable tbody tr');
 
 function filterTable() {
@@ -192,8 +178,8 @@ function filterTable() {
     
     rows.forEach(row => {
         let show = true;
-        if (type !== 'all' && row.dataset.type !== type) show = false;
-        if (status !== 'all' && row.dataset.status !== status) show = false;
+        if (type !== '' && row.dataset.type !== type) show = false;
+        if (status !== '' && row.dataset.status !== status) show = false;
         if (search && !row.dataset.subject.includes(search) && !row.dataset.sender.includes(search)) show = false;
         row.style.display = show ? '' : 'none';
     });
@@ -202,5 +188,14 @@ function filterTable() {
 typeFilter.addEventListener('change', filterTable);
 statusFilter.addEventListener('change', filterTable);
 searchInput.addEventListener('keyup', filterTable);
+
+if (resetFilters) {
+    resetFilters.addEventListener('click', function () {
+        if (typeFilter) typeFilter.value = '';
+        if (statusFilter) statusFilter.value = '';
+        if (searchInput) searchInput.value = '';
+        filterTable();
+    });
+}
 </script>
 @endsection

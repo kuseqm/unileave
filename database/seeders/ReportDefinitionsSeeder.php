@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\ReportDefinition;
+use Illuminate\Database\Seeder;
 
 class ReportDefinitionsSeeder extends Seeder
 {
@@ -22,7 +22,7 @@ class ReportDefinitionsSeeder extends Seeder
                     'status' => true,
                 ]),
                 'columns' => json_encode([
-                    'staff_name', 'department', 'leave_type', 'start_date', 'end_date', 'days', 'status'
+                    'staff_name', 'department', 'leave_type', 'start_date', 'end_date', 'days', 'status',
                 ]),
                 'chart_config' => json_encode([
                     'type' => 'bar',
@@ -46,7 +46,7 @@ class ReportDefinitionsSeeder extends Seeder
                     'staff_category' => true,
                 ]),
                 'columns' => json_encode([
-                    'staff_id', 'name', 'email', 'phone', 'department', 'status', 'joining_date'
+                    'staff_id', 'name', 'email', 'phone', 'department', 'status', 'joining_date',
                 ]),
                 'chart_config' => null,
                 'permission' => 'view_reports',
@@ -64,7 +64,7 @@ class ReportDefinitionsSeeder extends Seeder
                     'staff_category' => true,
                 ]),
                 'columns' => json_encode([
-                    'staff_name', 'department', 'annual_leave', 'sick_leave', 'casual_leave', 'remaining'
+                    'staff_name', 'department', 'annual_leave', 'sick_leave', 'casual_leave', 'remaining',
                 ]),
                 'chart_config' => json_encode([
                     'type' => 'pie',
@@ -88,7 +88,7 @@ class ReportDefinitionsSeeder extends Seeder
                     'date_range' => true,
                 ]),
                 'columns' => json_encode([
-                    'staff_name', 'department', 'leave_type', 'start_date', 'end_date', 'days', 'submitted_on', 'current_approver'
+                    'staff_name', 'department', 'leave_type', 'start_date', 'end_date', 'days', 'submitted_on', 'current_approver',
                 ]),
                 'chart_config' => json_encode([
                     'type' => 'bar',
@@ -108,10 +108,10 @@ class ReportDefinitionsSeeder extends Seeder
                 'description' => 'Monthly leave taken trends to identify peak leave periods.',
                 'filters' => json_encode([
                     'year' => true,
-                'department_id' => true,
+                    'department_id' => true,
                 ]),
                 'columns' => json_encode([
-                    'month', 'total_days', 'staff_count', 'avg_days_per_staff'
+                    'month', 'total_days', 'staff_count', 'avg_days_per_staff',
                 ]),
                 'chart_config' => json_encode([
                     'type' => 'line',
@@ -133,7 +133,7 @@ class ReportDefinitionsSeeder extends Seeder
                     'date_range' => true,
                 ]),
                 'columns' => json_encode([
-                    'department', 'total_staff', 'total_leave_days', 'avg_per_staff', 'pending_requests', 'approved_requests'
+                    'department', 'total_staff', 'total_leave_days', 'avg_per_staff', 'pending_requests', 'approved_requests',
                 ]),
                 'chart_config' => json_encode([
                     'type' => 'horizontalBar',
@@ -156,7 +156,7 @@ class ReportDefinitionsSeeder extends Seeder
                     'date_range' => true,
                 ]),
                 'columns' => json_encode([
-                    'leave_type', 'start_date', 'end_date', 'days', 'status', 'approved_by', 'approved_at'
+                    'leave_type', 'start_date', 'end_date', 'days', 'status', 'approved_by', 'approved_at',
                 ]),
                 'chart_config' => null,
                 'permission' => 'view_reports',
@@ -174,7 +174,7 @@ class ReportDefinitionsSeeder extends Seeder
                     'department_id' => true,
                 ]),
                 'columns' => json_encode([
-                    'leave_type', 'total_days', 'percentage', 'staff_count'
+                    'leave_type', 'total_days', 'percentage', 'staff_count',
                 ]),
                 'chart_config' => json_encode([
                     'type' => 'pie',
@@ -197,7 +197,7 @@ class ReportDefinitionsSeeder extends Seeder
                     'department_id' => true,
                 ]),
                 'columns' => json_encode([
-                    'department', 'avg_approval_hours', 'min_approval_hours', 'max_approval_hours', 'total_approved'
+                    'department', 'avg_approval_hours', 'min_approval_hours', 'max_approval_hours', 'total_approved',
                 ]),
                 'chart_config' => json_encode([
                     'type' => 'bar',
@@ -220,7 +220,7 @@ class ReportDefinitionsSeeder extends Seeder
                     'threshold' => true, // configurable threshold
                 ]),
                 'columns' => json_encode([
-                    'staff_name', 'department', 'annual_remaining', 'sick_remaining', 'casual_remaining'
+                    'staff_name', 'department', 'annual_remaining', 'sick_remaining', 'casual_remaining',
                 ]),
                 'chart_config' => null,
                 'permission' => 'view_reports',

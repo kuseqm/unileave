@@ -18,17 +18,17 @@ trait Auditable
         // Do NOT automatically log created, updated, deleted here
         // Instead, call log methods explicitly
     }
-    
+
     /**
      * Log an audit event manually
      */
     public function logAudit($event, $action, $oldValues = null, $newValues = null, $metadata = null)
     {
         // Skip if no authenticated user (like in migrations or seeding)
-        if (!auth()->check()) {
+        if (! auth()->check()) {
             return;
         }
-        
+
         try {
             UnifiedAuditTrail::create([
                 'auditable_type' => get_class($this),
@@ -45,7 +45,7 @@ trait Auditable
             ]);
         } catch (\Exception $e) {
             // Silently fail - don't break the application
-            \Log::error('Failed to log audit: ' . $e->getMessage());
+            \Log::error('Failed to log audit: '.$e->getMessage());
         }
     }
 

@@ -1,0 +1,199 @@
+MAELEKEZO YA KUTEST MZUNGUKO WA LEAVE APPROVAL
+================================================
+
+Lengo: Kupitia mzunguko kamili wa maombi ya likizo kutoka ombi hadi barua inapotolewa.
+
+
+MAGROUP MAWILI YA TESTING
+-------------------------
+
+KUNDI A: WATOA MAOMBI (APPLICANTS)
+----------------------------------
+Hawa ni watu wanaoomba leave.
+
+    Jina la kikundi: Watoa Maombi
+    Roles zinazohitajika: staff au dept-secretary
+    Wanaofaa kuwa hapa:
+        - Staff wa kawaida
+        - Dept secretary
+    Wanaofanya nini:
+        - Wanaomba leave kupitia /leave-requests/create
+        - Wanakubali acting request ikiwa waliitwa kuwa acting
+        - Mwisho wanaweza kuona/kupakua barua yao /leave-letters
+
+
+KUNDI B: WAIDHINISHAJI (APPROVERS)
+----------------------------------
+Hawa ni watu wanaoidhinisha maombi.
+
+    1. HOD (Head of Department)
+       Jina la kikundi: HOD wa Department
+       Role: hod au deputy-hod
+       Anayofaa kuwa hapa:
+           - Mtu aliyewekwa kama departments.hod_staff_id kwa department husika
+       Maombi anayoiona:
+           - Maombi ya staff wa department yake tu
+           - current_approval_level lazima iwe 1
+
+    2. DEAN
+       Jina la kikundi: Dean wa School
+       Role: dean
+       Anayofaa kuwa hapa:
+           - Mtu aliyewekwa kama schools.dean_staff_id kwa school husika
+       Maombi anayoiona:
+           - Maombi ya staff wa school yake tu
+           - current_approval_level lazima iwe 2
+
+    3. HR REVIEW
+       Jina la kikundi: HR Review
+       Roles: hr-officer au hr-manager
+       Anayofaa kuwa hapa:
+           - HR wa same university na applicant
+           - Asiwe mwenyewe applicant
+       Maombi anayoiona:
+           - Maombi yote yanayokuwa level 3 katika university yake
+
+    4. DVC
+       Jina la kikundi: DVC
+       Roles:
+           - dvca kwa staffCategory academic
+           - dvc-pfa kwa staffCategory administrative au supporting
+       Anayofaa kuwa hapa:
+           - DVC wa same university na applicant
+           - Asiwe mwenyewe applicant
+       Maombi anayoiona:
+           - Maombi ya staff katika university yake tu
+           - current_approval_level lazima iwe 4
+
+    5. HR LOGISTICS (MWISHO)
+       Jina la kikundi: HR Logistics
+       Roles: hr-officer au hr-manager
+       Anayofaa kuwa hapa:
+           - HR wa same university na applicant
+           - Asiwe mwenyewe applicant
+       Maombi anayoiona:
+           - Maombi yote yanayokuwa level 5 katika university yake
+
+    6. MSIMAMIZI
+       Jina la kikundi: Msimamizi
+       Roles: admin, super-admin, au registrar
+       Maombi anayoiona:
+           - admin na super-admin wanaona maombi yote ya university yake
+           - super-admin anakiona kila kitu
+
+
+JINSI YA KUANDAA DATA KWA TEST
+------------------------------
+
+Positive flow (mfano sahihi):
+    - Applicant: staff wa department X, school Y
+    - HOD: user aliyewekwa kama departments.hod_staff_id kwa department X
+    - Dean: user aliyewekwa kama schools.dean_staff_id kwa school Y
+    - HR: hr-manager au hr-officer wa same university
+    - DVC: dvca au dvc-pfa wa same university
+
+Negative flow (mfano wa kutotakiwa kuona):
+    - Tengeneza department Z, school W nyingine
+    - Weka HOD/Dean wa department/school hiyo
+    - HOD/Dean huyu hastakiwi kuona maombi ya department X / school Y
+    - Hii inakwenda kuthibitisha mfumo unazingatia mipaka
+
+Vitu vya kuhakikisha kabla ya kuanza:
+    - Applicant na HOD/Dean/DVC/HR wote wa university moja
+    - staff_category ya applicant imewekwa (academic au administrative) kabla ya DVC step
+    - HOD, Dean, na DVC ni users tofauti na applicant
+
+
+MZUNGUKO WA TESTING HATUA KWA HATUA
+------------------------------------
+
+1. Applicant anaomba leave
+   - Ingia kama staff
+   - Nenda /leave-requests/create
+   - Chagua leave type, tarehe, acting staff, sababu
+   - Bonyeza Submit
+
+2. Acting staff anakubali
+   - Ingia kama user aliyechaguliwa kuwa acting
+   - Nenda Acting Requests -> Accept
+   - Mpaka acting haijakubaliwa, HOD hawezi kuapprove
+
+3. HOD anaapprove
+   - Ingia kama hod wa department ya applicant
+   - Nenda /leave-requests/pending
+   - Bonyeza Approve
+
+4. Dean anaapprove
+   - Ingia kama dean wa school ya applicant
+   - Nenda /leave-requests/pending
+   - Bonyeza Approve
+
+5. HR Review
+   - Ingia kama hr-officer au hr-manager
+   - Nenda /leave-requests/pending au /hr-review/{id}
+   - Jaza payment status, adjusted days, comments, travel allowance
+   - Bonyeza Approve
+   - Hii inapeleka ombi kwa DVC
+
+6. DVC anaapprove
+   - Kama applicant ni academic, itakwenda kwa dvca
+   - Kama ni administrative, itakwenda kwa dvc-pfa
+   - Nenda /leave-requests/pending
+   - Bonyeza Approve
+
+7. HR Logistics (hatua ya mwisho)
+   - Ingia kama hr-officer au hr-manager (mwingine tofauti na applicant)
+   - Nenda /leave-requests/hr-logistics/{id}
+   - Jaza signature, mshahara, usafiri nk
+   - Bonyeza Approve
+   - Hii hufunga maombi na kutengeneza leave letter
+
+8. Applicant anakwenda /leave-letters
+   - Anaweza kuona, kupakua PDF, na kuprint
+
+
+MUHIMU ILI USIKWAME
+-------------------
+
+- Usitumie php artisan serve kwa testing wa approvals/downloads/preview
+  Tumia Wamp (Apache) kwenye http://127.0.0.1/sms_demo/public/ au virtual host
+
+- Usiweke approver mmoja na nafasi kadhaa kwa account moja
+  (mfano HOD na Dean kwa user moja)
+
+- Hakikisha departments.hod_staff_id na schools.dean_staff_id zimewekwa
+
+- Hakikisha staff_category imewekwa (academic au administrative) kabla ya DVC step
+
+- Hakikisha kila approver ni wa same university na applicant
+
+- Usiapprove maombi yako mwenyewe kama HR; mfumo unakataza
+
+
+KUWAONGEZEA WATU WAPYA UWEZO WA KUFANYA TEST
+--------------------------------------------
+
+Njia 1: Admin UI
+    - Nenda Administration -> Role Management
+    - Fungua user -> assign role kama staff, hod, dean, hr-manager, dvca, dvc-pfa nk
+    - Kwa HOD/Dean pia weka departments.hod_staff_id / schools.dean_staff_id
+
+Njia 2: Tinker
+    Fungua terminal:
+        php artisan tinker
+
+    Andika:
+        $user = \App\Models\User::find(123);
+        $user->assignRole('hod');
+
+    Badilisha 123 na ID ya user na hod na role unayohitaji.
+
+
+KUTATUA ENDAPO KITU KIKWAME
+---------------------------
+
+- Angalia storage\logs\laravel.log
+- Kagua current_approval_level na acting_status kwenye leave_requests table
+- Tumia tinker kama:
+    $req = \App\Models\LeaveRequest::find(61);
+    $req->update(['current_approval_level' => 1, 'acting_status' => 'accepted']);

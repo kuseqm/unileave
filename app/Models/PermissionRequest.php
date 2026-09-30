@@ -2,8 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class PermissionRequest extends Model
 {
@@ -14,6 +15,7 @@ class PermissionRequest extends Model
     protected $fillable = [
         'staff_id',
         'hod_id',
+        'acting_hod_id',
         'hr_id',
         'permission_type',
         'date',
@@ -41,6 +43,10 @@ class PermissionRequest extends Model
         'end_time' => 'datetime',
         'hod_acted_at' => 'datetime',
         'hr_acted_at' => 'datetime',
+        // Both are decimal(5,2) columns - without a cast they return as a
+        // raw string like "1.50", which reads like a price.
+        'hours' => 'float',
+        'duration_hours' => 'float',
     ];
 
     // ============================================
@@ -55,6 +61,16 @@ class PermissionRequest extends Model
     public function hod()
     {
         return $this->belongsTo(User::class, 'hod_id');
+    }
+
+    /**
+     * Department colleague standing in as acting HOD, when the applicant
+     * is their own department's HOD and would otherwise have to approve
+     * their own request.
+     */
+    public function actingHod()
+    {
+        return $this->belongsTo(User::class, 'acting_hod_id');
     }
 
     public function hr()
@@ -81,12 +97,50 @@ class PermissionRequest extends Model
         return $this->end_time ? $this->end_time->format('H:i') : null;
     }
 
+    /**
+     * `start_time`/`end_time` are TIME-only columns, so combine them with
+     * `date` to get the real scheduled moment. Several views call
+     * Carbon::parse($permission->start_datetime) - without this accessor
+     * that attribute doesn't exist, so parse() silently falls back to "now".
+     */
+    public function getStartDatetimeAttribute(): ?Carbon
+    {
+        if (! $this->date || ! $this->start_time) {
+            return null;
+        }
+
+        return Carbon::parse($this->date->toDateString().' '.$this->start_time->format('H:i:s'));
+    }
+
+    public function getEndDatetimeAttribute(): ?Carbon
+    {
+        if (! $this->date || ! $this->end_time) {
+            return null;
+        }
+
+        return Carbon::parse($this->date->toDateString().' '.$this->end_time->format('H:i:s'));
+    }
+
     public function getDurationDisplayAttribute()
     {
         if ($this->duration_hours) {
-            return $this->duration_hours . ' hour(s)';
+            return $this->duration_hours.' hour(s)';
         }
-        return $this->hours . ' hour(s)';
+
+        return $this->hours.' hour(s)';
+    }
+
+    /**
+     * `hours` is a legacy integer column that rounds away fractional hours
+     * (e.g. 1.5 -> 2). `duration_hours` (decimal) holds the accurate value
+     * store() always saves alongside it, so prefer that where available.
+     */
+    public function getHoursAttribute($value)
+    {
+        // A custom accessor reads raw attributes directly, bypassing the
+        // 'hours'/'duration_hours' casts above - cast explicitly here too,
+        // or this prints "1.50" instead of "1.5" everywhere it's echoed.
+        return (float) ($this->attributes['duration_hours'] ?? $value);
     }
 
     public function getPermissionTypeLabelAttribute()
@@ -99,6 +153,7 @@ class PermissionRequest extends Model
             'personal' => 'Personal',
             'other' => 'Other',
         ];
+
         return $labels[$this->permission_type] ?? ucfirst($this->permission_type);
     }
 
@@ -113,6 +168,7 @@ class PermissionRequest extends Model
             'approved' => 'Approved',
             'rejected' => 'Rejected',
         ];
+
         return $labels[$this->status] ?? ucfirst($this->status);
     }
 
@@ -127,6 +183,7 @@ class PermissionRequest extends Model
             'approved' => 'success',
             'rejected' => 'danger',
         ];
+
         return $colors[$this->status] ?? 'secondary';
     }
 
@@ -137,6 +194,7 @@ class PermissionRequest extends Model
             'approved' => 'Approved by HOD',
             'rejected' => 'Rejected by HOD',
         ];
+
         return $labels[$this->hod_status] ?? ucfirst($this->hod_status);
     }
 
@@ -147,6 +205,7 @@ class PermissionRequest extends Model
             'approved' => 'Approved by HR',
             'rejected' => 'Rejected by HR',
         ];
+
         return $labels[$this->hr_status] ?? ucfirst($this->hr_status);
     }
 
@@ -176,7 +235,7 @@ class PermissionRequest extends Model
 
     public function scopeForHOD($query, $hodId)
     {
-        return $query->whereHas('staff.department', function($q) use ($hodId) {
+        return $query->whereHas('staff.department', function ($q) use ($hodId) {
             $q->where('hod_staff_id', $hodId);
         })->where('hod_status', 'pending');
     }
@@ -198,61 +257,5 @@ class PermissionRequest extends Model
     public function isPending()
     {
         return $this->status === 'pending';
-    }
-
-    public function markHodApproved($hodId, $comment = null)
-    {
-        $this->update([
-            'hod_status' => 'approved',
-            'hod_approved_by' => $hodId,
-            'hod_acted_at' => now(),
-            'hod_comment' => $comment,
-        ]);
-        
-        // If both HOD and HR are approved, update main status
-        if ($this->hr_status === 'approved') {
-            $this->update(['status' => 'approved']);
-        } else {
-            $this->update(['status' => 'hod_approved']);
-        }
-    }
-
-    public function markHodRejected($hodId, $reason)
-    {
-        $this->update([
-            'hod_status' => 'rejected',
-            'hod_approved_by' => $hodId,
-            'hod_acted_at' => now(),
-            'rejection_reason' => $reason,
-            'status' => 'hod_rejected',
-        ]);
-    }
-
-    public function markHrApproved($hrId, $comment = null)
-    {
-        $this->update([
-            'hr_status' => 'approved',
-            'hr_approved_by' => $hrId,
-            'hr_acted_at' => now(),
-            'hr_comment' => $comment,
-        ]);
-        
-        // If both HOD and HR are approved, update main status
-        if ($this->hod_status === 'approved') {
-            $this->update(['status' => 'approved']);
-        } else {
-            $this->update(['status' => 'hr_approved']);
-        }
-    }
-
-    public function markHrRejected($hrId, $reason)
-    {
-        $this->update([
-            'hr_status' => 'rejected',
-            'hr_approved_by' => $hrId,
-            'hr_acted_at' => now(),
-            'rejection_reason' => $reason,
-            'status' => 'hr_rejected',
-        ]);
     }
 }

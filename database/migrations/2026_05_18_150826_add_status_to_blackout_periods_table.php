@@ -9,7 +9,7 @@ return new class extends Migration
     public function up()
     {
         Schema::table('blackout_periods', function (Blueprint $table) {
-            if (!Schema::hasColumn('blackout_periods', 'status')) {
+            if (! Schema::hasColumn('blackout_periods', 'status')) {
                 $table->enum('status', ['active', 'inactive'])->default('active');
             }
         });

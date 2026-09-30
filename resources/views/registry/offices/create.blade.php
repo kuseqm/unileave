@@ -15,11 +15,14 @@
 
 <div class="page-body">
     <div class="container-xl">
-        <div class="card">
-            <div class="card-body">
-                <form method="POST" action="{{ route('registry.offices.store') }}">
-                    @csrf
-                    
+        <div class="row g-2">
+            <!-- Form Card - main column -->
+            <div class="col-lg-7">
+                <div class="card">
+                    <div class="card-body">
+                        <form method="POST" action="{{ route('registry.offices.store') }}">
+                            @csrf
+
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label required">Office Name</label>
@@ -83,11 +86,39 @@
                         <label class="form-check-label" for="receives_letters">This office receives letters</label>
                     </div>
                     
-                    <div class="d-flex justify-content-between">
-                        <a href="{{ route('registry.offices.index') }}" class="btn btn-secondary">Cancel</a>
-                        <button type="submit" class="btn btn-primary">Create Office</button>
+                            <div class="d-flex justify-content-between">
+                                <a href="{{ route('registry.offices.index') }}" class="btn btn-secondary">Cancel</a>
+                                <button type="submit" class="btn btn-primary">Create Office</button>
+                            </div>
+                        </form>
                     </div>
-                </form>
+                </div>
+            </div>
+
+            <!-- Information - narrow column -->
+            <div class="col-lg-5">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="ti ti-info-circle text-info me-1"></i>
+                        <span class="fw-semibold">Information</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <div class="fw-semibold mb-1"><i class="ti ti-flag me-1 text-primary"></i> About Offices</div>
+                            <ul class="mb-0 ps-3 text-muted small">
+                                <li>Leave Department blank for a central office that isn't tied to one unit</li>
+                                <li>An office only appears on incoming letter forms if it "receives letters"</li>
+                                <li>Sort order controls where the office appears in dropdown lists</li>
+                            </ul>
+                        </div>
+
+                        <x-alert-light class="mb-0">
+                            <strong class="d-block small">Tips</strong>
+                            <small class="text-muted d-block">Set a Head of Office so assignment notifications reach the right person.</small>
+                            <small class="text-muted d-block">The Email Alias is optional and used for reference only.</small>
+                        </x-alert-light>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

@@ -17,16 +17,15 @@
     </x-page-header>
     
     @if($errors->any())
-    <div class="alert alert-danger alert-dismissible fade show py-1 px-2 mb-2 rounded-sm" style="font-size: 0.7rem;" role="alert">
-        <i class="ti ti-alert-circle me-1"></i>
-        <strong>Please fix the following errors:</strong>
+    <x-alert-danger :session="false">
+    <strong>Please fix the following errors:</strong>
         <ul class="mb-0 mt-1 ps-3">
             @foreach($errors->all() as $error)
                 <li>{{ $error }}</li>
             @endforeach
         </ul>
         <button type="button" class="btn-close py-0" style="font-size: 0.6rem;" data-bs-dismiss="alert"></button>
-    </div>
+</x-alert-danger>
     @endif
     
     <div class="row g-2">
@@ -149,7 +148,7 @@
                             <button type="submit" class="btn btn-primary btn-sm rounded-sm" style="font-size: 0.7rem;">
                                 <i class="ti ti-device-floppy me-1"></i> Save Changes
                             </button>
-                            <button type="submit" name="action" value="submit" class="btn btn-success btn-sm rounded-sm" style="font-size: 0.7rem;" onclick="return confirmSubmit()">
+                            <button type="submit" class="btn btn-success btn-sm rounded-sm" style="font-size: 0.7rem;" onclick="return confirmSubmitLetter(event, this)">
                                 <i class="ti ti-send me-1"></i> Save & Submit for Approval
                             </button>
                             <a href="{{ route('letters.show', $letter->id) }}" class="btn btn-secondary btn-sm rounded-sm" style="font-size: 0.7rem;">Cancel</a>
@@ -167,18 +166,18 @@
                     <span style="font-weight: 600;">Writing Guide</span>
                 </div>
                 <div class="card-body py-2 px-2">
-                    <div class="alert alert-light border mb-2 py-1 px-2 rounded-sm">
-                        <strong class="d-block mb-1" style="font-size: 0.7rem;">📝 Paragraph Formatting</strong>
+                    <x-alert-secondary>
+    <strong class="d-block mb-1" style="font-size: 0.7rem;">📝 Paragraph Formatting</strong>
                         <small class="text-muted" style="font-size: 0.6rem;">
                             • Separate paragraphs with a <strong>blank line</strong><br>
                             • First paragraph: no number<br>
                             • Following paragraphs: auto-numbered (2., 3., 4.)<br>
                             • You can disable auto-numbering with the switch above
                         </small>
-                    </div>
+</x-alert-secondary>
                     
-                    <div class="alert alert-light border mb-2 py-1 px-2 rounded-sm">
-                        <strong class="d-block mb-1" style="font-size: 0.7rem;">📎 Letter Components</strong>
+                    <x-alert-secondary>
+    <strong class="d-block mb-1" style="font-size: 0.7rem;">📎 Letter Components</strong>
                         <small class="text-muted" style="font-size: 0.6rem;">
                             • University letterhead<br>
                             • Reference number (if format selected)<br>
@@ -190,14 +189,14 @@
                             • Signature block<br>
                             • Footer with verification
                         </small>
-                    </div>
+</x-alert-secondary>
                     
-                    <div class="alert alert-light border mb-0 py-1 px-2 rounded-sm">
-                        <strong class="d-block mb-1" style="font-size: 0.7rem;">📌 Letter Workflow</strong>
+                    <x-alert-secondary>
+    <strong class="d-block mb-1" style="font-size: 0.7rem;">📌 Letter Workflow</strong>
                         <small class="text-muted" style="font-size: 0.6rem;">
                             1. Draft → 2. Submit for Approval → 3. HOD Approval → 4. Dean Approval → 5. DVC Approval → 6. VC Signature → 7. Print
                         </small>
-                    </div>
+</x-alert-secondary>
                 </div>
             </div>
             
@@ -289,14 +288,29 @@
         document.getElementById('previewCard').style.display = 'none';
     }
     
-    function confirmSubmit() {
+    function confirmSubmitLetter(event, btn) {
+        event.preventDefault();
         const hasReference = {{ $letter->letter_number ? 'true' : 'false' }};
         const formatSelected = document.getElementById('reference_format_id').value;
-        
+        const finalConfirm = () => confirmAction('Submit this letter for approval?\n\nOnce submitted, you cannot edit it further.', function () {
+            // A programmatic form.submit() doesn't carry the triggering
+            // button's name=value, unlike a real click - add it explicitly
+            // so the server still sees action=submit.
+            const form = btn.closest('form');
+            const hidden = document.createElement('input');
+            hidden.type = 'hidden';
+            hidden.name = 'action';
+            hidden.value = 'submit';
+            form.appendChild(hidden);
+            form.submit();
+        }, { confirmText: 'Submit' });
+
         if (!hasReference && !formatSelected) {
-            return confirm('No reference format selected. The letter will be submitted without a reference number.\n\nContinue?');
+            confirmAction('No reference format selected. The letter will be submitted without a reference number.\n\nContinue?', finalConfirm, { confirmText: 'Continue' });
+        } else {
+            finalConfirm();
         }
-        return confirm('Submit this letter for approval?\n\nOnce submitted, you cannot edit it further.');
+        return false;
     }
     
     // Auto-save draft indicator

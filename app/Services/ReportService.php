@@ -2,14 +2,15 @@
 
 namespace App\Services;
 
-use App\Models\User;
-use App\Models\LeaveRequest;
-use App\Models\LeaveBalance;
+use App\Models\AcademicYear;
 use App\Models\Department;
+use App\Models\LeaveBalance;
+use App\Models\LeaveRequest;
 use App\Models\LeaveType;
-use App\Models\ApprovalLog;
 use App\Models\PermissionRequest;
 use App\Models\TravelPermission;
+use App\Models\User;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
@@ -20,12 +21,114 @@ class ReportService
      */
     public function getData($definition, $filters = [])
     {
-        $method = 'get' . str_replace(' ', '', ucwords(str_replace('_', ' ', $definition->name)));
+        $method = 'get'.str_replace(' ', '', ucwords(str_replace('_', ' ', $definition->name)));
         if (method_exists($this, $method)) {
             return $this->$method($filters);
         }
+
         // Fallback: return empty data
         return ['rows' => collect(), 'chart' => null];
+    }
+
+    /**
+     * Whitelisted data sources for the custom report builder: which
+     * columns a user can choose to include, which generic filters apply,
+     * and the status options to offer for that source. Kept as a single
+     * source of truth so the builder form and getCustomReport() below
+     * can never drift apart.
+     *
+     * @return array<string, array{label: string, columns: array<string, string>, filters: array<int, string>, statuses: array<int, string>}>
+     */
+    public static function customSources(): array
+    {
+        return [
+            'leave_requests' => [
+                'label' => 'Leave Requests',
+                'columns' => [
+                    'staff_name' => 'Staff Name',
+                    'department' => 'Department',
+                    'leave_type' => 'Leave Type',
+                    'start_date' => 'Start Date',
+                    'end_date' => 'End Date',
+                    'days' => 'Days',
+                    'status' => 'Status',
+                ],
+                'filters' => ['department_id', 'leave_type_id', 'status', 'date_from', 'date_to'],
+                'statuses' => ['pending', 'approved', 'rejected', 'cancelled'],
+            ],
+            'staff_directory' => [
+                'label' => 'Staff Directory',
+                'columns' => [
+                    'staff_id' => 'Staff ID',
+                    'name' => 'Name',
+                    'email' => 'Email',
+                    'phone' => 'Phone',
+                    'department' => 'Department',
+                    'status' => 'Status',
+                    'joining_date' => 'Joining Date',
+                ],
+                'filters' => ['department_id', 'status'],
+                'statuses' => ['active', 'inactive'],
+            ],
+            'short_permissions' => [
+                'label' => 'Short Permission Requests',
+                'columns' => [
+                    'staff_name' => 'Staff Name',
+                    'department' => 'Department',
+                    'duration_hours' => 'Duration (Hours)',
+                    'status' => 'Status',
+                ],
+                'filters' => ['department_id', 'status', 'date_from', 'date_to'],
+                'statuses' => ['pending', 'approved', 'rejected'],
+            ],
+            'travel_permissions' => [
+                'label' => 'Travel Permissions',
+                'columns' => [
+                    'staff_name' => 'Staff Name',
+                    'department' => 'Department',
+                    'destination' => 'Destination',
+                    'start_date' => 'Start Date',
+                    'end_date' => 'End Date',
+                    'purpose' => 'Purpose',
+                    'status' => 'Status',
+                ],
+                'filters' => ['department_id', 'status', 'date_from', 'date_to'],
+                'statuses' => ['pending', 'approved', 'rejected'],
+            ],
+        ];
+    }
+
+    /**
+     * Build a report from a user-chosen source, column selection and
+     * filter combination, for the custom report builder. $columns is
+     * always intersected against the source's whitelist below, so a
+     * tampered request can never pull in a field outside what that
+     * source already exposes.
+     */
+    public function getCustomReport(string $source, array $columns, array $filters): array
+    {
+        $sources = self::customSources();
+        if (! isset($sources[$source])) {
+            return ['rows' => collect(), 'chart' => null];
+        }
+
+        $allColumns = array_keys($sources[$source]['columns']);
+        $selectedColumns = array_values(array_intersect($allColumns, $columns));
+        if (empty($selectedColumns)) {
+            $selectedColumns = $allColumns;
+        }
+
+        $rows = match ($source) {
+            'leave_requests' => $this->getLeaveSummary($filters)['rows'],
+            'staff_directory' => $this->getStaffDirectory($filters)['rows'],
+            'short_permissions' => $this->getShortPermissionSummary($filters)['rows'],
+            'travel_permissions' => $this->getTravelPermissionSummary($filters)['rows'],
+            default => collect(),
+        };
+
+        $data = $rows->map(fn ($row) => collect($row)->only($selectedColumns)->all());
+
+        return ['rows' => $data, 'chart' => null];
     }
 
     /**
@@ -35,7 +138,7 @@ class ReportService
     {
         $query = LeaveRequest::with(['staff.department', 'leaveType'])
             ->when($filters['department_id'] ?? null, function ($q, $deptId) {
-                return $q->whereHas('staff', fn($sq) => $sq->where('department_id', $deptId));
+                return $q->whereHas('staff', fn ($sq) => $sq->where('department_id', $deptId));
             })
             ->when($filters['leave_type_id'] ?? null, function ($q, $typeId) {
                 return $q->where('leave_type_id', $typeId);
@@ -62,7 +165,7 @@ class ReportService
             ];
         });
 
-        $chartData = $data->groupBy('department')->map(fn($items) => $items->sum('days'));
+        $chartData = $data->groupBy('department')->map(fn ($items) => $items->sum('days'));
         $chart = ['labels' => $chartData->keys(), 'series' => $chartData->values()];
 
         return ['rows' => $data, 'chart' => $chart];
@@ -74,9 +177,9 @@ class ReportService
     protected function getStaffDirectory($filters)
     {
         $query = User::with('department')
-            ->when($filters['department_id'] ?? null, fn($q, $deptId) => $q->where('department_id', $deptId))
-            ->when($filters['status'] ?? null, fn($q, $status) => $q->where('status', $status))
-            ->when($filters['staff_category'] ?? null, fn($q, $cat) => $q->where('staff_category', $cat));
+            ->when($filters['department_id'] ?? null, fn ($q, $deptId) => $q->where('department_id', $deptId))
+            ->when($filters['status'] ?? null, fn ($q, $status) => $q->where('status', $status))
+            ->when($filters['staff_category'] ?? null, fn ($q, $cat) => $q->where('staff_category', $cat));
 
         $data = $query->get()->map(function ($staff) {
             return [
@@ -98,24 +201,35 @@ class ReportService
      */
     protected function getLeaveBalance($filters)
     {
+        // leave_balances.year is a plain calendar year (set by date('Y') when
+        // a balance row is created/deducted - see LeaveRequestController::
+        // updateLeaveBalance()), not the academic year's start year, so it
+        // must be matched the same way here.
+        $year = $filters['year'] ?? now()->year;
+        $annualTypeId = LeaveType::where('name', 'like', '%Annual%')->value('id');
+        $sickTypeId = LeaveType::where('name', 'like', '%Sick%')->value('id');
+        $compassionateTypeId = LeaveType::where('name', 'like', '%Compassionate%')->value('id');
+
         $query = LeaveBalance::with(['staff.department', 'leaveType'])
+            ->where('year', $year)
             ->when($filters['department_id'] ?? null, function ($q, $deptId) {
-                return $q->whereHas('staff', fn($sq) => $sq->where('department_id', $deptId));
+                return $q->whereHas('staff', fn ($sq) => $sq->where('department_id', $deptId));
             });
 
         $balances = $query->get()->groupBy('staff_id');
-        $data = $balances->map(function ($items) {
+        $data = $balances->map(function ($items) use ($annualTypeId, $sickTypeId, $compassionateTypeId) {
             $staff = $items->first()->staff;
-            $annual = $items->where('leave_type_id', 1)->first()->balance ?? 0;
-            $sick = $items->where('leave_type_id', 2)->first()->balance ?? 0;
-            $casual = $items->where('leave_type_id', 3)->first()->balance ?? 0;
+            $annual = $items->where('leave_type_id', $annualTypeId)->first()->balance ?? 0;
+            $sick = $items->where('leave_type_id', $sickTypeId)->first()->balance ?? 0;
+            $compassionate = $items->where('leave_type_id', $compassionateTypeId)->first()->balance ?? 0;
+
             return [
                 'staff_name' => $staff->full_name,
                 'department' => $staff->department->name ?? 'N/A',
                 'annual_leave' => $annual,
                 'sick_leave' => $sick,
-                'casual_leave' => $casual,
-                'remaining' => $annual + $sick + $casual,
+                'compassionate_leave' => $compassionate,
+                'remaining' => $annual + $sick + $compassionate,
             ];
         })->values();
 
@@ -134,22 +248,22 @@ class ReportService
             ->where('status', 'pending')
             ->where('acting_status', 'accepted')
             ->when($filters['department_id'] ?? null, function ($q, $deptId) {
-                return $q->whereHas('staff', fn($sq) => $sq->where('department_id', $deptId));
+                return $q->whereHas('staff', fn ($sq) => $sq->where('department_id', $deptId));
             })
             ->when($filters['approval_level'] ?? null, function ($q, $level) {
                 return $q->where('current_approval_level', $level);
             })
-            ->when($filters['date_from'] ?? null, fn($q, $from) => $q->whereDate('created_at', '>=', $from))
-            ->when($filters['date_to'] ?? null, fn($q, $to) => $q->whereDate('created_at', '<=', $to));
+            ->when($filters['date_from'] ?? null, fn ($q, $from) => $q->whereDate('created_at', '>=', $from))
+            ->when($filters['date_to'] ?? null, fn ($q, $to) => $q->whereDate('created_at', '<=', $to));
 
         if ($role == 'hod') {
-            $query->whereHas('staff.department', fn($q) => $q->where('hod_staff_id', $user->id));
+            $query->whereHas('staff.department', fn ($q) => $q->where('hod_staff_id', $user->id));
         } elseif ($role == 'dean') {
-            $query->whereHas('staff.department.school', fn($q) => $q->where('dean_staff_id', $user->id));
+            $query->whereHas('staff.department.school', fn ($q) => $q->where('dean_staff_id', $user->id));
         } elseif ($role == 'dvca') {
-            $query->whereHas('staff', fn($q) => $q->where('staff_category', 'academic'));
+            $query->whereHas('staff', fn ($q) => $q->where('staff_category', 'academic'));
         } elseif ($role == 'dvc-pfa') {
-            $query->whereHas('staff', fn($q) => $q->where('staff_category', 'administrative'));
+            $query->whereHas('staff', fn ($q) => $q->where('staff_category', 'administrative'));
         }
 
         $data = $query->get()->map(function ($leave) {
@@ -173,7 +287,7 @@ class ReportService
      */
     protected function getLeaveTaken($filters)
     {
-        $startDate = $filters['date_from'] ?? now()->startOfYear()->format('Y-m-d');
+        $startDate = $filters['date_from'] ?? $this->currentLeaveYearStartDate();
         $endDate = $filters['date_to'] ?? now()->format('Y-m-d');
 
         $query = LeaveRequest::with(['staff.department', 'leaveType'])
@@ -193,7 +307,7 @@ class ReportService
             ];
         });
 
-        $chartData = $data->groupBy('department')->map(fn($items) => $items->sum('days'));
+        $chartData = $data->groupBy('department')->map(fn ($items) => $items->sum('days'));
         $chart = ['labels' => $chartData->keys(), 'series' => $chartData->values()];
 
         return ['rows' => $data, 'chart' => $chart];
@@ -232,26 +346,33 @@ class ReportService
     protected function getLowBalanceAlerts($filters)
     {
         $threshold = $filters['threshold'] ?? 5;
+        // Same calendar-year convention as getLeaveBalance() above.
+        $year = $filters['year'] ?? now()->year;
+        $annualTypeId = LeaveType::where('name', 'like', '%Annual%')->value('id');
+        $sickTypeId = LeaveType::where('name', 'like', '%Sick%')->value('id');
+        $compassionateTypeId = LeaveType::where('name', 'like', '%Compassionate%')->value('id');
 
-        $query = User::whereHas('leaveBalances', function ($q) use ($threshold) {
-            $q->where('leave_type_id', 1)
-              ->where('balance', '<', $threshold)
-              ->where('balance', '>', 0);
+        $query = User::whereHas('leaveBalances', function ($q) use ($threshold, $year, $annualTypeId) {
+            $q->where('leave_type_id', $annualTypeId)
+                ->where('year', $year)
+                ->where('balance', '<', $threshold)
+                ->where('balance', '>', 0);
         });
         $this->applyRoleScopeToStaff($query);
 
-        $staff = $query->with('leaveBalances')->get();
+        $staff = $query->with(['leaveBalances' => fn ($q) => $q->where('year', $year)])->get();
 
-        $data = $staff->map(function ($staff) {
-            $annual = $staff->leaveBalances->where('leave_type_id', 1)->first()->balance ?? 0;
-            $sick = $staff->leaveBalances->where('leave_type_id', 2)->first()->balance ?? 0;
-            $casual = $staff->leaveBalances->where('leave_type_id', 3)->first()->balance ?? 0;
+        $data = $staff->map(function ($staff) use ($annualTypeId, $sickTypeId, $compassionateTypeId) {
+            $annual = $staff->leaveBalances->where('leave_type_id', $annualTypeId)->first()->balance ?? 0;
+            $sick = $staff->leaveBalances->where('leave_type_id', $sickTypeId)->first()->balance ?? 0;
+            $compassionate = $staff->leaveBalances->where('leave_type_id', $compassionateTypeId)->first()->balance ?? 0;
+
             return [
                 'staff_name' => $staff->full_name,
                 'department' => $staff->department->name ?? 'N/A',
                 'annual_balance' => $annual,
                 'sick_balance' => $sick,
-                'casual_balance' => $casual,
+                'compassionate_balance' => $compassionate,
             ];
         });
 
@@ -310,9 +431,10 @@ class ReportService
      */
     protected function getLeaveTypeDistribution($filters)
     {
-        $leaveTypes = LeaveType::withCount(['leaveRequests as request_count' => function ($q) {
+        [$rangeStart, $rangeEnd] = $this->currentLeaveYearRange();
+        $leaveTypes = LeaveType::withCount(['leaveRequests as request_count' => function ($q) use ($rangeStart, $rangeEnd) {
             $q->where('status', 'approved')
-              ->whereYear('created_at', now()->year);
+                ->whereBetween('created_at', [$rangeStart, $rangeEnd]);
         }])->get();
 
         $totalRequests = $leaveTypes->sum('request_count');
@@ -338,8 +460,8 @@ class ReportService
     protected function getStaffByDepartment($filters)
     {
         $query = User::with('department')
-            ->when($filters['department_id'] ?? null, fn($q, $deptId) => $q->where('department_id', $deptId))
-            ->when($filters['status'] ?? null, fn($q, $status) => $q->where('status', $status));
+            ->when($filters['department_id'] ?? null, fn ($q, $deptId) => $q->where('department_id', $deptId))
+            ->when($filters['status'] ?? null, fn ($q, $status) => $q->where('status', $status));
 
         $data = $query->get()->groupBy('department.name')->map(function ($items, $deptName) {
             return [
@@ -356,7 +478,7 @@ class ReportService
     protected function getStaffByCategory($filters)
     {
         $query = User::query()
-            ->when($filters['department_id'] ?? null, fn($q, $deptId) => $q->where('department_id', $deptId));
+            ->when($filters['department_id'] ?? null, fn ($q, $deptId) => $q->where('department_id', $deptId));
 
         $data = $query->get()->groupBy('staff_category')->map(function ($items, $category) {
             return [
@@ -373,26 +495,27 @@ class ReportService
     protected function getStaffGenderDistribution($filters)
     {
         // Check if gender column exists
-        if (!Schema::hasColumn('staff', 'gender')) {
+        if (! Schema::hasColumn('staff', 'gender')) {
             // Return placeholder data if column doesn't exist
             $data = collect([
                 ['gender' => 'Male', 'count' => 0, 'percentage' => 0],
                 ['gender' => 'Female', 'count' => 0, 'percentage' => 0],
                 ['gender' => 'Not Specified', 'count' => 0, 'percentage' => 0],
             ]);
-            
+
             $chart = ['labels' => $data->pluck('gender'), 'series' => $data->pluck('count')];
+
             return ['rows' => $data, 'chart' => $chart];
         }
-        
+
         $query = User::query()
-            ->when($filters['department_id'] ?? null, fn($q, $deptId) => $q->where('department_id', $deptId));
+            ->when($filters['department_id'] ?? null, fn ($q, $deptId) => $q->where('department_id', $deptId));
 
         $maleCount = (clone $query)->where('gender', 'male')->count();
         $femaleCount = (clone $query)->where('gender', 'female')->count();
         $otherCount = (clone $query)->where('gender', 'other')->count();
         $notSpecified = (clone $query)->whereNull('gender')->count();
-        
+
         $total = $maleCount + $femaleCount + $otherCount + $notSpecified;
 
         $data = collect([
@@ -400,7 +523,7 @@ class ReportService
             ['gender' => 'Female', 'count' => $femaleCount, 'percentage' => $total > 0 ? round(($femaleCount / $total) * 100, 1) : 0],
             ['gender' => 'Other', 'count' => $otherCount, 'percentage' => $total > 0 ? round(($otherCount / $total) * 100, 1) : 0],
             ['gender' => 'Not Specified', 'count' => $notSpecified, 'percentage' => $total > 0 ? round(($notSpecified / $total) * 100, 1) : 0],
-        ])->filter(fn($item) => $item['count'] > 0);
+        ])->filter(fn ($item) => $item['count'] > 0);
 
         $chart = ['labels' => $data->pluck('gender'), 'series' => $data->pluck('count')];
 
@@ -410,12 +533,13 @@ class ReportService
     protected function getStaffJoiningTrend($filters)
     {
         $year = $filters['year'] ?? now()->year;
-        
+
         $query = User::whereYear('joining_date', $year)
-            ->when($filters['department_id'] ?? null, fn($q, $deptId) => $q->where('department_id', $deptId));
+            ->when($filters['department_id'] ?? null, fn ($q, $deptId) => $q->where('department_id', $deptId));
 
         $data = collect(range(1, 12))->map(function ($month) use ($query, $year) {
             $count = (clone $query)->whereMonth('joining_date', $month)->count();
+
             return [
                 'month' => date('F', mktime(0, 0, 0, $month, 1)),
                 'year' => $year,
@@ -463,9 +587,9 @@ class ReportService
     {
         $query = LeaveRequest::with(['staff.department', 'leaveType'])
             ->where('status', 'approved')
-            ->when($filters['date_from'] ?? null, fn($q, $from) => $q->whereDate('start_date', '>=', $from))
-            ->when($filters['date_to'] ?? null, fn($q, $to) => $q->whereDate('end_date', '<=', $to))
-            ->when($filters['leave_type_id'] ?? null, fn($q, $typeId) => $q->where('leave_type_id', $typeId));
+            ->when($filters['date_from'] ?? null, fn ($q, $from) => $q->whereDate('start_date', '>=', $from))
+            ->when($filters['date_to'] ?? null, fn ($q, $to) => $q->whereDate('end_date', '<=', $to))
+            ->when($filters['leave_type_id'] ?? null, fn ($q, $typeId) => $q->where('leave_type_id', $typeId));
 
         $data = $query->get()->groupBy('staff.department.name')->map(function ($items, $deptName) {
             return [
@@ -484,15 +608,16 @@ class ReportService
     protected function getLeaveByMonth($filters)
     {
         $year = $filters['year'] ?? now()->year;
-        
+
         $query = LeaveRequest::where('status', 'approved')
             ->whereYear('start_date', $year)
             ->when($filters['department_id'] ?? null, function ($q, $deptId) {
-                return $q->whereHas('staff', fn($sq) => $sq->where('department_id', $deptId));
+                return $q->whereHas('staff', fn ($sq) => $sq->where('department_id', $deptId));
             });
 
-        $data = collect(range(1, 12))->map(function ($month) use ($query, $year) {
+        $data = collect(range(1, 12))->map(function ($month) use ($query) {
             $monthRequests = (clone $query)->whereMonth('start_date', $month)->get();
+
             return [
                 'month' => date('F', mktime(0, 0, 0, $month, 1)),
                 'total_days' => $monthRequests->sum('days'),
@@ -508,12 +633,12 @@ class ReportService
     protected function getLeaveByStaff($filters)
     {
         $query = LeaveRequest::with(['staff.department', 'leaveType'])
-            ->when($filters['date_from'] ?? null, fn($q, $from) => $q->whereDate('start_date', '>=', $from))
-            ->when($filters['date_to'] ?? null, fn($q, $to) => $q->whereDate('end_date', '<=', $to))
+            ->when($filters['date_from'] ?? null, fn ($q, $from) => $q->whereDate('start_date', '>=', $from))
+            ->when($filters['date_to'] ?? null, fn ($q, $to) => $q->whereDate('end_date', '<=', $to))
             ->when($filters['department_id'] ?? null, function ($q, $deptId) {
-                return $q->whereHas('staff', fn($sq) => $sq->where('department_id', $deptId));
+                return $q->whereHas('staff', fn ($sq) => $sq->where('department_id', $deptId));
             })
-            ->when($filters['leave_type_id'] ?? null, fn($q, $typeId) => $q->where('leave_type_id', $typeId));
+            ->when($filters['leave_type_id'] ?? null, fn ($q, $typeId) => $q->where('leave_type_id', $typeId));
 
         $data = $query->get()->map(function ($leave) {
             return [
@@ -533,10 +658,10 @@ class ReportService
     protected function getLeaveByStatus($filters)
     {
         $query = LeaveRequest::query()
-            ->when($filters['date_from'] ?? null, fn($q, $from) => $q->whereDate('created_at', '>=', $from))
-            ->when($filters['date_to'] ?? null, fn($q, $to) => $q->whereDate('created_at', '<=', $to))
+            ->when($filters['date_from'] ?? null, fn ($q, $from) => $q->whereDate('created_at', '>=', $from))
+            ->when($filters['date_to'] ?? null, fn ($q, $to) => $q->whereDate('created_at', '<=', $to))
             ->when($filters['department_id'] ?? null, function ($q, $deptId) {
-                return $q->whereHas('staff', fn($sq) => $sq->where('department_id', $deptId));
+                return $q->whereHas('staff', fn ($sq) => $sq->where('department_id', $deptId));
             });
 
         $data = $query->get()->groupBy('status')->map(function ($items, $status) {
@@ -616,8 +741,11 @@ class ReportService
     {
         $query = PermissionRequest::with(['staff.department'])
             ->when($filters['department_id'] ?? null, function ($q, $deptId) {
-                return $q->whereHas('staff', fn($sq) => $sq->where('department_id', $deptId));
-            });
+                return $q->whereHas('staff', fn ($sq) => $sq->where('department_id', $deptId));
+            })
+            ->when($filters['status'] ?? null, fn ($q, $status) => $q->where('status', $status))
+            ->when($filters['date_from'] ?? null, fn ($q, $from) => $q->whereDate('date', '>=', $from))
+            ->when($filters['date_to'] ?? null, fn ($q, $to) => $q->whereDate('date', '<=', $to));
 
         $data = $query->get()->map(function ($permission) {
             return [
@@ -636,8 +764,11 @@ class ReportService
     {
         $query = TravelPermission::with(['staff.department'])
             ->when($filters['department_id'] ?? null, function ($q, $deptId) {
-                return $q->whereHas('staff', fn($sq) => $sq->where('department_id', $deptId));
-            });
+                return $q->whereHas('staff', fn ($sq) => $sq->where('department_id', $deptId));
+            })
+            ->when($filters['status'] ?? null, fn ($q, $status) => $q->where('status', $status))
+            ->when($filters['date_from'] ?? null, fn ($q, $from) => $q->whereDate('start_date', '>=', $from))
+            ->when($filters['date_to'] ?? null, fn ($q, $to) => $q->whereDate('end_date', '<=', $to));
 
         $data = $query->get()->map(function ($travel) {
             return [
@@ -657,10 +788,11 @@ class ReportService
     protected function getPermissionByMonth($filters)
     {
         $year = $filters['year'] ?? now()->year;
-        
+
         $data = collect(range(1, 12))->map(function ($month) use ($year) {
             $shortCount = PermissionRequest::whereYear('created_at', $year)->whereMonth('created_at', $month)->count();
             $travelCount = TravelPermission::whereYear('created_at', $year)->whereMonth('created_at', $month)->count();
+
             return [
                 'month' => date('F', mktime(0, 0, 0, $month, 1)),
                 'short_permission_count' => $shortCount,
@@ -765,7 +897,7 @@ class ReportService
             ->orderBy('staff.last_name');
 
         // Apply department filter if provided
-        if (!empty($filters['department_id'])) {
+        if (! empty($filters['department_id'])) {
             $query->where('departments.id', $filters['department_id']);
         }
 
@@ -778,9 +910,9 @@ class ReportService
             if ($row->staff_first_name) {
                 $rows->push([
                     'Department' => $row->department_name,
-                    'HOD Name' => trim($row->hod_first_name . ' ' . $row->hod_last_name),
+                    'HOD Name' => trim($row->hod_first_name.' '.$row->hod_last_name),
                     'HOD Email' => $row->hod_email ?? '-',
-                    'Staff Name' => trim($row->staff_first_name . ' ' . $row->staff_last_name),
+                    'Staff Name' => trim($row->staff_first_name.' '.$row->staff_last_name),
                     'Staff Email' => $row->staff_email ?? '-',
                     'Category' => ucfirst($row->staff_category ?? 'N/A'),
                     'Status' => ucfirst($row->staff_status ?? 'N/A'),
@@ -817,19 +949,47 @@ class ReportService
 
     // ========== HELPER METHODS ==========
 
+    /**
+     * [start, end] datetime bounds of the current academic/leave year, for
+     * reports scoping a query to "this leave year" without the whereYear()
+     * boundary bug (a leave year spans two calendar years, e.g. Oct 2025 -
+     * Sep 2026). Falls back to the plain calendar year if no academic year
+     * has been activated yet.
+     *
+     * @return array{0: Carbon, 1: Carbon}
+     */
+    private function currentLeaveYearRange(): array
+    {
+        $academicYear = AcademicYear::current();
+
+        return $academicYear
+            ? [$academicYear->start_date->copy()->startOfDay(), $academicYear->end_date->copy()->endOfDay()]
+            : [now()->startOfYear(), now()->endOfYear()];
+    }
+
+    /**
+     * Start-of-leave-year date, for reports that default to "since the
+     * leave year began" rather than a fixed lookback window.
+     */
+    private function currentLeaveYearStartDate(): string
+    {
+        return optional(AcademicYear::current())->start_date?->format('Y-m-d')
+            ?? now()->startOfYear()->format('Y-m-d');
+    }
+
     private function applyRoleScope(&$query)
     {
         $user = auth()->user();
         $role = $user->getRoleNames()->first();
 
         if ($role == 'hod') {
-            $query->whereHas('staff.department', fn($q) => $q->where('hod_staff_id', $user->id));
+            $query->whereHas('staff.department', fn ($q) => $q->where('hod_staff_id', $user->id));
         } elseif ($role == 'dean') {
-            $query->whereHas('staff.department.school', fn($q) => $q->where('dean_staff_id', $user->id));
+            $query->whereHas('staff.department.school', fn ($q) => $q->where('dean_staff_id', $user->id));
         } elseif ($role == 'dvca') {
-            $query->whereHas('staff', fn($q) => $q->where('staff_category', 'academic'));
+            $query->whereHas('staff', fn ($q) => $q->where('staff_category', 'academic'));
         } elseif ($role == 'dvc-pfa') {
-            $query->whereHas('staff', fn($q) => $q->where('staff_category', 'administrative'));
+            $query->whereHas('staff', fn ($q) => $q->where('staff_category', 'administrative'));
         }
     }
 
@@ -839,9 +999,9 @@ class ReportService
         $role = $user->getRoleNames()->first();
 
         if ($role == 'hod') {
-            $query->whereHas('department', fn($q) => $q->where('hod_staff_id', $user->id));
+            $query->whereHas('department', fn ($q) => $q->where('hod_staff_id', $user->id));
         } elseif ($role == 'dean') {
-            $query->whereHas('department.school', fn($q) => $q->where('dean_staff_id', $user->id));
+            $query->whereHas('department.school', fn ($q) => $q->where('dean_staff_id', $user->id));
         }
     }
 }

@@ -363,6 +363,6 @@ class AdminSettingsSeeder extends Seeder
         }
 
         $this->command->info('Admin settings seeded successfully!');
-        $this->command->info('Total settings: ' . DB::table('settings')->count());
+        $this->command->info('Total settings: '.DB::table('settings')->count());
     }
 }

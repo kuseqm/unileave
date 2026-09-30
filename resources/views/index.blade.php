@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Dashboard - UniLeave</title>
+    <title>{{ app_abbreviation() }} | Dashboard</title>
     
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -40,7 +40,7 @@
                 </div>
                 
                 <h1 class="user-name">Welcome, {{ Auth::user()->first_name }}! 👋</h1>
-                <p class="text-medium">You have successfully logged into UniLeave.</p>
+                <p class="text-medium">You have successfully logged into Staff Management System.</p>
                 
                 <div class="logout-btn">
                     <form method="POST" action="{{ route('logout') }}">

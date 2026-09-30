@@ -2,8 +2,8 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -19,7 +19,7 @@ return new class extends Migration
         Schema::table('leave_requests', function (Blueprint $table) {
             $table->dropColumn('current_approval_level');
         });
-        
+
         Schema::table('leave_requests', function (Blueprint $table) {
             $table->integer('current_approval_level')->default(1)->after('acting_status');
         });

@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('mime_type', 100);
             $table->integer('size_bytes');
             $table->timestamps();
-            
+
             $table->index('leave_request_id');
             $table->index('file_type');
         });

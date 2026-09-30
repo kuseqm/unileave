@@ -2,8 +2,8 @@
 
 namespace Database\Factories;
 
-use App\Models\School;
 use App\Models\Campus;
+use App\Models\School;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class SchoolFactory extends Factory

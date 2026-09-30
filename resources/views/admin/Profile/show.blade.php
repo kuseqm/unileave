@@ -13,19 +13,9 @@
     <x-page-header title="MY PROFILE" description="Manage your personal and professional information">
     </x-page-header>
     
-    @if(session('success'))
-    <div class="alert alert-success alert-dismissible fade show py-1 px-2 mb-2 rounded-sm" style="font-size: 0.7rem;" role="alert">
-        <i class="ti ti-check-circle me-1"></i> {{ session('success') }}
-        <button type="button" class="btn-close py-0" style="font-size: 0.6rem;" data-bs-dismiss="alert"></button>
-    </div>
-    @endif
+    <x-alert-success />
     
-    @if(session('error'))
-    <div class="alert alert-danger alert-dismissible fade show py-1 px-2 mb-2 rounded-sm" style="font-size: 0.7rem;" role="alert">
-        <i class="ti ti-alert-circle me-1"></i> {{ session('error') }}
-        <button type="button" class="btn-close py-0" style="font-size: 0.6rem;" data-bs-dismiss="alert"></button>
-    </div>
-    @endif
+    <x-alert-danger />
     
     <div class="row">
         <!-- Left Column - Profile Picture & Stats -->
@@ -1175,100 +1165,25 @@ document.getElementById('avatar')?.addEventListener('change', function() {
 });
 
 // Delete functions
-function deletePhone(id) {
-    if(confirm('Are you sure you want to delete this phone number?')) {
-        fetch(`/profile/phones/${id}`, {
+function deleteProfileItem(endpoint, message) {
+    confirmAction(message, function () {
+        fetch(endpoint, {
             method: 'DELETE',
             headers: {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                 'Content-Type': 'application/json'
             }
         }).then(() => location.reload());
-    }
+    });
 }
 
-function deleteEmail(id) {
-    if(confirm('Are you sure you want to delete this email address?')) {
-        fetch(`/profile/emails/${id}`, {
-            method: 'DELETE',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                'Content-Type': 'application/json'
-            }
-        }).then(() => location.reload());
-    }
-}
-
-function deleteDependent(id) {
-    if(confirm('Are you sure you want to delete this dependent?')) {
-        fetch(`/profile/dependents/${id}`, {
-            method: 'DELETE',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                'Content-Type': 'application/json'
-            }
-        }).then(() => location.reload());
-    }
-}
-
-function deleteAddress(id) {
-    if(confirm('Are you sure you want to delete this address?')) {
-        fetch(`/profile/addresses/${id}`, {
-            method: 'DELETE',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                'Content-Type': 'application/json'
-            }
-        }).then(() => location.reload());
-    }
-}
-
-function deleteEmergency(id) {
-    if(confirm('Are you sure you want to delete this emergency contact?')) {
-        fetch(`/profile/emergency/${id}`, {
-            method: 'DELETE',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                'Content-Type': 'application/json'
-            }
-        }).then(() => location.reload());
-    }
-}
-
-function deleteQualification(id) {
-    if(confirm('Are you sure you want to delete this qualification?')) {
-        fetch(`/profile/qualifications/${id}`, {
-            method: 'DELETE',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                'Content-Type': 'application/json'
-            }
-        }).then(() => location.reload());
-    }
-}
-
-function deleteSkill(id) {
-    if(confirm('Are you sure you want to delete this skill?')) {
-        fetch(`/profile/skills/${id}`, {
-            method: 'DELETE',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                'Content-Type': 'application/json'
-            }
-        }).then(() => location.reload());
-    }
-}
-
-function deleteLanguage(id) {
-    if(confirm('Are you sure you want to delete this language?')) {
-        fetch(`/profile/languages/${id}`, {
-            method: 'DELETE',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                'Content-Type': 'application/json'
-            }
-        }).then(() => location.reload());
-    }
-}
+function deletePhone(id) { deleteProfileItem(`/profile/phones/${id}`, 'Are you sure you want to delete this phone number?'); }
+function deleteEmail(id) { deleteProfileItem(`/profile/emails/${id}`, 'Are you sure you want to delete this email address?'); }
+function deleteDependent(id) { deleteProfileItem(`/profile/dependents/${id}`, 'Are you sure you want to delete this dependent?'); }
+function deleteAddress(id) { deleteProfileItem(`/profile/addresses/${id}`, 'Are you sure you want to delete this address?'); }
+function deleteEmergency(id) { deleteProfileItem(`/profile/emergency/${id}`, 'Are you sure you want to delete this emergency contact?'); }
+function deleteQualification(id) { deleteProfileItem(`/profile/qualifications/${id}`, 'Are you sure you want to delete this qualification?'); }
+function deleteSkill(id) { deleteProfileItem(`/profile/skills/${id}`, 'Are you sure you want to delete this skill?'); }
+function deleteLanguage(id) { deleteProfileItem(`/profile/languages/${id}`, 'Are you sure you want to delete this language?'); }
 </script>
 @endsection

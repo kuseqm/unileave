@@ -2,8 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class ReferenceFormat extends Model
 {
@@ -24,6 +25,7 @@ class ReferenceFormat extends Model
         'serial_start',
         'current_serial',
         'file_capacity',
+        'volume_start',
         'file_naming_pattern',
         'auto_create_new_file',
         'track_physical_location',
@@ -79,6 +81,7 @@ class ReferenceFormat extends Model
         if ($this->entity_type === 'school') {
             return $this->belongsTo(School::class, 'entity_id');
         }
+
         return null;
     }
 
@@ -113,7 +116,10 @@ class ReferenceFormat extends Model
             'travel' => 'Travel Permission',
             'contract' => 'Staff Contract',
             'general' => 'General Correspondence',
+            'graduation' => 'Graduation Confirmation Letter',
+            'verification' => 'Certificate / Transcript Verification Letter',
         ];
+
         return $labels[$this->document_type] ?? ucfirst($this->document_type);
     }
 
@@ -128,7 +134,10 @@ class ReferenceFormat extends Model
             'travel' => 'TRV',
             'contract' => 'CTR',
             'general' => 'GEN',
+            'graduation' => 'GRD',
+            'verification' => 'VER',
         ];
+
         return $abbr[$this->document_type] ?? 'DOC';
     }
 
@@ -143,7 +152,10 @@ class ReferenceFormat extends Model
             'travel' => '015',
             'contract' => '016',
             'general' => '017',
+            'graduation' => '018',
+            'verification' => '013',
         ];
+
         return $codes[$this->document_type] ?? '000';
     }
 
@@ -156,6 +168,7 @@ class ReferenceFormat extends Model
             'department' => 'Department',
             'school' => 'School/Faculty',
         ];
+
         return $labels[$this->entity_type] ?? 'None';
     }
 
@@ -166,14 +179,16 @@ class ReferenceFormat extends Model
     {
         if ($this->entity_type === 'department' && $this->entity_id) {
             $department = Department::find($this->entity_id);
+
             return $department->code ?? 'DEPT';
         }
-        
+
         if ($this->entity_type === 'school' && $this->entity_id) {
             $school = School::find($this->entity_id);
+
             return $school->code ?? 'SCH';
         }
-        
+
         return 'GEN';
     }
 
@@ -184,14 +199,16 @@ class ReferenceFormat extends Model
     {
         if ($this->entity_type === 'department' && $this->entity_id) {
             $department = Department::find($this->entity_id);
+
             return $department->name ?? 'N/A';
         }
-        
+
         if ($this->entity_type === 'school' && $this->entity_id) {
             $school = School::find($this->entity_id);
+
             return $school->name ?? 'N/A';
         }
-        
+
         return 'General';
     }
 
@@ -201,6 +218,7 @@ class ReferenceFormat extends Model
     public function getNextSerialFormattedAttribute()
     {
         $nextSerial = $this->current_serial + 1;
+
         return str_pad($nextSerial, $this->serial_length, '0', STR_PAD_LEFT);
     }
 
@@ -220,6 +238,7 @@ class ReferenceFormat extends Model
         if ($this->file_capacity == 0) {
             return true;
         }
+
         return $this->current_serial < $this->file_capacity;
     }
 
@@ -271,28 +290,28 @@ class ReferenceFormat extends Model
         $year = date('Y');
         $nextSerial = $this->current_serial + 1;
         $serial = str_pad($nextSerial, $this->serial_length, '0', STR_PAD_LEFT);
-        
+
         // Get university code
         $universityCode = $this->university->code ?? 'UNIV';
-        
+
         // Get entity code
         $entityCode = $this->entity_code;
-        
+
         // Get document type values
         $typeAbbreviation = $this->document_type_abbreviation;
         $typeCode = $this->document_type_code;
-        
+
         // Calculate volume based on capacity
         if ($volumeNumber) {
-            $volume = "VOL " . $volumeNumber;
+            $volume = 'VOL '.$volumeNumber;
         } else {
             $currentVolume = floor($this->current_serial / max($this->file_capacity, 1));
-            $volume = "VOL " . $this->numberToRoman($currentVolume + 1);
+            $volume = 'VOL '.$this->numberToRoman($currentVolume + 1);
         }
-        
+
         // Get action type
         $actionType = $this->action_type ?? 'APR';
-        
+
         // Replace all placeholders
         $reference = str_replace(
             [
@@ -304,7 +323,7 @@ class ReferenceFormat extends Model
                 '{university_code}',
                 '{volume}',
                 '{type_code}',
-                '{action_type}'
+                '{action_type}',
             ],
             [
                 $year,
@@ -315,11 +334,11 @@ class ReferenceFormat extends Model
                 $universityCode,
                 $volume,
                 $typeCode,
-                $actionType
+                $actionType,
             ],
             $this->format_pattern
         );
-        
+
         return $reference;
     }
 
@@ -329,11 +348,59 @@ class ReferenceFormat extends Model
     public function generateAndIncrement($volumeNumber = null)
     {
         $reference = $this->generateNumber($volumeNumber);
-        
+
         // Increment the serial
         $this->increment('current_serial');
-        
+
         return $reference;
+    }
+
+    /**
+     * The next reference number for a volume-based file (e.g. "SJUT/SVAC/013/04/VOL IV/181"):
+     * the serial counts within the current volume and starts again at 1 when the
+     * volume reaches its capacity, and the volume number moves on with it. Uses a
+     * row lock so two people generating letters at once never get the same number.
+     */
+    public function generateForCurrentVolume(): string
+    {
+        return DB::transaction(function () {
+            $format = static::whereKey($this->id)->lockForUpdate()->firstOrFail();
+
+            $reference = $format->referenceForIssuedCount((int) $format->current_serial);
+
+            $format->increment('current_serial');
+
+            return $reference;
+        });
+    }
+
+    /** The reference the next letter will get - shown to the person before they generate it. */
+    public function peekNextForCurrentVolume(): string
+    {
+        return $this->referenceForIssuedCount((int) $this->current_serial);
+    }
+
+    private function referenceForIssuedCount(int $issued): string
+    {
+        $capacity = max((int) $this->file_capacity, 0);
+        $volume = max((int) $this->volume_start, 1) + ($capacity > 0 ? intdiv($issued, $capacity) : 0);
+        $serialInVolume = $capacity > 0 ? ($issued % $capacity) + 1 : $issued + 1;
+
+        return str_replace(
+            ['{year}', '{serial}', '{prefix}', '{type}', '{entity_code}', '{university_code}', '{volume}', '{type_code}', '{action_type}'],
+            [
+                date('Y'),
+                str_pad($serialInVolume, $this->serial_length, '0', STR_PAD_LEFT),
+                $this->university->code ?? 'UNIV',
+                $this->document_type_abbreviation,
+                $this->entity_code,
+                $this->university->code ?? 'UNIV',
+                'VOL '.$this->numberToRoman($volume),
+                $this->document_type_code,
+                $this->action_type ?? 'APR',
+            ],
+            $this->format_pattern
+        );
     }
 
     /**
@@ -343,22 +410,22 @@ class ReferenceFormat extends Model
     {
         $year = date('Y');
         $serial = $serialNumber ? str_pad($serialNumber, $this->serial_length, '0', STR_PAD_LEFT) : '0001';
-        
+
         $universityCode = $this->university->code ?? 'UNIV';
         $entityCode = $this->entity_code;
         $typeAbbreviation = $this->document_type_abbreviation;
         $typeCode = $this->document_type_code;
-        $volume = "VOL I";
+        $volume = 'VOL I';
         $actionType = $this->action_type ?? 'APR';
-        
+
         return str_replace(
             [
                 '{year}', '{serial}', '{prefix}', '{type}', '{entity_code}',
-                '{university_code}', '{volume}', '{type_code}', '{action_type}'
+                '{university_code}', '{volume}', '{type_code}', '{action_type}',
             ],
             [
                 $year, $serial, $universityCode, $typeAbbreviation, $entityCode,
-                $universityCode, $volume, $typeCode, $actionType
+                $universityCode, $volume, $typeCode, $actionType,
             ],
             $this->format_pattern
         );
@@ -372,6 +439,7 @@ class ReferenceFormat extends Model
         if ($this->file_capacity == 0) {
             return 1;
         }
+
         return floor($this->current_serial / $this->file_capacity) + 1;
     }
 
@@ -386,14 +454,14 @@ class ReferenceFormat extends Model
     /**
      * Convert number to Roman numerals
      */
-    private function numberToRoman($number)
+    public function numberToRoman($number)
     {
         $map = [
             1000 => 'M', 900 => 'CM', 500 => 'D', 400 => 'CD',
             100 => 'C', 90 => 'XC', 50 => 'L', 40 => 'XL',
-            10 => 'X', 9 => 'IX', 5 => 'V', 4 => 'IV', 1 => 'I'
+            10 => 'X', 9 => 'IX', 5 => 'V', 4 => 'IV', 1 => 'I',
         ];
-        
+
         $result = '';
         foreach ($map as $value => $numeral) {
             while ($number >= $value) {
@@ -401,6 +469,7 @@ class ReferenceFormat extends Model
                 $number -= $value;
             }
         }
+
         return $result;
     }
 }

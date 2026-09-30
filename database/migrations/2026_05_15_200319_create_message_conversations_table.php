@@ -16,7 +16,7 @@ return new class extends Migration
             $table->timestamp('last_message_at')->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
-            
+
             // Remove JSON index - this was the issue
             $table->index('is_active');
             $table->foreign('leave_request_id')->references('id')->on('leave_requests')->onDelete('set null');

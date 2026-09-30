@@ -3,30 +3,29 @@
 namespace App\Models;
 
 use App\Traits\Auditable;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Message extends Model
 {
-    
-    use HasFactory, SoftDeletes, Auditable;
+    use Auditable, HasFactory, SoftDeletes;
 
     protected $table = 'messages';
 
     protected $fillable = [
-        'conversation_id', 
-        'sender_id', 
+        'conversation_id',
+        'sender_id',
         'receiver_id',
         'leave_request_id',
         'message_number',
         'subject',
-        'message', 
+        'message',
         'message_type',
         'recipient_ids',
         'priority',
         'status',
-        'is_read', 
+        'is_read',
         'read_at',
         'delivered_at',
         'replied_at',
@@ -58,7 +57,7 @@ class Message extends Model
     // ============================================
     // RELATIONSHIPS
     // ============================================
-    
+
     public function conversation()
     {
         return $this->belongsTo(MessageConversation::class, 'conversation_id');
@@ -121,13 +120,14 @@ class Message extends Model
     // ============================================
     // SCOPES
     // ============================================
-    
+
     public function scopeUnread($query, $userId = null)
     {
         $query = $query->where('is_read', false);
         if ($userId) {
             $query->where('receiver_id', $userId);
         }
+
         return $query;
     }
 
@@ -139,17 +139,17 @@ class Message extends Model
     public function scopeInbox($query, $userId)
     {
         return $query->where('receiver_id', $userId)
-                     ->where('status', '!=', 'draft')
-                     ->where('is_archived', false)
-                     ->orderByRaw("FIELD(priority, 'urgent', 'high', 'normal', 'low')")
-                     ->orderBy('created_at', 'desc');
+            ->where('status', '!=', 'draft')
+            ->where('is_archived', false)
+            ->orderByRaw("FIELD(priority, 'urgent', 'high', 'normal', 'low')")
+            ->orderBy('created_at', 'desc');
     }
 
     public function scopeSent($query, $userId)
     {
         return $query->where('sender_id', $userId)
-                     ->where('status', '!=', 'draft')
-                     ->orderBy('created_at', 'desc');
+            ->where('status', '!=', 'draft')
+            ->orderBy('created_at', 'desc');
     }
 
     /**
@@ -158,47 +158,47 @@ class Message extends Model
     public function scopeVisibleTo($query, $user)
     {
         $role = $user->getRoleNames()->first();
-        
+
         switch ($role) {
             case 'admin':
             case 'hr_manager':
                 return $query; // See all messages
-            
+
             case 'school_admin':
                 // See messages from their school only
-                return $query->whereHas('sender.department.school', function($q) use ($user) {
+                return $query->whereHas('sender.department.school', function ($q) use ($user) {
                     $q->where('id', $user->school_id);
-                })->orWhereHas('receiver.department.school', function($q) use ($user) {
+                })->orWhereHas('receiver.department.school', function ($q) use ($user) {
                     $q->where('id', $user->school_id);
                 });
-            
+
             case 'hod':
                 // See messages from their department only
-                return $query->whereHas('sender.department', function($q) use ($user) {
+                return $query->whereHas('sender.department', function ($q) use ($user) {
                     $q->where('id', $user->department_id);
-                })->orWhereHas('receiver.department', function($q) use ($user) {
+                })->orWhereHas('receiver.department', function ($q) use ($user) {
                     $q->where('id', $user->department_id);
                 });
-            
+
             default:
                 return $query->where('sender_id', $user->id)
-                            ->orWhere('receiver_id', $user->id);
+                    ->orWhere('receiver_id', $user->id);
         }
     }
 
     // ============================================
     // HELPER METHODS
     // ============================================
-    
+
     public function markAsRead()
     {
-        if (!$this->is_read) {
+        if (! $this->is_read) {
             $this->update([
-                'is_read' => true, 
+                'is_read' => true,
                 'read_at' => now(),
-                'status' => 'read'
+                'status' => 'read',
             ]);
-            
+
             $this->actions()->create([
                 'user_id' => auth()->id(),
                 'action' => 'opened',
@@ -219,6 +219,7 @@ class Message extends Model
         $year = date('Y');
         $last = static::whereYear('created_at', $year)->max('id') ?? 0;
         $number = str_pad($last + 1, 4, '0', STR_PAD_LEFT);
+
         return "MSG/{$year}/{$number}";
     }
 
@@ -241,10 +242,10 @@ class Message extends Model
     // ============================================
     // ACCESSORS
     // ============================================
-    
+
     public function getPriorityBadgeAttribute()
     {
-        return match($this->priority) {
+        return match ($this->priority) {
             'urgent' => '<span class="badge bg-danger">Urgent</span>',
             'high' => '<span class="badge bg-warning">High</span>',
             'low' => '<span class="badge bg-secondary">Low</span>',
@@ -254,14 +255,14 @@ class Message extends Model
 
     public function getStatusBadgeAttribute()
     {
-        return match($this->status) {
+        return match ($this->status) {
             'draft' => '<span class="badge bg-secondary">Draft</span>',
             'sent' => '<span class="badge bg-info">Sent</span>',
             'delivered' => '<span class="badge bg-primary">Delivered</span>',
             'read' => '<span class="badge bg-success">Read</span>',
             'replied' => '<span class="badge bg-success">Replied</span>',
             'actioned' => '<span class="badge bg-dark">Actioned</span>',
-            default => '<span class="badge bg-secondary">' . $this->status . '</span>',
+            default => '<span class="badge bg-secondary">'.$this->status.'</span>',
         };
     }
 
@@ -289,11 +290,11 @@ class Message extends Model
         if ($this->recipient_ids && is_array($this->recipient_ids)) {
             return User::whereIn('id', $this->recipient_ids)->get();
         }
-        
+
         if ($this->receiver_id) {
             return collect([$this->receiver]);
         }
-        
+
         return collect();
     }
 
@@ -303,19 +304,20 @@ class Message extends Model
     public function getRecipientNamesAttribute()
     {
         $names = [];
-        
+
         if ($this->recipient_ids && is_array($this->recipient_ids)) {
             $recipients = User::whereIn('id', $this->recipient_ids)->get();
             foreach ($recipients as $recipient) {
-                $names[] = $recipient->first_name . ' ' . $recipient->last_name;
+                $names[] = $recipient->first_name.' '.$recipient->last_name;
             }
+
             return implode(', ', $names);
         }
-        
+
         if ($this->receiver) {
-            return $this->receiver->first_name . ' ' . $this->receiver->last_name;
+            return $this->receiver->first_name.' '.$this->receiver->last_name;
         }
-        
+
         return 'Unknown';
     }
 
@@ -335,9 +337,10 @@ class Message extends Model
         if ($this->trashed()) {
             return [
                 'deleted_at' => $this->deleted_at,
-                'deleted_by' => 'user_id_' . ($this->deleted_by ?? 'unknown'),
+                'deleted_by' => 'user_id_'.($this->deleted_by ?? 'unknown'),
             ];
         }
+
         return null;
     }
 
@@ -351,28 +354,28 @@ class Message extends Model
         if ($user->id == $this->sender_id) {
             return true;
         }
-        
+
         // Receiver can view
         if ($user->id == $this->receiver_id) {
             return true;
         }
-        
+
         // Check if user has an approved one-time code for this message
-        $accessRequest = \App\Models\MessageAccessRequest::where('message_id', $this->id)
+        $accessRequest = MessageAccessRequest::where('message_id', $this->id)
             ->where('requested_by', $user->id)
             ->where('status', 'approved')
             ->where('code_expires_at', '>', now())
             ->first();
-        
+
         if ($accessRequest) {
             return true;
         }
-        
+
         // Admin and VC can view for compliance
         if ($user->hasRole('admin') || $user->hasRole('vice-chancellor')) {
             return true;
         }
-        
+
         return false;
     }
 }

@@ -58,10 +58,9 @@
                             @error('role')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                         
-                        <div class="alert alert-info">
-                            <i class="ti ti-info-circle me-1"></i>
-                            Temporary password will be: <strong>Temp@123</strong>
-                        </div>
+                        <x-alert-info>
+    Temporary password will be: <strong>Temp@123</strong>
+</x-alert-info>
                         
                         <div class="d-flex justify-content-between">
                             <a href="{{ route('admin.staff') }}" class="btn btn-secondary">Cancel</a>

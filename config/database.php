@@ -64,6 +64,22 @@ return [
             ]) : [],
         ],
 
+        // One-off staging connection for importing the staff_id_hr SQL dump — see
+        // app/Console/Commands/ImportStaffIdHr.php. Safe to remove once that import
+        // is done and verified.
+        'staff_id_hr_staging' => [
+            'driver' => 'mysql',
+            'host' => env('DB_HOST', '127.0.0.1'),
+            'port' => env('DB_PORT', '3306'),
+            'database' => 'staff_id_hr_staging',
+            'username' => env('DB_USERNAME', 'root'),
+            'password' => env('DB_PASSWORD', ''),
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => '',
+            'strict' => true,
+        ],
+
         'mariadb' => [
             'driver' => 'mariadb',
             'url' => env('DB_URL'),

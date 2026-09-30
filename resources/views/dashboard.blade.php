@@ -371,7 +371,7 @@
 
 <script>
 function processLogistics(id) {
-    if(confirm('Process this leave request? This will update the staff\'s leave balance.')) {
+    confirmAction('Process this leave request? This will update the staff\'s leave balance.', function () {
         fetch(`/admin/leave-requests/${id}/final-approve`, {
             method: 'POST',
             headers: {
@@ -385,7 +385,7 @@ function processLogistics(id) {
                 alert('Failed to process request');
             }
         });
-    }
+    }, { danger: false, confirmText: 'Process' });
 }
 </script>
 @endsection

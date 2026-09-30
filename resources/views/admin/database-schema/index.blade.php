@@ -25,10 +25,25 @@
     
     <!-- Stats Cards -->
     <div class="row g-2 mb-3">
-        <x-stats-card value="{{ count($tableNames) }}" label="Total Tables" subtext="in database" icon="database" />
-        <x-stats-card value="{{ $migrations->count() }}" label="Migrations" subtext="run" icon="history" />
-        <x-stats-card value="{{ $migrations->max('batch') }}" label="Latest Batch" subtext="migration batch" icon="layers" />
+        <x-stats-card value="{{ number_format($stats['total_tables']) }}" label="Total Tables" subtext="in database" icon="database" color="primary" />
+        <x-stats-card value="{{ number_format($stats['total_columns']) }}" label="Total Columns" subtext="across tables" icon="columns" color="info" />
+        <x-stats-card value="{{ number_format($stats['total_rows']) }}" label="Total Rows" subtext="recorded data" icon="table" color="success" />
+        <x-stats-card value="{{ number_format($stats['total_indexes']) }}" label="Total Indexes" subtext="for performance" icon="search" color="warning" />
+        <x-stats-card value="{{ number_format($stats['total_foreign_keys']) }}" label="Foreign Keys" subtext="constraints" icon="link" color="danger" />
+        <x-stats-card value="{{ number_format($stats['total_relationships']) }}" label="Relationships" subtext="table links" icon="share" color="secondary" />
+        <x-stats-card value="{{ number_format($stats['total_migrations']) }}" label="Migrations" subtext="run" icon="history" color="primary" />
+        <x-stats-card value="{{ number_format($stats['latest_batch']) }}" label="Latest Batch" subtext="migration batch" icon="layers" color="dark" />
     </div>
+
+    <!-- Search -->
+    <x-search-card
+        id="tableSearch"
+        placeholder="Search tables..."
+    >
+        <div class="text-muted" style="font-size: 0.65rem;">
+            {{ count($tableNames) }} tables
+        </div>
+    </x-search-card>
     
     <div class="row g-2">
         <!-- Left Column: Table List -->
@@ -41,9 +56,6 @@
                     </div>
                 </div>
                 <div class="card-body p-0">
-                    <div class="p-2 border-bottom">
-                        <input type="text" id="tableSearch" class="form-control form-control-sm rounded-sm" placeholder="Search tables..." style="font-size: 0.7rem;">
-                    </div>
                     <div class="table-list" style="max-height: 500px; overflow-y: auto;">
                         @foreach($tableNames as $table)
                         <div class="table-item d-flex justify-content-between align-items-center px-2 py-1 border-bottom" data-table="{{ $table }}" style="cursor: pointer;" onclick="loadTableDetails('{{ $table }}')">
@@ -179,10 +191,9 @@ function loadTableDetails(tableName) {
         .catch(error => {
             console.error('Error:', error);
             document.getElementById('tableDetailsContent').innerHTML = `
-                <div class="alert alert-danger py-1 px-2 rounded-sm" style="font-size: 0.7rem;">
-                    <i class="ti ti-alert-circle me-1"></i>
-                    Failed to load table details
-                </div>
+                <x-alert-danger :session="false">
+    Failed to load table details
+</x-alert-danger>
             `;
         });
 }
@@ -309,19 +320,31 @@ function renderTableDetails(data, tableName) {
 }
 
 // Search functionality
-document.getElementById('tableSearch').addEventListener('input', function(e) {
-    const searchTerm = e.target.value.toLowerCase();
-    const items = document.querySelectorAll('.table-item');
-    
-    items.forEach(item => {
-        const tableName = item.dataset.table.toLowerCase();
-        if (tableName.includes(searchTerm)) {
-            item.style.display = '';
-        } else {
-            item.style.display = 'none';
-        }
+const tableSearch = document.getElementById('tableSearch');
+const resetFilters = document.getElementById('resetFilters');
+
+if (tableSearch) {
+    tableSearch.addEventListener('input', function(e) {
+        const searchTerm = e.target.value.toLowerCase();
+        const items = document.querySelectorAll('.table-item');
+        
+        items.forEach(item => {
+            const tableName = item.dataset.table.toLowerCase();
+            if (tableName.includes(searchTerm)) {
+                item.style.display = '';
+            } else {
+                item.style.display = 'none';
+            }
+        });
     });
-});
+}
+
+if (resetFilters) {
+    resetFilters.addEventListener('click', function () {
+        if (tableSearch) tableSearch.value = '';
+        document.querySelectorAll('.table-item').forEach(item => item.style.display = '');
+    });
+}
 
 // Draw simple ER diagram on canvas
 function drawERDiagram() {

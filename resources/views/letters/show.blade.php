@@ -18,14 +18,14 @@
                 </a>
                 <form action="{{ route('letters.submit', $letter->id) }}" method="POST" class="d-inline">
                     @csrf
-                    <button type="submit" class="btn btn-success btn-sm rounded-sm" style="font-size: 0.7rem; padding: 0.2rem 0.5rem;" onclick="return confirm('Submit this letter for approval?')">
+                    <button type="button" class="btn btn-success btn-sm rounded-sm" style="font-size: 0.7rem; padding: 0.2rem 0.5rem;" onclick="confirmSubmit(this, 'Submit this letter for approval?', { danger: false, confirmText: 'Submit' })">
                         <i class="ti ti-send me-1"></i> Submit for Approval
                     </button>
                 </form>
                 <form action="{{ route('letters.destroy', $letter->id) }}" method="POST" class="d-inline">
                     @csrf
                     @method('DELETE')
-                    <button type="submit" class="btn btn-danger btn-sm rounded-sm" style="font-size: 0.7rem; padding: 0.2rem 0.5rem;" onclick="return confirm('Delete this letter? This cannot be undone.')">
+                    <button type="button" class="btn btn-danger btn-sm rounded-sm" style="font-size: 0.7rem; padding: 0.2rem 0.5rem;" onclick="confirmSubmit(this, 'Delete this letter? This cannot be undone.')">
                         <i class="ti ti-trash me-1"></i> Delete
                     </button>
                 </form>
@@ -35,7 +35,7 @@
             @if($letter->stage === 'pending_approval' && !$letter->hod_approved_at && auth()->user()->hasRole('hod') && auth()->user()->department_id === $letter->recipient->department_id)
                 <form action="{{ route('letters.hod.approve', $letter->id) }}" method="POST" class="d-inline">
                     @csrf
-                    <button type="submit" class="btn btn-success btn-sm rounded-sm" style="font-size: 0.7rem; padding: 0.2rem 0.5rem;" onclick="return confirm('Approve this letter as Head of Department? This action will be recorded with your IP address.')">
+                    <button type="button" class="btn btn-success btn-sm rounded-sm" style="font-size: 0.7rem; padding: 0.2rem 0.5rem;" onclick="confirmSubmit(this, 'Approve this letter as Head of Department? This action will be recorded with your IP address.', { danger: false, confirmText: 'Approve' })">
                         <i class="ti ti-check me-1"></i> Approve as HOD
                     </button>
                 </form>
@@ -45,7 +45,7 @@
             @if($letter->stage === 'pending_approval' && $letter->hod_approved_at && !$letter->dean_approved_at && auth()->user()->hasRole('dean'))
                 <form action="{{ route('letters.dean.approve', $letter->id) }}" method="POST" class="d-inline">
                     @csrf
-                    <button type="submit" class="btn btn-success btn-sm rounded-sm" style="font-size: 0.7rem; padding: 0.2rem 0.5rem;" onclick="return confirm('Approve this letter as Dean? This action will be recorded with your IP address.')">
+                    <button type="button" class="btn btn-success btn-sm rounded-sm" style="font-size: 0.7rem; padding: 0.2rem 0.5rem;" onclick="confirmSubmit(this, 'Approve this letter as Dean? This action will be recorded with your IP address.', { danger: false, confirmText: 'Approve' })">
                         <i class="ti ti-check me-1"></i> Approve as Dean
                     </button>
                 </form>
@@ -59,7 +59,7 @@
                 @if(auth()->user()->hasRole($expectedRole))
                     <form action="{{ route('letters.dvc.approve', $letter->id) }}" method="POST" class="d-inline">
                         @csrf
-                        <button type="submit" class="btn btn-success btn-sm rounded-sm" style="font-size: 0.7rem; padding: 0.2rem 0.5rem;" onclick="return confirm('Approve this letter as DVC? This action will be recorded with your IP address.')">
+                        <button type="button" class="btn btn-success btn-sm rounded-sm" style="font-size: 0.7rem; padding: 0.2rem 0.5rem;" onclick="confirmSubmit(this, 'Approve this letter as DVC? This action will be recorded with your IP address.', { danger: false, confirmText: 'Approve' })">
                             <i class="ti ti-check me-1"></i> Approve as DVC
                         </button>
                     </form>
@@ -355,11 +355,10 @@
                     <button type="button" class="btn-close py-0" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body py-3 px-3">
-                    <div class="alert alert-info py-1 px-2 mb-3" style="font-size: 0.7rem;">
-                        <i class="ti ti-info-circle"></i> 
-                        By signing this letter, you confirm it is authentic and approved.
+                    <x-alert-info>
+    By signing this letter, you confirm it is authentic and approved.
                         This action is legally binding and will be recorded.
-                    </div>
+</x-alert-info>
                     
                     <div class="mb-2">
                         <label class="form-label" style="font-size: 0.7rem;">Enter Your Signature PIN</label>
@@ -367,9 +366,8 @@
                         <small class="text-muted" style="font-size: 0.55rem;">Your PIN is secure and never stored in plain text.</small>
                     </div>
                     
-                    <div class="alert alert-light border py-1 px-2 rounded-sm" style="font-size: 0.65rem;">
-                        <i class="ti ti-shield"></i> 
-                        <strong>What will be recorded:</strong>
+                    <x-alert-secondary>
+    <strong>What will be recorded:</strong>
                         <ul class="mb-0 mt-1 ps-3">
                             <li>Your name and role (Vice Chancellor)</li>
                             <li>Date and time of signature</li>
@@ -377,7 +375,7 @@
                             <li>Browser/device information</li>
                             <li>Document hash for verification</li>
                         </ul>
-                    </div>
+</x-alert-secondary>
                 </div>
                 <div class="modal-footer py-2 px-3">
                     <button type="button" class="btn btn-secondary btn-sm rounded-sm" data-bs-dismiss="modal" style="font-size: 0.7rem;">Cancel</button>

@@ -9,7 +9,7 @@ class CheckRole
 {
     public function handle(Request $request, Closure $next, ...$roles)
     {
-        if (!auth()->check()) {
+        if (! auth()->check()) {
             return redirect('login');
         }
 

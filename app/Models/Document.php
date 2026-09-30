@@ -7,36 +7,40 @@ use Illuminate\Database\Eloquent\Model;
 class Document extends Model
 {
     protected $table = 'documents';
-    
+
     protected $fillable = [
         'user_id',
         'leave_request_id',
         'category_id',
-        'file_name',
+        'original_name',
+        'stored_name',
         'file_path',
-        'file_type',
         'file_size',
-        'is_verified',
+        'mime_type',
+        'file_type',
+        'description',
+        'uploaded_by',
+        'verified_by',
         'verified_at',
-        'verified_by'
+        'verification_status',
+        'rejection_reason',
     ];
-    
+
     protected $casts = [
-        'is_verified' => 'boolean',
         'verified_at' => 'datetime',
         'file_size' => 'integer',
     ];
-    
+
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id');
     }
-    
+
     public function leaveRequest()
     {
         return $this->belongsTo(LeaveRequest::class, 'leave_request_id');
     }
-    
+
     public function category()
     {
         return $this->belongsTo(DocumentCategory::class, 'category_id');

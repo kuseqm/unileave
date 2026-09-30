@@ -141,8 +141,9 @@ class Office extends Model
     public function getFullNameAttribute()
     {
         if ($this->department) {
-            return $this->name . ' (' . $this->department->name . ')';
+            return $this->name.' ('.$this->department->name.')';
         }
+
         return $this->name;
     }
 

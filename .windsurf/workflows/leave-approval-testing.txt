@@ -1,0 +1,179 @@
+---
+description: Maelekezo ya kupitia mzunguko mzima wa leave approval kwa ajili ya testing
+---
+
+# Lengo
+Kutest mzunguko kamili wa maombi ya likizo kuanzia **staff applicant** hadi **barua ya likizo** inayotolewa.
+
+# Magroup mawili ya testing
+
+## Kundi 1: Watoa maombi (Applicants)
+Hawa wana role ya `staff` au `dept-secretary`.
+- Wanaomba leave kupitia `/leave-requests/create`.
+- Wanakubali acting request ikiwa waliitwa kuwa acting.
+- Mwisho wanaweza kuona/kupakua barua yao `/leave-letters`.
+
+## Kundi 2: Waidhinishaji (Approvers)
+Hawa wana roles halisi za idhini na wapo katika department/school husika.
+
+| Hatua | Role inayohitajika | Mahitaji muhimu |
+| --- | --- | --- |
+| **HOD** | `hod` au `deputy-hod` | `departments.hod_staff_id` lazima awe huyo user |
+| **Dean** | `dean` | `schools.dean_staff_id` lazima awe huyo user |
+| **HR Review** | `hr-officer` au `hr-manager` | Same `university` na applicant, sio applicant mwenyewe |
+| **DVC** | `dvca` (academic) / `dvc-pfa` (administrative) | `staff.staff_category` ya applicant iwe `academic` au `administrative` |
+| **HR Logistics (mwisho)** | `hr-officer` au `hr-manager` | Same `university`, sio applicant mwenyewe |
+| **Msimamizi** | `admin`, `super-admin`, `registrar` | Wanaweza kuona kila kipande |
+
+# Misimbo ya kuona maombi (visibility)
+
+| Role | Maombi anayoiona |
+| --- | --- |
+| **HOD** | Maombi ya staff wa **department yake tu** na `current_approval_level = 1` |
+| **Dean** | Maombi ya staff wa **school yake tu** na `current_approval_level = 2` |
+| **DVCA** | Maombi ya staff wa `staff_category='academic'` katika **university yake tu** na `current_approval_level = 4` |
+| **DVCPFA** | Maombi ya staff wa `staff_category='administrative'` au `'supporting'` katika **university yake tu** na `current_approval_level = 4` |
+| **HR Officer / Manager** | Maombi yote yanayokuwa level 3 au 5 katika **university yake tu** |
+| **VC** | Maombi yote ya staff katika **university yake tu** |
+| **Admin** | Maombi yote ya **university yake tu**; `super-admin` anakiona kila kitu |
+
+# Jinsi ya kuandaa data kwa test
+
+Ili kuepuka kukwama, watu watakaotest wawe katika **miundo sahihi**:
+
+1. **Mfano wa test sahihi** (positive flow)
+   - Applicant: `staff`, anayeshiriki **department X** ya **school Y**.
+   - HOD: user aliyewekwa kama `departments.hod_staff_id` kwa **department X**.
+   - Dean: user aliyewekwa kama `schools.dean_staff_id` kwa **school Y**.
+   - HR: `hr-manager` au `hr-officer` wa same `university`.
+   - DVC: `dvca` au `dvc-pfa` wa same `university`.
+
+2. **Mfano wa test ya kutotakiwa kuona** (negative flow)
+   - Tengeneza **department Z** katika **school W** nyingine.
+   - Weka HOD/Dean wa department/school hiyo.
+   - HOD/Dean huyu **hastakiwi kuona** maombi ya department X/school Y.
+   - Hii ndio inakwenda kuthibitisha mfumo unazingatia mipaka.
+
+3. **Vitu vya kuhakikisha kabla ya kuanza**
+   - Applicant na HOD/Dean/DVC/HR wote wa **university moja**.
+   - `staff_category` ya applicant imewekwa kabla ya hatua ya DVC.
+   - HOD, Dean, na DVC ni **users tofauti** na applicant.
+
+# Mzunguko wa testing hatua kwa hatua
+
+1. **Applicant anaomba leave**
+   - Ingia kama `staff`.
+   - Nenda `/leave-requests/create`.
+   - Chagua leave type, tarehe, acting staff, sababu.
+   - Bonyeza **Submit**.
+
+2. **Acting staff anakubali**
+   - Ingia kama user aliyechaguliwa kuwa acting.
+   - Nenda **Acting Requests** → **Accept**.
+   - Mpaka acting haijakubaliwa, HOD hawezi kuapprove.
+
+3. **HOD anaapprove**
+   - Ingia kama `hod` (wa department ya applicant).
+   - `/leave-requests/pending` → angalia badge → **Approve**.
+
+4. **Dean anaapprove**
+   - Ingia kama `dean` (wa school ya applicant).
+   - `/leave-requests/pending` → **Approve**.
+
+5. **HR Review**
+   - Ingia kama `hr-officer` au `hr-manager`.
+   - `/leave-requests/pending` au `/hr-review/{id}`.
+   - Jaza **payment status**, **adjusted days**, **comments**, **travel allowance**.
+   - Bonyeza **Approve**.
+   - Hii inapeleka ombi kwa DVC.
+
+6. **DVC anaapprove**
+   - Kama applicant ni **academic**, itakwenda kwa `dvca`.
+   - Kama ni **administrative**, itakwenda kwa `dvc-pfa`.
+   - `/leave-requests/pending` → **Approve**.
+
+7. **HR Logistics (hatua ya mwisho)**
+   - Ingia kama `hr-officer` / `hr-manager` (mwingine tofauti na applicant).
+   - Nenda `/leave-requests/hr-logistics/{id}`.
+   - Jaza signature, mshahara, usafiri n.k. → **Approve**.
+   - Hii hufunga maombi na kutengeneza **leave letter**.
+
+8. **Applicant anakwenda `/leave-letters`**
+   - Anaweza kuona, kupakua PDF, na kuprint.
+
+# Muhimu ili usikwame
+
+- **Usitumie `php artisan serve`** kwa testing wa approvals/downloads/preview; tumia **Wamp (Apache)** kwenye `http://127.0.0.1/sms_demo/public/...` au virtual host.
+- **Usiweke** approver mmoja na nafasi kadhaa kwa account moja (mfano HOD na Dean)
+- **Hakikisha** `departments.hod_staff_id` na `schools.dean_staff_id` zimewekwa.
+- **Hakikisha** `staff.staff_category` imewekwa (`academic` au `administrative`) kabla ya DVC step.
+- **Hakikisha** kila approver ni wa same `university` na applicant.
+- **Usiapprove** maombi yako mwenyewe kama HR; mfumo unakataza.
+
+# Kuwaongezea watu wapya uwezo wa kufanya test
+
+## Njia 1: Admin UI
+- Nenda **Administration → Role Management**.
+- Fungua user → assign role kama `staff`, `hod`, `dean`, `hr-manager`, `dvca`, `dvc-pfa`, n.k.
+- Kwa HOD/Dean pia weka `departments.hod_staff_id` / `schools.dean_staff_id`.
+
+## Njia 2: Tinker
+Fungua terminal:
+
+```powershell
+php artisan tinker
+```
+
+Kisha andika:
+
+```php
+$user = \App\Models\User::find(123);
+$user->assignRole('hod');
+```
+
+Badilisha `123` na ID ya user na `hod` na role unayohitaji.
+
+# Kutatua endapo kitu kikwama
+
+- Angalia `storage\logs\laravel.log`.
+- Kagua `current_approval_level` na `acting_status` kwenye `leave_requests` table.
+- Tumia tinker kama:
+
+```php
+$req = \App\Models\LeaveRequest::find(61);
+$req->update(['current_approval_level' => 1, 'acting_status' => 'accepted']);
+```
+
+# ORODHA YA MWISHO YA WATU WA KUTEST (NA CREDENTIALS)
+
+Wote wako katika **Presentation Demo Department** / **Presentation Demo School**.
+Password zote zimetangulia kuwekwa sawa, sasa hivi ni **Temp@123**.
+
+| Hatua | Jina                 | Email                            | Role / Kazi                        | Password |
+|-------|----------------------|----------------------------------|------------------------------------|----------|
+| 1     | Dorice Lusegembe     | dorice@sjut.ac.tz                | Staff - anayeomba (anaanza)        | Temp@123 |
+| 2     | Haruni Amos          | haruni@sjut.ac.tz                | Staff - anayepokea/acting          | Temp@123 |
+| 3     | Richard Mpemba       | richard.mpemba@sjut.ac.tz        | HOD                                | Temp@123 |
+| 4     | Reuben Minael        | reuben.minael@sjut.ac.tz         | Dean                               | Temp@123 |
+| 5     | Happyness Hurdson    | happyness.hurdson@sjut.ac.tz     | HR Officer                         | Temp@123 |
+| 6     | Emmanuel Matowo      | emmanuel.matowo@sjut.ac.tz       | DVCA                               | Temp@123 |
+| 7     | Shuubi Alphonce      | shuubi.alphonce@sjut.ac.tz       | Vice Chancellor - anamaliza        | Temp@123 |
+| Extra | Richard Mazalahisha  | richard.mazalahisha@sjut.ac.tz   | Staff - mbadala wa kuomba/acting   | Temp@123 |
+| Extra | Juma Khanafi         | juma.khanafi@sjut.ac.tz          | Staff - mbadala wa kuomba/acting   | Temp@123 |
+
+## Mtiririko wa kupitia test (nani anaanza, nani anamaliza)
+
+1. **Dorice** anaanza kwa kuomba leave kama staff.
+2. **Haruni** anakubali kama acting / mpokeaji wa majukumu.
+3. **Richard Mpemba (HOD)** anaidhinisha ombi.
+4. **Reuben Minael (Dean)** anaidhinisha.
+5. **Happyness Hurdson (HR)** anaidhinisha.
+6. **Emmanuel Matowo (DVC-A)** anaidhinisha.
+7. **Shuubi Alphonce (VC)** anamaliza kwa kuidhinisha ombi.
+
+## Maelezo muhimu kwa wanaotest
+
+- Tumia **browser moja kwa kila mtu** au **Incognito/Private tabs** ili sessions zisichanganyike.
+- Kila mtu atumie **email yake** na password **Temp@123**.
+- Baada ya kuingia kila hatua, nenda **Leave Requests Pending** au **Approvals** kuingiliana.
+

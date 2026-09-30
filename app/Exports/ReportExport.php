@@ -2,12 +2,14 @@
 
 namespace App\Exports;
 
+use Illuminate\Support\Enumerable;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 
 class ReportExport implements FromCollection, WithHeadings
 {
     protected $data;
+
     protected $definition;
 
     public function __construct($data, $definition)
@@ -16,7 +18,7 @@ class ReportExport implements FromCollection, WithHeadings
         $this->definition = $definition;
     }
 
-    public function collection()
+    public function collection(): Enumerable
     {
         return $this->data;
     }
@@ -25,8 +27,9 @@ class ReportExport implements FromCollection, WithHeadings
     {
         // Use the column names from the first row of data, or fallback
         if ($this->data->isNotEmpty()) {
-            return array_keys($this->data->first());
+            return array_keys((array) $this->data->first());
         }
+
         return [];
     }
 }

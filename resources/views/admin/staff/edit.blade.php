@@ -6,33 +6,26 @@
 <div class="container-fluid px-2">
     
     <!-- Breadcrumb -->
-    <x-breadcrumb :items="[
+    <x-breadcrumb :items=" [
         ['name' => 'Staff', 'url' => route('staff.index')],
         ['name' => 'Edit Staff', 'url' => '#']
     ]" />
     
-    <!-- Page Header Card -->
-    <div class="card rounded-sm mb-3">
-        <div class="card-body py-2 px-3">
-            <div class="d-flex align-items-center justify-content-between">
-                <div>
-                    <h1 class="h5 mb-0" style="color: #3B82F6; font-weight: 700;">EDIT STAFF MEMBER</h1>
-                    <p class="text-muted mb-0" style="font-size: 0.7rem;">Update staff information and permissions</p>
-                </div>
-                <div class="d-flex gap-2">
-                    <a href="{{ route('staff.index') }}" class="btn btn-outline-secondary btn-sm rounded-sm" style="font-size: 0.7rem; padding: 0.2rem 0.5rem;">
-                        <i class="ti ti-arrow-left me-1"></i> Back
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- Page Header -->
+    <x-page-header title="EDIT STAFF MEMBER" description="Update staff information and permissions" backUrl="{{ route('staff.index') }}" />
     
-    @if(session('error'))
-    <div class="alert alert-danger alert-dismissible fade show py-1 px-2 mb-2 rounded-sm" style="font-size: 0.7rem;" role="alert">
-        <i class="ti ti-alert-circle me-1"></i> {{ session('error') }}
+    <x-alert-danger />
+    
+    @if($errors->any())
+    <x-alert-danger :session="false">
+        <strong>Please fix the following errors:</strong>
+        <ul class="mb-0 mt-1 ps-3">
+            @foreach($errors->all() as $error)
+            <li>{{ $error }}</li>
+            @endforeach
+        </ul>
         <button type="button" class="btn-close py-0" style="font-size: 0.6rem;" data-bs-dismiss="alert"></button>
-    </div>
+    </x-alert-danger>
     @endif
     
     <div class="row g-2">
@@ -261,10 +254,9 @@
                                     </div>
                                 </div>
                                 
-                                <div class="alert alert-info py-1 px-2 mt-2 mb-0 rounded-sm" style="font-size: 0.65rem;">
-                                    <i class="ti ti-info-circle me-1"></i>
-                                    Additional qualifications, skills, languages, certifications, awards, and work experience can be managed from the staff's profile page after creation.
-                                </div>
+                                <x-alert-info>
+    Additional qualifications, skills, languages, certifications, awards, and work experience can be managed from the staff's profile page after creation.
+</x-alert-info>
                             </div>
                             
                             <!-- Tab 4: Location Assignment -->
@@ -272,33 +264,37 @@
                                 <div class="border rounded-sm p-2" style="background: #f8fafc;">
                                     <div class="mb-1">
                                         <label class="form-label" style="font-size: 0.65rem;">University <span class="text-danger">*</span></label>
-                                        <select id="university_id" name="university_id" class="form-select form-select-sm rounded-sm" style="font-size: 0.7rem; padding: 0.2rem 0.3rem;" required>
+                                        <select id="university_id" name="university_id" class="form-select form-select-sm rounded-sm @error('university_id') is-invalid @enderror" style="font-size: 0.7rem; padding: 0.2rem 0.3rem;" required>
                                             <option value="">Select University</option>
                                             @foreach($universities as $uni)
-                                            <option value="{{ $uni->id }}" {{ $staff->university_id == $uni->id ? 'selected' : '' }}>{{ $uni->name }}</option>
+                                            <option value="{{ $uni->id }}" {{ old('university_id', $staff->university_id) == $uni->id ? 'selected' : '' }}>{{ $uni->name }}</option>
                                             @endforeach
                                         </select>
+                                        @error('university_id')<div class="invalid-feedback" style="font-size: 0.65rem;">{{ $message }}</div>@enderror
                                     </div>
-                                    
+
                                     <div class="mb-1">
                                         <label class="form-label" style="font-size: 0.65rem;">Campus <span class="text-danger">*</span></label>
-                                        <select id="campus_id" name="campus_id" class="form-select form-select-sm rounded-sm" style="font-size: 0.7rem; padding: 0.2rem 0.3rem;" required>
+                                        <select id="campus_id" name="campus_id" class="form-select form-select-sm rounded-sm @error('campus_id') is-invalid @enderror" style="font-size: 0.7rem; padding: 0.2rem 0.3rem;" required>
                                             <option value="">Select University First</option>
                                         </select>
+                                        @error('campus_id')<div class="invalid-feedback" style="font-size: 0.65rem;">{{ $message }}</div>@enderror
                                     </div>
-                                    
+
                                     <div class="mb-1">
                                         <label class="form-label" style="font-size: 0.65rem;">School/Faculty</label>
-                                        <select id="school_id" name="school_id" class="form-select form-select-sm rounded-sm" style="font-size: 0.7rem; padding: 0.2rem 0.3rem;">
+                                        <select id="school_id" name="school_id" class="form-select form-select-sm rounded-sm @error('school_id') is-invalid @enderror" style="font-size: 0.7rem; padding: 0.2rem 0.3rem;">
                                             <option value="">Select Campus First</option>
                                         </select>
+                                        @error('school_id')<div class="invalid-feedback" style="font-size: 0.65rem;">{{ $message }}</div>@enderror
                                     </div>
-                                    
+
                                     <div class="mb-1">
                                         <label class="form-label" style="font-size: 0.65rem;">Department <span class="text-danger">*</span></label>
-                                        <select id="department_id" name="department_id" class="form-select form-select-sm rounded-sm" style="font-size: 0.7rem; padding: 0.2rem 0.3rem;" required>
+                                        <select id="department_id" name="department_id" class="form-select form-select-sm rounded-sm @error('department_id') is-invalid @enderror" style="font-size: 0.7rem; padding: 0.2rem 0.3rem;" required>
                                             <option value="">Select School First</option>
                                         </select>
+                                        @error('department_id')<div class="invalid-feedback" style="font-size: 0.65rem;">{{ $message }}</div>@enderror
                                     </div>
                                 </div>
                             </div>
@@ -346,9 +342,9 @@
             </div>
             <div class="modal-body py-2 px-2">
                 <p style="font-size: 0.75rem;">Are you sure you want to reset the password for <strong id="resetStaffName"></strong>?</p>
-                <div class="alert alert-info py-1 px-2 rounded-sm" style="font-size: 0.7rem;">
-                    <i class="ti ti-info-circle me-1"></i> Temporary password: <code>Temp@123</code>
-                </div>
+                <x-alert-info>
+    Temporary password: <code>Temp@123</code>
+</x-alert-info>
             </div>
             <div class="modal-footer py-1 px-2">
                 <button type="button" class="btn btn-secondary btn-sm rounded-sm" data-bs-dismiss="modal" style="font-size: 0.7rem;">Cancel</button>
@@ -360,21 +356,42 @@
 
 <script>
 // Cascading selects for edit page
+const initialDepartmentId = '{{ old('department_id', $staff->department_id) }}';
+
+function loadDepartments(campusId, schoolId, selectedDeptId) {
+    const deptSelect = document.getElementById('department_id');
+    deptSelect.innerHTML = '<option value="">Select Department</option>';
+    deptSelect.disabled = true;
+
+    if (!campusId) return;
+
+    const url = `/staff/departments-by-campus/${campusId}?school_id=${encodeURIComponent(schoolId || '')}`;
+    fetch(url)
+        .then(res => res.json())
+        .then(data => {
+            data.forEach(dept => {
+                const selected = selectedDeptId == dept.id ? 'selected' : '';
+                deptSelect.innerHTML += `<option value="${dept.id}" ${selected}>${dept.name}</option>`;
+            });
+            deptSelect.disabled = false;
+        });
+}
+
 document.getElementById('university_id').addEventListener('change', function() {
     const universityId = this.value;
     const campusSelect = document.getElementById('campus_id');
     const schoolSelect = document.getElementById('school_id');
     const deptSelect = document.getElementById('department_id');
-    const currentCampusId = '{{ $staff->campus_id }}';
-    const currentSchoolId = '{{ $staff->school_id }}';
-    
+    const currentCampusId = '{{ old('campus_id', $staff->campus_id) }}';
+    const currentSchoolId = '{{ old('school_id', $staff->school_id) }}';
+
     campusSelect.innerHTML = '<option value="">Select Campus</option>';
-    schoolSelect.innerHTML = '<option value="">Select Campus First</option>';
-    deptSelect.innerHTML = '<option value="">Select School First</option>';
+    schoolSelect.innerHTML = '<option value="">Select School</option>';
+    deptSelect.innerHTML = '<option value="">Select Department</option>';
     campusSelect.disabled = false;
     schoolSelect.disabled = true;
     deptSelect.disabled = true;
-    
+
     if (universityId) {
         fetch(`/staff/campuses/${universityId}`)
             .then(res => res.json())
@@ -394,13 +411,13 @@ document.getElementById('campus_id').addEventListener('change', function() {
     const campusId = this.value;
     const schoolSelect = document.getElementById('school_id');
     const deptSelect = document.getElementById('department_id');
-    const currentSchoolId = '{{ $staff->school_id }}';
-    
+    const currentSchoolId = '{{ old('school_id', $staff->school_id) }}';
+
     schoolSelect.innerHTML = '<option value="">Select School</option>';
-    deptSelect.innerHTML = '<option value="">Select School First</option>';
-    schoolSelect.disabled = false;
+    deptSelect.innerHTML = '<option value="">Select Department</option>';
+    schoolSelect.disabled = true;
     deptSelect.disabled = true;
-    
+
     if (campusId) {
         fetch(`/staff/schools/${campusId}`)
             .then(res => res.json())
@@ -409,31 +426,23 @@ document.getElementById('campus_id').addEventListener('change', function() {
                     const selected = currentSchoolId == school.id ? 'selected' : '';
                     schoolSelect.innerHTML += `<option value="${school.id}" ${selected}>${school.name}</option>`;
                 });
+                schoolSelect.disabled = false;
+
                 if (currentSchoolId) {
+                    schoolSelect.value = currentSchoolId;
                     schoolSelect.dispatchEvent(new Event('change'));
+                } else {
+                    loadDepartments(campusId, schoolSelect.value || '', initialDepartmentId);
                 }
             });
     }
 });
 
 document.getElementById('school_id').addEventListener('change', function() {
+    const campusId = document.getElementById('campus_id').value;
     const schoolId = this.value;
-    const deptSelect = document.getElementById('department_id');
-    const currentDeptId = '{{ $staff->department_id }}';
-    
-    deptSelect.innerHTML = '<option value="">Select Department</option>';
-    deptSelect.disabled = false;
-    
-    if (schoolId) {
-        fetch(`/staff/departments/${schoolId}`)
-            .then(res => res.json())
-            .then(data => {
-                data.forEach(dept => {
-                    const selected = currentDeptId == dept.id ? 'selected' : '';
-                    deptSelect.innerHTML += `<option value="${dept.id}" ${selected}>${dept.name}</option>`;
-                });
-            });
-    }
+    const selectedDeptId = document.getElementById('department_id').value || initialDepartmentId;
+    loadDepartments(campusId, schoolId, selectedDeptId);
 });
 
 // Trigger initial load

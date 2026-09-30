@@ -17,25 +17,34 @@
         @endhasanyrole
     </x-page-header>
     
-    @if(session('success'))
-    <div class="alert alert-success alert-dismissible fade show py-1 px-2 mb-2 rounded-sm" role="alert">
-        <i class="ti ti-check-circle me-1"></i> {{ session('success') }}
-        <button type="button" class="btn-close py-0" data-bs-dismiss="alert"></button>
-    </div>
-    @endif
+    <x-alert-success />
     
-    @if(session('error'))
-    <div class="alert alert-danger alert-dismissible fade show py-1 px-2 mb-2 rounded-sm" role="alert">
-        <i class="ti ti-alert-circle me-1"></i> {{ session('error') }}
-        <button type="button" class="btn-close py-0" data-bs-dismiss="alert"></button>
-    </div>
-    @endif
+    <x-alert-danger />
     
     <!-- Tab Navigation -->
     <ul class="nav nav-tabs mb-3" id="settingsTab" role="tablist">
         <li class="nav-item" role="presentation">
             <button class="nav-link active" id="settings-tab" data-bs-toggle="tab" data-bs-target="#settings" type="button" role="tab">
-                <i class="ti ti-settings"></i> Settings
+                <i class="ti ti-settings"></i> General
+            </button>
+        </li>
+        @if($canLetterhead)
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="letterhead-tab" data-bs-toggle="tab" data-bs-target="#letterhead-pane" type="button" role="tab">
+                <i class="ti ti-palette"></i> Letter Branding
+            </button>
+        </li>
+        @endif
+        @if($canRegistry)
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="registry-tab" data-bs-toggle="tab" data-bs-target="#registry-pane" type="button" role="tab">
+                <i class="ti ti-file-text"></i> Letter &amp; Registry
+            </button>
+        </li>
+        @endif
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="hr-tab" data-bs-toggle="tab" data-bs-target="#hr-pane" type="button" role="tab">
+                <i class="ti ti-users"></i> HR
             </button>
         </li>
         @hasanyrole('admin|super-admin')
@@ -46,7 +55,7 @@
         </li>
         @endhasanyrole
     </ul>
-    
+
     <div class="tab-content">
         <!-- Settings Values Tab -->
         <div class="tab-pane fade show active" id="settings" role="tabpanel">
@@ -142,7 +151,26 @@
                 </div>
             </form>
         </div>
-        
+
+        @if($canLetterhead)
+        <!-- Letter Branding Tab -->
+        <div class="tab-pane fade" id="letterhead-pane" role="tabpanel">
+            @include('admin.settings._letterhead-form', ['university' => $university])
+        </div>
+        @endif
+
+        @if($canRegistry)
+        <!-- Letter & Registry Tab -->
+        <div class="tab-pane fade" id="registry-pane" role="tabpanel">
+            @include('registry._settings-form', ['universities' => $registryUniversities, 'settings' => $registrySettings, 'selectedUniversity' => $registrySelectedUniversity])
+        </div>
+        @endif
+
+        <!-- HR Tab -->
+        <div class="tab-pane fade" id="hr-pane" role="tabpanel">
+            @include('settings.hr._form', ['settings' => $hrSettings])
+        </div>
+
         <!-- All Settings Definitions Tab (Admin only) -->
         @hasanyrole('admin|super-admin')
         <div class="tab-pane fade" id="all-settings" role="tabpanel">

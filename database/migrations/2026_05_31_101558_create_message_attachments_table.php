@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('mime_type');
             $table->string('disk')->default('public');
             $table->timestamps();
-            
+
             $table->index('message_id');
         });
     }

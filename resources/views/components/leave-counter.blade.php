@@ -2,28 +2,40 @@
 
 @php
     use Carbon\Carbon;
-    
-    // Leave year: September 1 to August 30
+
+    // Leave year = the active academic year (see App\Models\AcademicYear /
+    // admin > Academic Years). Falls back to the old fixed Sept 1 - Aug 31
+    // window only if no academic year has been activated yet, so this
+    // widget never breaks on a fresh install.
     $today = Carbon::now()->startOfDay(); // Start of day to avoid time issues
-    $yearStart = Carbon::now()->month >= 9 
-        ? Carbon::now()->startOfMonth()->setMonth(9)->setDay(1)->startOfDay()
-        : Carbon::now()->subYear()->startOfMonth()->setMonth(9)->setDay(1)->startOfDay();
-    
-    $yearEnd = Carbon::now()->month >= 9
-        ? Carbon::now()->addYear()->startOfMonth()->setMonth(8)->setDay(30)->endOfDay()
-        : Carbon::now()->startOfMonth()->setMonth(8)->setDay(30)->endOfDay();
-    
-    // Days remaining until August 30 (whole number, no decimals)
+    $currentAcademicYear = App\Models\AcademicYear::current();
+
+    if ($currentAcademicYear) {
+        $yearStart = $currentAcademicYear->start_date->copy()->startOfDay();
+        $yearEnd = $currentAcademicYear->end_date->copy()->endOfDay();
+    } else {
+        $yearStart = Carbon::now()->month >= 9
+            ? Carbon::now()->startOfMonth()->setMonth(9)->setDay(1)->startOfDay()
+            : Carbon::now()->subYear()->startOfMonth()->setMonth(9)->setDay(1)->startOfDay();
+
+        $yearEnd = Carbon::now()->month >= 9
+            ? Carbon::now()->addYear()->startOfMonth()->setMonth(8)->setDay(31)->endOfDay()
+            : Carbon::now()->startOfMonth()->setMonth(8)->setDay(31)->endOfDay();
+    }
+
+    // Days remaining until the leave year ends (whole number, no decimals)
     $daysUntilYearEnd = max(0, (int) $today->diffInDays($yearEnd, false));
-    
-    // Annual leave type ID
+
+    // Annual leave type - its own days_allowed is the real entitlement,
+    // instead of a number hardcoded here that could drift out of sync.
     $annualLeaveType = App\Models\LeaveType::where('name', 'like', '%Annual%')->first();
     $annualLeaveTypeId = $annualLeaveType ? $annualLeaveType->id : null;
-    
+    $annualAllocation = $annualLeaveType->days_allowed ?? 28;
+
     // Get approved annual leave requests for this user in current leave year
     $approvedLeaveDays = 0;
     $hasApprovedLeave = false;
-    $remainingLeaveDays = 28;
+    $remainingLeaveDays = $annualAllocation;
     $leaveEndDate = null;
     
     if ($annualLeaveTypeId) {
@@ -48,7 +60,7 @@
                 $leaveEndDate = $end;
             }
             
-            $remainingLeaveDays = max(0, 28 - $approvedLeaveDays);
+            $remainingLeaveDays = max(0, $annualAllocation - $approvedLeaveDays);
         }
     }
     
@@ -58,12 +70,14 @@
         $mode = 'no_leave';
         $daysValue = $daysUntilYearEnd;
         
-        // Determine color based on days remaining until Aug 30
-        if ($daysUntilYearEnd > 28) {
+        // Color reflects urgency to request leave before the year runs out:
+        // green while there's plenty of time, orange inside the last 90 days,
+        // red inside the last 30 days.
+        if ($daysUntilYearEnd > 90) {
             $color = 'green';
             $statusClass = 'status-green';
             $icon = 'ti ti-calendar-check';
-        } elseif ($daysUntilYearEnd == 28) {
+        } elseif ($daysUntilYearEnd > 30) {
             $color = 'orange';
             $statusClass = 'status-orange';
             $icon = 'ti ti-alert-triangle';
@@ -72,19 +86,19 @@
             $statusClass = 'status-red';
             $icon = 'ti ti-alert-circle';
         }
-        
-        $message = "No leave requested in {$daysUntilYearEnd} days";
-        
-    } elseif ($approvedLeaveDays >= 28) {
+
+        $message = "You have {$daysUntilYearEnd} days to request leave";
+
+    } elseif ($approvedLeaveDays >= $annualAllocation) {
         // Reset: Staff has completed 28 days
         $mode = 'completed';
         $daysValue = $daysUntilYearEnd;
-        
-        if ($daysUntilYearEnd > 28) {
+
+        if ($daysUntilYearEnd > 90) {
             $color = 'green';
             $statusClass = 'status-green';
             $icon = 'ti ti-calendar-check';
-        } elseif ($daysUntilYearEnd == 28) {
+        } elseif ($daysUntilYearEnd > 30) {
             $color = 'orange';
             $statusClass = 'status-orange';
             $icon = 'ti ti-alert-triangle';
@@ -93,8 +107,8 @@
             $statusClass = 'status-red';
             $icon = 'ti ti-alert-circle';
         }
-        
-        $message = "Leave completed! {$daysUntilYearEnd} days remaining in year";
+
+        $message = "Leave completed! {$daysUntilYearEnd} days left in year";
         
     } else {
         // PART B: Leave requested and in progress
@@ -127,12 +141,23 @@
             }
         }
     }
+
+    // Compact label for narrow screens: the full sentence hides below 768px
+    // (see @media rule below) since it doesn't fit, but hiding it down to just
+    // the icon leaves an unlabeled colored dot with no information in it — so
+    // show this short form instead of nothing.
+    $shortMessage = match ($mode) {
+        'no_leave' => "{$daysValue}d to request",
+        'in_progress' => "{$daysValue}d left",
+        default => "{$daysValue}d left",
+    };
 @endphp
 
 <div class="leave-counter-wrapper">
     <div class="leave-counter {{ $statusClass }}" title="{{ $message }}">
         <i class="{{ $icon }}"></i>
         <span class="leave-counter-text">{{ $message }}</span>
+        <span class="leave-counter-text-short">{{ $shortMessage }}</span>
     </div>
 </div>
 
@@ -184,6 +209,11 @@
     font-size: 1rem;
 }
 
+/* Compact label shown only below 768px - see .leave-counter-text-short below */
+.leave-counter-text-short {
+    display: none;
+}
+
 /* Animations */
 @keyframes softPulse {
     0% { opacity: 1; }
@@ -219,6 +249,11 @@
     
     .leave-counter-text {
         display: none;
+    }
+
+    .leave-counter-text-short {
+        display: inline;
+        white-space: nowrap;
     }
 }
 

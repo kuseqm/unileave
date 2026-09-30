@@ -19,11 +19,11 @@ return new class extends Migration
             $table->string('token')->unique();
             $table->text('comment')->nullable();
             $table->timestamps();
-            
+
             $table->foreign('leave_request_id')->references('id')->on('leave_requests')->onDelete('cascade');
             $table->foreign('requester_staff_id')->references('id')->on('staff')->onDelete('cascade');
             $table->foreign('holder_staff_id')->references('id')->on('staff')->onDelete('cascade');
-            
+
             $table->index(['requester_staff_id', 'holder_staff_id']);
             $table->index('status');
         });

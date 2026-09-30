@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Tenant extends Model
 {
     protected $fillable = ['name', 'domain', 'database', 'status', 'settings'];
+
     protected $casts = ['settings' => 'array'];
 
     public function users()

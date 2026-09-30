@@ -2,34 +2,35 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class School extends Model
 {
     use HasFactory;
-    
+
     protected $table = 'schools';
-    
+
     protected $fillable = [
         'campus_id',
         'name',
+        'type',
         'code',
         'dean_staff_id',
         'description',
         'status',
     ];
-    
+
     protected $casts = [
         'status' => 'string',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
-    
+
     // ============================================
     // RELATIONSHIPS
     // ============================================
-    
+
     /**
      * Campus that this school belongs to
      */
@@ -37,7 +38,7 @@ class School extends Model
     {
         return $this->belongsTo(Campus::class, 'campus_id');
     }
-    
+
     /**
      * Dean (User) of this school
      */
@@ -45,7 +46,7 @@ class School extends Model
     {
         return $this->belongsTo(User::class, 'dean_staff_id');
     }
-    
+
     /**
      * Departments under this school
      */
@@ -53,7 +54,18 @@ class School extends Model
     {
         return $this->hasMany(Department::class, 'school_id');
     }
-    
+
+    /**
+     * Academic programmes offered by this school (Faculty/School -> Program,
+     * per GMSA's academic structure - a programme's curriculum can still
+     * draw individual courses from several departments, but the programme
+     * itself is owned by the school directly).
+     */
+    public function programs()
+    {
+        return $this->hasMany(Program::class);
+    }
+
     /**
      * Staff members in this school (via departments)
      * HasManyThrough: School -> Department -> User
@@ -69,7 +81,7 @@ class School extends Model
             'id'                // Local key on departments table
         );
     }
-    
+
     /**
      * Offices in this school (via departments)
      * For Central Registry
@@ -85,11 +97,11 @@ class School extends Model
             'id'                // Local key on departments table
         );
     }
-    
+
     // ============================================
     // SCOPES
     // ============================================
-    
+
     /**
      * Scope: Only active schools
      */
@@ -97,7 +109,7 @@ class School extends Model
     {
         return $query->where('status', 'active');
     }
-    
+
     /**
      * Scope: Schools by campus
      */
@@ -105,54 +117,55 @@ class School extends Model
     {
         return $query->where('campus_id', $campusId);
     }
-    
+
     // ============================================
     // ACCESSORS & MUTATORS
     // ============================================
-    
+
     /**
      * Get full name (Campus - School) with null safety
      */
     public function getFullNameAttribute()
     {
         $campusName = $this->campus ? $this->campus->name : 'No Campus';
-        return $campusName . ' - ' . $this->name;
+
+        return $campusName.' - '.$this->name;
     }
-    
+
     /**
      * Get school code with name (e.g., "SCI - Faculty of Science")
      */
     public function getCodeNameAttribute()
     {
-        return $this->code . ' - ' . $this->name;
+        return $this->code.' - '.$this->name;
     }
-    
+
     /**
      * Get display name for dropdowns
      */
     public function getDisplayNameAttribute()
     {
         $campusName = $this->campus ? $this->campus->name : '';
-        
+
         if ($campusName) {
-            return $campusName . ' - ' . $this->name;
+            return $campusName.' - '.$this->name;
         }
-        
+
         return $this->name;
     }
-    
+
     // ============================================
     // HELPERS
     // ============================================
-    
+
     /**
      * Check if school has a dean assigned
      */
     public function hasDean()
     {
-        return !is_null($this->dean_staff_id);
+        return ! is_null($this->dean_staff_id);
     }
-    
+
     /**
      * Get total departments count in this school
      */
@@ -160,7 +173,7 @@ class School extends Model
     {
         return $this->departments()->count();
     }
-    
+
     /**
      * Get total staff count in this school
      */
@@ -168,7 +181,7 @@ class School extends Model
     {
         return $this->staff()->count();
     }
-    
+
     /**
      * Get total offices in this school (for Central Registry)
      */

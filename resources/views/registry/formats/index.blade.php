@@ -18,21 +18,14 @@
         </a>
     </x-page-header>
     
-    @if(session('success'))
-    <div class="alert alert-success alert-dismissible fade show py-1 px-2 mb-2 rounded-sm" style="font-size: 0.7rem;" role="alert">
-        <i class="ti ti-check-circle me-1"></i> {{ session('success') }}
-        <button type="button" class="btn-close py-0" style="font-size: 0.6rem;" data-bs-dismiss="alert"></button>
-    </div>
-    @endif
+    <x-alert-success />
     
-    @if(session('error'))
-    <div class="alert alert-danger alert-dismissible fade show py-1 px-2 mb-2 rounded-sm" style="font-size: 0.7rem;" role="alert">
-        <i class="ti ti-alert-circle me-1"></i> {{ session('error') }}
-        <button type="button" class="btn-close py-0" style="font-size: 0.6rem;" data-bs-dismiss="alert"></button>
-    </div>
-    @endif
+    <x-alert-danger />
     
-    <div class="card rounded-sm">
+    <div class="row g-2">
+        <!-- Reference Formats List - main column -->
+        <div class="col-lg-8">
+            <div class="card rounded-sm">
         <div class="card-header py-1 px-2 bg-light">
             <div class="d-flex align-items-center">
                 <i class="ti ti-file-text text-primary me-1" style="font-size: 0.8rem;"></i>
@@ -127,6 +120,41 @@
             {{ $formats->links() }}
         </div>
         @endif
+            </div>
+        </div>
+
+        <!-- Information - narrow column -->
+        <div class="col-lg-4">
+            <div class="card rounded-sm">
+                <div class="card-header py-1 px-2 bg-light">
+                    <div class="d-flex align-items-center">
+                        <i class="ti ti-info-circle text-info me-1" style="font-size: 0.8rem;"></i>
+                        <span style="font-size: 0.7rem; font-weight: 600;">Information</span>
+                    </div>
+                </div>
+                <div class="card-body py-2 px-2">
+                    <div class="mb-2">
+                        <div class="fw-semibold" style="font-size: 0.7rem;"><i class="ti ti-flag me-1 text-primary"></i> What is a Format?</div>
+                        <ul class="mb-0 ps-3" style="font-size: 0.65rem; color: #555;">
+                            <li>Defines the pattern used to generate reference numbers for a document type</li>
+                            <li>The <strong>Current Serial</strong> auto-increments each time it is used</li>
+                            <li><span class="badge bg-secondary-subtle text-secondary rounded-pill">Inactive</span> formats cannot be assigned to new letters</li>
+                        </ul>
+                    </div>
+
+                    <x-alert-light class="mb-0 py-1 px-2 rounded-sm">
+                        <div class="d-flex align-items-start gap-1">
+                            <i class="ti ti-tips text-warning mt-0" style="font-size: 0.7rem;"></i>
+                            <div>
+                                <strong class="d-block" style="font-size: 0.65rem;">Tips</strong>
+                                <small class="text-muted" style="font-size: 0.6rem;">&bull; A format cannot be deleted once its serial has been used</small><br>
+                                <small class="text-muted" style="font-size: 0.6rem;">&bull; Click a row or the eye icon to see full usage history</small>
+                            </div>
+                        </div>
+                    </x-alert-light>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -171,14 +199,12 @@ document.addEventListener('DOMContentLoaded', function() {
                                 </div>
                                 <div class="modal-body py-2 px-2">
                                     <p style="font-size: 0.75rem;">Are you sure you want to delete <strong>${itemName}</strong>?</p>
-                                    <div class="alert alert-warning py-1 px-2 mt-2 rounded-sm" style="font-size: 0.65rem;">
-                                        <i class="ti ti-alert-circle me-1"></i>
-                                        <strong>Warning:</strong> This format will be permanently deleted.
-                                    </div>
-                                    <div class="alert alert-danger py-1 px-2 mt-2 rounded-sm" style="font-size: 0.65rem;">
-                                        <i class="ti ti-info-circle me-1"></i>
-                                        Cannot delete if format has been used (current_serial > 0).
-                                    </div>
+                                    <x-alert-warning>
+    <strong>Warning:</strong> This format will be permanently deleted.
+</x-alert-warning>
+                                    <x-alert-danger :session="false">
+    Cannot delete if format has been used (current_serial > 0).
+</x-alert-danger>
                                 </div>
                                 <div class="modal-footer py-1 px-2">
                                     <button type="button" class="btn btn-secondary btn-sm rounded-sm" data-bs-dismiss="modal" style="font-size: 0.7rem;">Cancel</button>

@@ -20,16 +20,15 @@
     </x-page-header>
     
     @if($errors->any())
-    <div class="alert alert-danger alert-dismissible fade show py-1 px-2 mb-2 rounded-sm" style="font-size: 0.7rem;" role="alert">
-        <i class="ti ti-alert-circle me-1"></i>
-        <strong>Please fix the following errors:</strong>
+    <x-alert-danger :session="false">
+    <strong>Please fix the following errors:</strong>
         <ul class="mb-0 mt-1 ps-3">
             @foreach($errors->all() as $error)
                 <li>{{ $error }}</li>
             @endforeach
         </ul>
         <button type="button" class="btn-close py-0" style="font-size: 0.6rem;" data-bs-dismiss="alert"></button>
-    </div>
+</x-alert-danger>
     @endif
     
     <div class="row g-2">
@@ -123,7 +122,8 @@
                     </div>
                 </div>
                 <div class="card-body py-2 px-2">
-                    <div class="alert alert-light border mb-2 py-1 px-2 rounded-sm">
+                    <x-alert-light class="mb-2 py-1 px-2 rounded-sm">
+
                         <div class="d-flex align-items-start gap-1">
                             <i class="ti ti-chart-bar text-primary mt-0" style="font-size: 0.7rem;"></i>
                             <div>
@@ -134,10 +134,12 @@
                                     ({{ $file->usage_percentage }}% used)
                                 </small>
                             </div>
-                        </div>
+                        
+</x-alert-light>
                     </div>
                     
-                    <div class="alert alert-light border mb-2 py-1 px-2 rounded-sm">
+                    <x-alert-light class="mb-2 py-1 px-2 rounded-sm">
+
                         <div class="d-flex align-items-start gap-1">
                             <i class="ti ti-calendar text-warning mt-0" style="font-size: 0.7rem;"></i>
                             <div>
@@ -147,10 +149,12 @@
                                     Last Updated: {{ $file->updated_at->format('d M Y') }}
                                 </small>
                             </div>
-                        </div>
+                        
+</x-alert-light>
                     </div>
                     
-                    <div class="alert alert-light border mb-0 py-1 px-2 rounded-sm">
+                    <x-alert-light class="mb-0 py-1 px-2 rounded-sm">
+
                         <div class="d-flex align-items-start gap-1">
                             <i class="ti ti-lock text-danger mt-0" style="font-size: 0.7rem;"></i>
                             <div>
@@ -163,7 +167,8 @@
                                     @endif
                                 </small>
                             </div>
-                        </div>
+                        
+</x-alert-light>
                     </div>
                 </div>
             </div>
@@ -183,14 +188,12 @@
             </div>
             <div class="modal-body py-2 px-2">
                 <p style="font-size: 0.75rem;">Are you sure you want to close <strong>{{ $file->file_number }}</strong>?</p>
-                <div class="alert alert-warning py-1 px-2 mt-2 rounded-sm" style="font-size: 0.65rem;">
-                    <i class="ti ti-alert-circle me-1"></i>
-                    <strong>Warning:</strong> Once closed, this file will no longer accept new letters.
-                </div>
-                <div class="alert alert-info py-1 px-2 mt-2 rounded-sm" style="font-size: 0.65rem;">
-                    <i class="ti ti-info-circle me-1"></i>
-                    You can reopen the file later if needed.
-                </div>
+                <x-alert-warning>
+    <strong>Warning:</strong> Once closed, this file will no longer accept new letters.
+</x-alert-warning>
+                <x-alert-info>
+    You can reopen the file later if needed.
+</x-alert-info>
             </div>
             <div class="modal-footer py-1 px-2">
                 <button type="button" class="btn btn-secondary btn-sm rounded-sm" data-bs-dismiss="modal" style="font-size: 0.7rem;">Cancel</button>

@@ -1,7 +1,7 @@
 <div class="sidebar-footer">
     <div class="sidebar-copyright">
         <i class="ti ti-copyright" style="font-size: 0.65rem;"></i>
-        <span>{{ date('Y') }} UniLeave. All rights reserved.</span>
+        <span>{{ date('Y') }} Staff Management System. All rights reserved.</span>
     </div>
     <div class="sidebar-version">
         <span>v1.0.0</span>

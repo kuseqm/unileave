@@ -7,13 +7,18 @@
 <div class="content-topbar">
     <div class="d-flex align-items-center justify-content-between w-100">
         
-        <!-- LEFT SIDE: Leave Counter -->
+        <!-- LEFT SIDE: Mobile Menu Toggle + Leave Counter -->
         <div class="d-flex align-items-center">
+            <div class="mobile-sidebar-toggle" id="mobileSidebarToggle">
+                <i class="ti ti-menu-2"></i>
+            </div>
             <x-leave-counter :user="Auth::user()" />
         </div>
         
-        <!-- RIGHT SIDE: Messages, Notifications, User Dropdown -->
+        <!-- RIGHT SIDE: Live Clock, Messages, Notifications, User Dropdown -->
         <div class="d-flex align-items-center gap-3">
+            <x-live-clock />
+
             <!-- Messages Icon -->
             <a href="{{ route('messages.index') }}" class="position-relative text-decoration-none">
                 <i class="ti ti-message" style="font-size: 1.2rem; color: #64748B;"></i>
@@ -41,6 +46,12 @@
                     </li>
                     <li><hr class="dropdown-divider"></li>
                     <li class="text-center py-3 text-muted" id="noNotifications">Loading...</li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <a href="{{ route('notifications.index') }}" class="dropdown-item text-center small fw-semibold text-primary">
+                            View all notifications
+                        </a>
+                    </li>
                 </ul>
             </div>
 
@@ -158,10 +169,36 @@
 .notification-item {
     cursor: pointer;
     transition: background 0.2s;
+    border-left: 3px solid transparent;
 }
 
 .notification-item.unread {
-    background-color: #FFF8F4 !important;  /* Slightly lighter than topbar */
+    background-color: #EFF6FF !important;  /* Clearly distinct blue tint for unread */
+    border-left: 3px solid #3B82F6;
+}
+
+.notification-item.unread .notification-title {
+    font-weight: 700;
+    color: #1E293B;
+}
+
+.notification-item:not(.unread) .notification-title {
+    font-weight: 400;
+    color: #64748B;
+}
+
+.notification-item .notification-dot {
+    display: none;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #3B82F6;
+    flex-shrink: 0;
+    margin-top: 5px;
+}
+
+.notification-item.unread .notification-dot {
+    display: block;
 }
 
 .notification-item:hover {
@@ -207,8 +244,31 @@
     border-radius: 2px;
 }
 
+/* Mobile Sidebar Toggle - hidden on desktop, the sidebar itself is always visible there */
+.mobile-sidebar-toggle {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    margin-right: 0.5rem;
+    border-radius: 50%;
+    cursor: pointer;
+    color: #475569;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+.mobile-sidebar-toggle:hover {
+    background: #F2D2BD;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
+    .mobile-sidebar-toggle {
+        display: flex;
+    }
+
     .content-topbar {
         padding: 0 0.75rem;
         height: 55px;
@@ -292,11 +352,12 @@ function loadNotifications() {
                     item.innerHTML = `
                         <a href="#" class="dropdown-item text-wrap py-2 notification-link" data-url="${n.action_url || '#'}" data-type="${n.type}">
                             <div class="d-flex">
+                                <div class="notification-dot me-2"></div>
                                 <div class="flex-shrink-0 me-2">
                                     <i class="ti ti-${n.icon} ${n.icon_color}"></i>
                                 </div>
                                 <div>
-                                    <div class="small fw-semibold">${escapeHtml(n.title)}</div>
+                                    <div class="small notification-title">${escapeHtml(n.title)}</div>
                                     <div class="small text-muted">${escapeHtml(n.message)}</div>
                                     <div class="small text-muted mt-1">${escapeHtml(n.time_ago)}</div>
                                 </div>
@@ -387,8 +448,9 @@ document.addEventListener('click', function(e) {
                 }
             }).catch(() => {});
             
-            // Remove unread class
+            // Remove unread class and refresh badge
             notificationItem.classList.remove('unread');
+            loadNotifications();
         } else if (url && url !== '#') {
             // Normal notification - mark as read and redirect
             fetch(`/notifications/${id}/read`, { 
@@ -407,27 +469,6 @@ document.addEventListener('click', function(e) {
     }
 });
 
-// Handle notification link clicks (for dynamically added links)
-document.addEventListener('click', function(e) {
-    const link = e.target.closest('.notification-link');
-    if (link) {
-        e.preventDefault();
-        const url = link.getAttribute('data-url');
-        const type = link.getAttribute('data-type');
-        const notificationItem = link.closest('.notification-item');
-        const id = notificationItem?.getAttribute('data-id');
-        
-        if (type === 'acting_request' && url) {
-            openActingResponseModal(url);
-            if (id) {
-                fetch(`/notifications/${id}/read`, { method: 'POST', headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '' } }).catch(() => {});
-            }
-        } else if (url && url !== '#') {
-            window.location.href = url;
-        }
-    }
-});
-
 // Mark all as read
 document.getElementById('markAllRead')?.addEventListener('click', function(e) {
     e.preventDefault();
@@ -439,22 +480,33 @@ document.getElementById('markAllRead')?.addEventListener('click', function(e) {
         } 
     }).then(() => {
         loadNotifications();
-        const badge = document.querySelector('#notificationsDropdown + .dropdown-menu')?.previousElementSibling?.querySelector('.badge');
-        if (badge) badge.style.display = 'none';
     });
 });
 
-// Load unread message count
+// Load unread message count - also updates the sidebar's own badge
+// (#unreadMessagesBadge) so both places read from this one fetch instead of
+// each polling /messages/unread-count independently (they used to run on
+// separate timers - 15s here, 30s in sidebar.blade.php).
 function loadUnreadMessageCount() {
     fetch('/messages/unread-count')
         .then(response => response.json())
         .then(data => {
             const badge = document.querySelector('a[href*="messages.index"] .badge');
-            if (badge && data.count > 0) {
+            if (badge && data.unread_count > 0) {
                 badge.style.display = 'inline-block';
-                badge.innerText = data.count > 99 ? '99+' : data.count;
+                badge.innerText = data.unread_count > 99 ? '99+' : data.unread_count;
             } else if (badge) {
                 badge.style.display = 'none';
+            }
+
+            const sidebarBadge = document.getElementById('unreadMessagesBadge');
+            if (sidebarBadge) {
+                if (data.unread_count > 0) {
+                    sidebarBadge.textContent = data.unread_count > 99 ? '99+' : data.unread_count;
+                    sidebarBadge.style.display = 'inline-block';
+                } else {
+                    sidebarBadge.style.display = 'none';
+                }
             }
         })
         .catch(error => console.error('Error loading message count:', error));
@@ -474,9 +526,9 @@ document.addEventListener('DOMContentLoaded', function() {
     loadUnreadMessageCount();
 });
 
-// Reload every 30 seconds
+// Reload every 15 seconds
 setInterval(function() {
     loadNotifications();
     loadUnreadMessageCount();
-}, 30000);
+}, 15000);
 </script>

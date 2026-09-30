@@ -136,7 +136,21 @@
                                 <div class="invalid-feedback" style="font-size: 0.65rem;">{{ $message }}</div>
                             @enderror
                         </div>
-                        
+
+                        @role('super-admin')
+                        <div class="mb-1 mt-2 p-2 bg-light rounded-sm">
+                            <label class="form-label d-block" style="font-size: 0.65rem;">Opt-in Add-ons</label>
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" name="enabled_addons[]" value="academic_records" id="addon_academic_records"
+                                    {{ in_array('academic_records', old('enabled_addons', $university->enabled_addons ?? [])) ? 'checked' : '' }}>
+                                <label class="form-check-label" for="addon_academic_records" style="font-size: 0.7rem;">
+                                    Academic Records (Students / Graduation Verification)
+                                </label>
+                            </div>
+                            <small class="text-muted" style="font-size: 0.55rem;">Only super-admin sees or changes this - not self-service for the university's own admin.</small>
+                        </div>
+                        @endrole
+
                         <div class="d-flex justify-content-end gap-1 mt-2">
                             <a href="{{ route('admin.universities.index') }}" class="btn btn-secondary btn-sm rounded-sm" style="font-size: 0.7rem; padding: 0.25rem 0.5rem;">Cancel</a>
                             <button type="submit" class="btn btn-primary btn-sm rounded-sm" style="font-size: 0.7rem; padding: 0.25rem 0.5rem;">

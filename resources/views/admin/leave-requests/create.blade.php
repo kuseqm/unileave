@@ -68,10 +68,9 @@
                         
                         <!-- Days Display -->
                         <div class="mb-1">
-                            <div class="alert alert-info py-1 px-2 rounded-sm mb-1" style="font-size: 0.65rem;">
-                                <i class="ti ti-info-circle me-1"></i>
-                                <strong>Number of days:</strong> <span id="days_count">0</span> day(s)
-                            </div>
+                            <x-alert-info>
+    <strong>Number of days:</strong> <span id="days_count">0</span> day(s)
+</x-alert-info>
                         </div>
                         
                         <!-- Acting Staff (Hold Position) -->
@@ -141,14 +140,16 @@
                         </ul>
                     </div>
                     
-                    <div class="alert alert-light border mb-0 py-1 px-2 rounded-sm">
+                    <x-alert-light class="mb-0 py-1 px-2 rounded-sm">
+
                         <div class="d-flex align-items-start gap-1">
                             <i class="ti ti-tips text-warning mt-0" style="font-size: 0.7rem;"></i>
                             <div>
                                 <strong class="d-block" style="font-size: 0.65rem;">Note</strong>
                                 <small class="text-muted" style="font-size: 0.6rem;">The colleague you select will receive an email notification to accept or decline holding your position. The request will only proceed if they accept.</small>
                             </div>
-                        </div>
+                        
+</x-alert-light>
                     </div>
                 </div>
             </div>

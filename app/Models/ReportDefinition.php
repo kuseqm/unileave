@@ -8,7 +8,7 @@ class ReportDefinition extends Model
 {
     protected $fillable = [
         'name', 'display_name', 'description', 'filters', 'columns',
-        'chart_config', 'permission', 'is_active', 'sort_order'
+        'chart_config', 'permission', 'is_active', 'sort_order',
     ];
 
     protected $casts = [

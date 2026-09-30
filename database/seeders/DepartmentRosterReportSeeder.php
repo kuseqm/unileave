@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\ReportDefinition;
+use Illuminate\Database\Seeder;
 
 class DepartmentRosterReportSeeder extends Seeder
 {
@@ -18,20 +18,20 @@ class DepartmentRosterReportSeeder extends Seeder
                 'filters' => json_encode(['department_id' => true]),
                 'columns' => json_encode([
                     'department_name', 'hod_name', 'hod_email',
-                    'staff_name', 'staff_email', 'staff_category', 'staff_status', 'job_title'
+                    'staff_name', 'staff_email', 'staff_category', 'staff_status', 'job_title',
                 ]),
                 'chart_config' => json_encode([
                     'type' => 'bar',
                     'title' => 'Staff Count by Department',
                     'x_field' => 'department_name',
-                    'y_field' => 'staff_count'
+                    'y_field' => 'staff_count',
                 ]),
                 'permission' => 'view_reports',
                 'is_active' => true,
                 'sort_order' => 5,
             ]
         );
-        
+
         $this->command->info('Department Roster report added successfully!');
     }
 }

@@ -21,106 +21,97 @@
         <x-stats-card value="{{ $logs->where('action', 'delete')->count() }}" label="Deleted" subtext="removed records" color="danger" />
     </div>
     
-    <div class="card rounded-sm">
-        <div class="card-header py-1 px-2 bg-light">
-            <div class="d-flex align-items-center justify-content-between">
-                <div class="d-flex align-items-center">
-                    <i class="ti ti-history text-primary me-1" style="font-size: 0.8rem;"></i>
-                    <span style="font-size: 0.7rem; font-weight: 600;">Activity Logs</span>
-                </div>
-                <div class="text-muted" style="font-size: 0.6rem;">
-                    Showing {{ $logs->firstItem() ?? 0 }} to {{ $logs->lastItem() ?? 0 }} of {{ $logs->total() ?? 0 }}
-                </div>
+    <!-- Search Card -->
+    <x-search-card
+        placeholder="Search by user name, email, or details..."
+        id="auditLogsSearchInput"
+        name="search"
+        :value="request('search')"
+        :showCategoryFilter="true"
+        :showTypeFilter="true"
+        :showDateRange="true"
+        categoryLabel="Module"
+        typeLabel="Action"
+        :categoryOptions="$modules->mapWithKeys(fn($m) => [$m => ucfirst($m)])"
+        :typeOptions="$actions->mapWithKeys(fn($a) => [$a => ucfirst($a)])"
+        :dateFromValue="request('date_from')"
+        :dateToValue="request('date_to')"
+    >
+        <div id="auditLogsSearchStats" class="text-muted" style="font-size: 0.65rem;">
+            {{ $logs->total() }} logs total
+        </div>
+    </x-search-card>
+
+    <div class="row g-2">
+        <!-- Audit Logs Table - main column -->
+        <div class="col-lg-8">
+            <div id="auditLogsResults">
+                @include('shared.audit-logs._results')
             </div>
         </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-sm mb-0" style="font-size: 0.7rem;">
-                    <thead class="bg-light">
-                        <tr>
-                            <th class="ps-2 py-1">Time</th>
-                            <th class="py-1">User</th>
-                            <th class="py-1">Action</th>
-                            <th class="py-1">Module</th>
-                            <th class="py-1">Record ID</th>
-                            <th class="py-1">IP Address</th>
-                            <th class="pe-2 py-1">Details</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($logs as $log)
-                        <tr>
-                            <td class="ps-2 py-1">{{ \Carbon\Carbon::parse($log->created_at)->format('d M H:i:s') }}</td>
-                            <td class="py-1">
-                                {{ $log->user->first_name ?? 'System' }} {{ $log->user->last_name ?? '' }}
-                                <div class="text-muted" style="font-size: 0.55rem;">{{ $log->user->staff_id ?? '' }}</div>
-                            </td>
-                            <td class="py-1">
-                                @php
-                                    $badgeClass = match($log->action) {
-                                        'create' => 'success',
-                                        'update' => 'warning',
-                                        'delete' => 'danger',
-                                        'approve' => 'info',
-                                        'reject' => 'danger',
-                                        'login' => 'primary',
-                                        'logout' => 'secondary',
-                                        default => 'secondary'
-                                    };
-                                @endphp
-                                <span class="badge bg-{{ $badgeClass }}-subtle text-{{ $badgeClass }} rounded-sm">
-                                    {{ ucfirst($log->action) }}
-                                </span>
-                            </td>
-                            <td class="py-1">{{ ucfirst($log->module) }}</td>
-                            <td class="py-1">{{ $log->record_id ?? '-' }}</td>
-                            <td class="py-1">{{ $log->ip_address ?? '-' }}</td>
-                            <td class="pe-2 py-1">
-                                @if($log->old_values || $log->new_values)
-                                <button type="button" class="btn btn-outline-info btn-sm rounded-sm" data-bs-toggle="modal" data-bs-target="#detailsModal{{ $log->id }}" style="padding: 0.1rem 0.3rem;">
-                                    <i class="ti ti-eye"></i>
-                                </button>
-                                @endif
-                            </td>
-                        </tr>
-                        
-                        <!-- Details Modal -->
-                        <div class="modal fade" id="detailsModal{{ $log->id }}" tabindex="-1">
-                            <div class="modal-dialog modal-dialog-centered">
-                                <div class="modal-content rounded-sm">
-                                    <div class="modal-header py-1 px-2">
-                                        <h5 class="modal-title" style="font-size: 0.8rem;">Change Details</h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                    </div>
-                                    <div class="modal-body py-2 px-2">
-                                        @if($log->old_values)
-                                        <div class="mb-2">
-                                            <div class="text-muted" style="font-size: 0.65rem;">Before</div>
-                                            <pre class="bg-light p-1 rounded-sm" style="font-size: 0.6rem;">{{ is_string($log->old_values) ? json_encode(json_decode($log->old_values), JSON_PRETTY_PRINT) : json_encode($log->old_values, JSON_PRETTY_PRINT) }}</pre>
-                                        </div>
-                                        @endif
-                                        @if($log->new_values)
-                                        <div>
-                                            <div class="text-muted" style="font-size: 0.65rem;">After</div>
-                                            <pre class="bg-light p-1 rounded-sm" style="font-size: 0.6rem;">{{ is_string($log->new_values) ? json_encode(json_decode($log->new_values), JSON_PRETTY_PRINT) : json_encode($log->new_values, JSON_PRETTY_PRINT) }}</pre>
-                                        </div>
-                                        @endif
-                                    </div>
-                                </div>
+
+        <!-- Information - narrow column -->
+        <div class="col-lg-4">
+            <div class="card rounded-sm">
+                <div class="card-header py-1 px-2 bg-light">
+                    <div class="d-flex align-items-center">
+                        <i class="ti ti-info-circle text-info me-1" style="font-size: 0.8rem;"></i>
+                        <span style="font-size: 0.7rem; font-weight: 600;">Information</span>
+                    </div>
+                </div>
+                <div class="card-body py-2 px-2">
+                    <div class="mb-2">
+                        <div class="fw-semibold" style="font-size: 0.7rem;"><i class="ti ti-flag me-1 text-primary"></i> Understanding Actions</div>
+                        <ul class="mb-0 ps-3" style="font-size: 0.65rem; color: #555;">
+                            <li><span class="text-success">Created</span> - a new record was added</li>
+                            <li><span class="text-warning">Updated</span> - an existing record was modified</li>
+                            <li><span class="text-danger">Deleted</span> - a record was removed</li>
+                        </ul>
+                    </div>
+
+                    <div class="mb-2">
+                        <div class="fw-semibold" style="font-size: 0.7rem;"><i class="ti ti-filter me-1 text-primary"></i> Filtering</div>
+                        <ul class="mb-0 ps-3" style="font-size: 0.65rem; color: #555;">
+                            <li>Filter by Module to focus on one part of the system</li>
+                            <li>Filter by Action to isolate a specific change type</li>
+                            <li>Use the date range to narrow a time window</li>
+                        </ul>
+                    </div>
+
+                    <x-alert-light class="mb-0 py-1 px-2 rounded-sm">
+                        <div class="d-flex align-items-start gap-1">
+                            <i class="ti ti-tips text-warning mt-0" style="font-size: 0.7rem;"></i>
+                            <div>
+                                <strong class="d-block" style="font-size: 0.65rem;">Tips</strong>
+                                <small class="text-muted" style="font-size: 0.6rem;">&bull; Logs are system-wide and read-only</small>
                             </div>
                         </div>
-                        @empty
-                        <tr>
-                            <td colspan="7" class="text-center py-3 text-muted">No audit logs found</td>
-                        </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+                    </x-alert-light>
+                </div>
             </div>
-        </div>
-        <div class="card-footer py-1 px-2">
-            {{ $logs->links('pagination::bootstrap-5') }}
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    initLiveSearch({
+        url: '{{ route('audit-logs.index') }}',
+        resultsSelector: '#auditLogsResults',
+        statsSelector: '#auditLogsSearchStats',
+        searchInputSelector: '#auditLogsSearchInput',
+        suggestionsSelector: '#auditLogsSearchInputSuggestions',
+        recentSearchesKey: 'auditLogsRecentSearches',
+        statLabel: 'logs',
+        perPage: 50,
+        filterSelectors: ['#categoryFilter', '#typeFilter', '#dateFromFilter', '#dateToFilter'],
+        extraParams: () => ({
+            module: document.getElementById('categoryFilter')?.value || '',
+            action: document.getElementById('typeFilter')?.value || '',
+            date_from: document.getElementById('dateFromFilter')?.value || '',
+            date_to: document.getElementById('dateToFilter')?.value || '',
+        }),
+    });
+});
+</script>
 @endsection

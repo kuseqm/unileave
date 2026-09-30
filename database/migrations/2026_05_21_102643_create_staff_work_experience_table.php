@@ -21,7 +21,7 @@ return new class extends Migration
             $table->string('supervisor_name', 255)->nullable();
             $table->string('supervisor_contact', 100)->nullable();
             $table->timestamps();
-            
+
             $table->index('staff_id');
         });
     }

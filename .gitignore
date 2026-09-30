@@ -19,6 +19,14 @@
 /public/storage
 /storage/*.key
 /storage/pail
+/storage/app/private
+/storage/backups
+/storage/framework/cache
+/storage/framework/sessions
+/storage/framework/testing
+/storage/framework/views
+/storage/logs
+/.claude-backups
 /vendor
 _ide_helper.php
 Homestead.json

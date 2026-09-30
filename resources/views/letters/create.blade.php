@@ -17,16 +17,15 @@
     </x-page-header>
     
     @if($errors->any())
-    <div class="alert alert-danger alert-dismissible fade show py-1 px-2 mb-2 rounded-sm" style="font-size: 0.7rem;" role="alert">
-        <i class="ti ti-alert-circle me-1"></i>
-        <strong>Please fix the following errors:</strong>
+    <x-alert-danger :session="false">
+    <strong>Please fix the following errors:</strong>
         <ul class="mb-0 mt-1 ps-3">
             @foreach($errors->all() as $error)
                 <li>{{ $error }}</li>
             @endforeach
         </ul>
         <button type="button" class="btn-close py-0" style="font-size: 0.6rem;" data-bs-dismiss="alert"></button>
-    </div>
+</x-alert-danger>
     @endif
     
     <div class="row g-2">
@@ -205,18 +204,18 @@
                     <span style="font-weight: 600;">Writing Guide</span>
                 </div>
                 <div class="card-body py-2 px-2">
-                    <div class="alert alert-light border mb-2 py-1 px-2 rounded-sm">
-                        <strong class="d-block mb-1" style="font-size: 0.7rem;">📝 Paragraph Formatting</strong>
+                    <x-alert-secondary>
+    <strong class="d-block mb-1" style="font-size: 0.7rem;">📝 Paragraph Formatting</strong>
                         <small class="text-muted" style="font-size: 0.6rem;">
                             • Separate paragraphs with a <strong>blank line</strong><br>
                             • First paragraph: no number<br>
                             • Following paragraphs: auto-numbered (2., 3., 4.)<br>
                             • You can disable auto-numbering with the switch above
                         </small>
-                    </div>
+</x-alert-secondary>
                     
-                    <div class="alert alert-light border mb-2 py-1 px-2 rounded-sm">
-                        <strong class="d-block mb-1" style="font-size: 0.7rem;">📎 Letter Components</strong>
+                    <x-alert-secondary>
+    <strong class="d-block mb-1" style="font-size: 0.7rem;">📎 Letter Components</strong>
                         <small class="text-muted" style="font-size: 0.6rem;">
                             • University letterhead<br>
                             • Reference number (if format selected)<br>
@@ -228,16 +227,16 @@
                             • Signature block<br>
                             • Footer with verification
                         </small>
-                    </div>
+</x-alert-secondary>
                     
-                    <div class="alert alert-light border mb-0 py-1 px-2 rounded-sm">
-                        <strong class="d-block mb-1" style="font-size: 0.7rem;">📌 Recipient Types</strong>
+                    <x-alert-secondary>
+    <strong class="d-block mb-1" style="font-size: 0.7rem;">📌 Recipient Types</strong>
                         <small class="text-muted" style="font-size: 0.6rem;">
                             • <strong>Staff Member:</strong> Select from registered staff<br>
                             • <strong>External/Other:</strong> Enter custom address<br>
                             • <strong>Multiple Recipients:</strong> Add multiple recipients to the same letter
                         </small>
-                    </div>
+</x-alert-secondary>
                 </div>
             </div>
             

@@ -19,8 +19,10 @@
         </a>
     </x-page-header>
     
-    <!-- Form Card -->
-    <div class="card rounded-sm">
+    <div class="row g-2">
+        <!-- Form Card - main column -->
+        <div class="col-lg-7">
+            <div class="card rounded-sm">
         <div class="card-header py-1 px-2 bg-light">
             <div class="d-flex align-items-center">
                 <i class="ti ti-file-plus text-primary me-1" style="font-size: 0.8rem;"></i>
@@ -96,6 +98,41 @@
                     </button>
                 </div>
             </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Information - narrow column -->
+        <div class="col-lg-5">
+            <div class="card rounded-sm">
+                <div class="card-header py-1 px-2 bg-light">
+                    <div class="d-flex align-items-center">
+                        <i class="ti ti-info-circle text-info me-1" style="font-size: 0.8rem;"></i>
+                        <span style="font-size: 0.7rem; font-weight: 600;">Information</span>
+                    </div>
+                </div>
+                <div class="card-body py-2 px-2">
+                    <div class="mb-2">
+                        <div class="fw-semibold" style="font-size: 0.7rem;"><i class="ti ti-flag me-1 text-primary"></i> Before You Save</div>
+                        <ul class="mb-0 ps-3" style="font-size: 0.65rem; color: #555;">
+                            <li>A reference number is generated automatically using the office's active format</li>
+                            <li>Pick <strong>Confidential</strong> to restrict visibility to the addressed office only</li>
+                            <li>Attaching the scanned PDF lets staff view the letter without the physical file</li>
+                        </ul>
+                    </div>
+
+                    <x-alert-light class="mb-0 py-1 px-2 rounded-sm">
+                        <div class="d-flex align-items-start gap-1">
+                            <i class="ti ti-tips text-warning mt-0" style="font-size: 0.7rem;"></i>
+                            <div>
+                                <strong class="d-block" style="font-size: 0.65rem;">Tips</strong>
+                                <small class="text-muted" style="font-size: 0.6rem;">&bull; Urgent letters surface at the top of the addressed office's queue</small><br>
+                                <small class="text-muted" style="font-size: 0.6rem;">&bull; PDF uploads are limited to 10MB</small>
+                            </div>
+                        </div>
+                    </x-alert-light>
+                </div>
+            </div>
         </div>
     </div>
 </div>

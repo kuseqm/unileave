@@ -15,12 +15,7 @@
         </a>
     </x-page-header>
     
-    @if(session('error'))
-    <div class="alert alert-danger alert-dismissible fade show py-1 px-2 mb-2 rounded-sm" role="alert">
-        <i class="ti ti-alert-circle me-1"></i> {{ session('error') }}
-        <button type="button" class="btn-close py-0" data-bs-dismiss="alert"></button>
-    </div>
-    @endif
+    <x-alert-danger />
     
     <form method="POST" action="{{ route('leave-requests.hr-review.process', $leaveRequest->id) }}" id="hrReviewForm">
         @csrf
@@ -142,16 +137,15 @@
                         </div>
                     </div>
                     <div class="card-body py-2 px-2">
-                        <div class="alert alert-info py-1 px-2 mb-2 rounded-sm" style="font-size: 0.65rem;">
-                            <i class="ti ti-info-circle me-1"></i>
-                            <strong>Policy Note:</strong> By default, leave is PAID. Only change to Partial or Unpaid if:
+                        <x-alert-info>
+    <strong>Policy Note:</strong> By default, leave is PAID. Only change to Partial or Unpaid if:
                             <ul class="mb-0 mt-1 ps-3">
                                 <li>Staff has exhausted leave balance</li>
                                 <li>Leave type policy requires unpaid status</li>
                                 <li>Staff request for unpaid leave</li>
                                 <li>Disciplinary or administrative reasons</li>
                             </ul>
-                        </div>
+</x-alert-info>
                         
                         <div class="row g-2">
                             <div class="col-md-6">
@@ -188,14 +182,53 @@
                         </div>
                         
                         <!-- Warning Message -->
-                        <div id="payment_warning" class="alert alert-warning mt-2 py-1 px-2 rounded-sm d-none" style="font-size: 0.65rem;">
-                            <i class="ti ti-alert-triangle me-1"></i>
-                            <strong>⚠️ Important:</strong> Changing to <span id="warning_status">unpaid/partial</span> will affect staff salary. 
+                        <x-alert-warning id="payment_warning" class="mt-2 d-none" style="font-size: 0.65rem;" :session="false">
+                            <strong>⚠️ Important:</strong> Changing to <span id="warning_status">unpaid/partial</span> will affect staff salary.
                             Please provide clear justification in the notes above. This decision will be recorded for audit purposes.
+                        </x-alert-warning>
+                    </div>
+                </div>
+
+                <!-- ============================================ -->
+                <!-- TRAVEL ALLOWANCE CARD -->
+                <!-- ============================================ -->
+                <div class="card rounded-sm mb-3">
+                    <div class="card-header py-1 px-2 bg-light">
+                        <div class="d-flex align-items-center">
+                            <i class="ti ti-plane-departure text-info me-1" style="font-size: 0.8rem;"></i>
+                            <span style="font-weight: 600; font-size: 0.7rem;">✈️ Travel Allowance</span>
+                        </div>
+                    </div>
+                    <div class="card-body py-2 px-2">
+                        @if($leaveRequest->travel_destination)
+                            <div class="mb-2">
+                                <div class="text-muted" style="font-size: 0.6rem;">Travel Destination</div>
+                                <div class="p-1 bg-light rounded-sm" style="font-size: 0.7rem;">{{ $leaveRequest->travel_destination }}</div>
+                            </div>
+                        @endif
+
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input" type="checkbox" role="switch" name="travel_allowance_granted" id="travel_allowance_granted" value="1"
+                                   {{ old('travel_allowance_granted', $leaveRequest->travel_allowance_granted) ? 'checked' : '' }}>
+                            <label class="form-check-label" for="travel_allowance_granted" style="font-size: 0.65rem;">
+                                Grant a travel/subsistence allowance for this leave (separate from salary)
+                            </label>
+                        </div>
+
+                        <div id="travel_allowance_amount_block" style="display: {{ old('travel_allowance_granted', $leaveRequest->travel_allowance_granted) ? 'block' : 'none' }};">
+                            <label class="form-label" style="font-size: 0.65rem;">Allowance Amount (TZS)</label>
+                            <input type="number" name="travel_allowance_amount" id="travel_allowance_amount" class="form-control form-control-sm rounded-sm"
+                                   value="{{ old('travel_allowance_amount', $leaveRequest->travel_allowance_amount) }}"
+                                   min="0" step="1000">
+                            <small class="text-muted" style="font-size: 0.55rem;">Enter the amount at the institution's recommended rate for this destination.</small>
+
+                            <label class="form-label mt-2" style="font-size: 0.65rem;">Allowance Notes</label>
+                            <textarea name="travel_allowance_notes" rows="2" class="form-control form-control-sm rounded-sm"
+                                      style="font-size: 0.7rem;" placeholder="Rate basis, distance, or any other justification...">{{ old('travel_allowance_notes', $leaveRequest->travel_allowance_notes) }}</textarea>
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Leave Balance -->
                 <div class="card rounded-sm mb-3">
                     <div class="card-header py-1 px-2 bg-light">
@@ -237,8 +270,16 @@
                         <div class="mb-2">
                             <label class="form-label" style="font-size: 0.7rem;">Adjusted Days</label>
                             <input type="number" name="adjusted_days" id="adjustedDays" class="form-control form-control-sm" 
-                                   value="{{ $leaveRequest->days }}" step="0.5" min="0.5" max="365" style="font-size: 0.7rem;">
-                            <small class="text-muted">Original: {{ $leaveRequest->days }} days</small>
+                                   value="{{ $leaveRequest->days }}" step="{{ $allowsHalfDays || fmod((float) $leaveRequest->days, 1.0) !== 0.0 ? '0.5' : '1' }}" min="{{ $allowsHalfDays ? '0.5' : '1' }}" max="365" style="font-size: 0.7rem;">
+                            <small class="text-muted">
+                                Original: {{ $leaveRequest->days }} days
+                                @if($leaveRequest->half_day && $leaveRequest->half_day !== 'full')
+                                    ({{ $leaveRequest->half_day_display }})
+                                @endif
+                            </small>
+                            <small class="text-muted d-block">
+                                {{ $allowsHalfDays ? 'Part of a day is allowed for this leave type (steps of half a day).' : 'Whole days only - this university does not allow half-day leave for this leave type.' }}
+                            </small>
                         </div>
                         <div class="mb-2">
                             <label class="form-label" style="font-size: 0.7rem;">Reason for Adjustment</label>
@@ -264,16 +305,14 @@
                     </div>
                     <div class="card-body py-2">
                         @if($blackoutPeriod)
-                        <div class="alert alert-danger py-1 px-2 mb-1 rounded-sm" style="font-size: 0.7rem;">
-                            <i class="ti ti-ban me-1"></i>
-                            <strong>Blackout Period:</strong> "{{ $blackoutPeriod->name }}" ({{ \Carbon\Carbon::parse($blackoutPeriod->start_date)->format('d M Y') }} - {{ \Carbon\Carbon::parse($blackoutPeriod->end_date)->format('d M Y') }})
-                        </div>
+                        <x-alert-danger :session="false">
+    <strong>Blackout Period:</strong> "{{ $blackoutPeriod->name }}" ({{ \Carbon\Carbon::parse($blackoutPeriod->start_date)->format('d M Y') }} - {{ \Carbon\Carbon::parse($blackoutPeriod->end_date)->format('d M Y') }})
+</x-alert-danger>
                         @endif
                         @if($projectedBalance < 5)
-                        <div class="alert alert-warning py-1 px-2 mb-0 rounded-sm" style="font-size: 0.7rem;">
-                            <i class="ti ti-alert-circle me-1"></i>
-                            <strong>Low Balance Alert:</strong> Projected balance ({{ number_format($projectedBalance, 1) }} days) is below threshold (5 days)
-                        </div>
+                        <x-alert-warning>
+    <strong>Low Balance Alert:</strong> Projected balance ({{ number_format($projectedBalance, 1) }} days) is below threshold (5 days)
+</x-alert-warning>
                         @endif
                     </div>
                 </div>
@@ -346,6 +385,21 @@
     if (paymentStatus) {
         paymentStatus.addEventListener('change', togglePaymentFields);
         togglePaymentFields();
+    }
+
+    // Travel Allowance Toggle
+    const travelAllowanceGranted = document.getElementById('travel_allowance_granted');
+    const travelAllowanceAmountBlock = document.getElementById('travel_allowance_amount_block');
+
+    function toggleTravelAllowanceFields() {
+        if (travelAllowanceAmountBlock) {
+            travelAllowanceAmountBlock.style.display = travelAllowanceGranted && travelAllowanceGranted.checked ? 'block' : 'none';
+        }
+    }
+
+    if (travelAllowanceGranted) {
+        travelAllowanceGranted.addEventListener('change', toggleTravelAllowanceFields);
+        toggleTravelAllowanceFields();
     }
     
     // Update projected balance when days are adjusted

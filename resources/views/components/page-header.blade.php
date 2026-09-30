@@ -1,6 +1,6 @@
 @props(['title', 'description', 'backUrl' => null])
 
-<div class="card rounded-sm mb-2">
+<div class="card rounded-sm mb-2" style="background: #FFFFF0; border-left: 3px solid #3B82F6;">
     <div class="card-body py-2 px-3">
         <div class="d-flex align-items-center justify-content-between">
             <div>

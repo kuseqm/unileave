@@ -4,12 +4,13 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Route;
 
 class ExportSystemStructure extends Command
 {
     protected $signature = 'system:export';
+
     protected $description = 'Export database schema, routes, controllers, models, and views for analysis';
 
     public function handle()
@@ -17,7 +18,7 @@ class ExportSystemStructure extends Command
         $output = [];
 
         // 1. DATABASE TABLES (schema)
-        $output[] = "=== DATABASE TABLES ===";
+        $output[] = '=== DATABASE TABLES ===';
         $tables = DB::select('SHOW TABLES');
         $databaseName = DB::getDatabaseName();
         $tableKey = "Tables_in_{$databaseName}";
@@ -52,7 +53,7 @@ class ExportSystemStructure extends Command
                 $output[] = "- {$relativePath}";
             }
         } else {
-            $output[] = "No controllers found.";
+            $output[] = 'No controllers found.';
         }
 
         // 4. MODELS
@@ -65,14 +66,14 @@ class ExportSystemStructure extends Command
                 $output[] = "- {$relativePath}";
             }
         } else {
-            $output[] = "No Models folder found (check app/ directory for model files).";
+            $output[] = 'No Models folder found (check app/ directory for model files).';
         }
 
         // Also check app/ directly for models (Laravel <8 sometimes puts models in app/)
         $appModels = File::files(app_path());
         foreach ($appModels as $file) {
             $filename = $file->getFilename();
-            if (str_ends_with($filename, '.php') && !str_contains($filename, 'Controller')) {
+            if (str_ends_with($filename, '.php') && ! str_contains($filename, 'Controller')) {
                 $output[] = "- (app/) {$filename}";
             }
         }
@@ -87,7 +88,7 @@ class ExportSystemStructure extends Command
                 $output[] = "- {$relativePath}";
             }
         } else {
-            $output[] = "No views found.";
+            $output[] = 'No views found.';
         }
 
         // 6. MIGRATIONS (list only)
@@ -99,7 +100,7 @@ class ExportSystemStructure extends Command
                 $output[] = "- {$migration->getFilename()}";
             }
         } else {
-            $output[] = "No migrations found.";
+            $output[] = 'No migrations found.';
         }
 
         // 7. SEEDERS
@@ -111,25 +112,25 @@ class ExportSystemStructure extends Command
                 $output[] = "- {$seeder->getFilename()}";
             }
         } else {
-            $output[] = "No seeders found.";
+            $output[] = 'No seeders found.';
         }
 
         // 8. ENVIRONMENT INFO
         $output[] = "\n\n=== ENVIRONMENT ===";
-        $output[] = "Laravel Version: " . app()->version();
-        $output[] = "PHP Version: " . phpversion();
-        $output[] = "DB Connection: " . config('database.default');
-        $output[] = "App Environment: " . app()->environment();
+        $output[] = 'Laravel Version: '.app()->version();
+        $output[] = 'PHP Version: '.phpversion();
+        $output[] = 'DB Connection: '.config('database.default');
+        $output[] = 'App Environment: '.app()->environment();
 
         // Output to console and also save to file
         $report = implode("\n", $output);
-        $reportFile = storage_path('system_export_' . date('Y-m-d_His') . '.txt');
+        $reportFile = storage_path('system_export_'.date('Y-m-d_His').'.txt');
         File::put($reportFile, $report);
 
         $this->info("System structure exported to: {$reportFile}");
-        $this->info("Total lines: " . count($output));
+        $this->info('Total lines: '.count($output));
 
         // Also display first 200 lines in console
-        $this->line("\n" . substr($report, 0, 10000));
+        $this->line("\n".substr($report, 0, 10000));
     }
 }

@@ -16,8 +16,11 @@
         </a>
     </x-page-header>
     
-    <div class="card rounded-sm">
-        <div class="card-body">
+    <div class="row g-2">
+        <!-- Form - main column -->
+        <div class="col-lg-7">
+        <div class="card rounded-sm">
+            <div class="card-body">
             <form method="POST" action="{{ route('settings.store') }}">
                 @csrf
                 
@@ -129,6 +132,45 @@
                     <a href="{{ route('settings.index') }}" class="btn btn-secondary">Cancel</a>
                 </div>
             </form>
+            </div>
+        </div>
+        </div>
+
+        <!-- Information - narrow column -->
+        <div class="col-lg-5">
+            <div class="card rounded-sm">
+                <div class="card-header py-1 px-2 bg-light">
+                    <div class="d-flex align-items-center">
+                        <i class="ti ti-info-circle text-info me-1" style="font-size: 0.8rem;"></i>
+                        <span style="font-size: 0.7rem; font-weight: 600;">About Settings</span>
+                    </div>
+                </div>
+                <div class="card-body py-2 px-2">
+                    <div class="mb-2">
+                        <div class="fw-semibold" style="font-size: 0.7rem;"><i class="ti ti-category me-1 text-primary"></i> Setting Types</div>
+                        <ul class="mb-0 ps-3" style="font-size: 0.65rem; color: #555;">
+                            <li><strong>Text/Number</strong> - a single value</li>
+                            <li><strong>Boolean</strong> - a yes/no toggle</li>
+                            <li><strong>Select</strong> - one choice from a fixed list (needs Options)</li>
+                            <li><strong>JSON</strong> - structured configuration</li>
+                        </ul>
+                    </div>
+
+                    <x-alert-light class="mb-0 py-1 px-2 rounded-sm">
+
+                        <div class="d-flex align-items-start gap-1">
+                            <i class="ti ti-tips text-warning mt-0" style="font-size: 0.7rem;"></i>
+                            <div>
+                                <strong class="d-block" style="font-size: 0.65rem;">Tips</strong>
+                                <small class="text-muted" style="font-size: 0.6rem;">&bull; Group settings so they appear together on the settings list</small><br>
+                                <small class="text-muted" style="font-size: 0.6rem;">&bull; Leave Role empty for a setting that applies globally</small><br>
+                                <small class="text-muted" style="font-size: 0.6rem;">&bull; Encrypt Value for anything sensitive (API keys, secrets)</small>
+                            </div>
+
+</x-alert-light>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>

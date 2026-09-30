@@ -1,13 +1,13 @@
 <?php
 
 use App\Models\Notification;
-use App\Models\User;
+use Carbon\Carbon;
 
 // ============================================
 // CORE NOTIFICATION FUNCTION
 // ============================================
 
-if (!function_exists('sendNotification')) {
+if (! function_exists('sendNotification')) {
     function sendNotification($userId, $type, $title, $message, $actionUrl = null, $actionText = null, $data = [])
     {
         return Notification::create([
@@ -27,28 +27,28 @@ if (!function_exists('sendNotification')) {
 // LEAVE REQUEST NOTIFICATIONS
 // ============================================
 
-if (!function_exists('notifyActingStaff')) {
+if (! function_exists('notifyActingStaff')) {
     function notifyActingStaff($leaveRequest)
     {
         $actingStaff = $leaveRequest->actingStaff;
         $requester = $leaveRequest->staff;
-        
+
         $actionUrl = route('leave-requests.acting.response', $leaveRequest->acting_token);
-        
+
         sendNotification(
             $actingStaff->id,
             'acting_request',
             'Hold Position Request',
-            "{$requester->first_name} {$requester->last_name} has requested you to hold their position during leave from " . 
-            \Carbon\Carbon::parse($leaveRequest->start_date)->format('d M Y') . " to " . 
-            \Carbon\Carbon::parse($leaveRequest->end_date)->format('d M Y'),
+            "{$requester->first_name} {$requester->last_name} has requested you to hold their position during leave from ".
+            Carbon::parse($leaveRequest->start_date)->format('d M Y').' to '.
+            Carbon::parse($leaveRequest->end_date)->format('d M Y'),
             $actionUrl,
             'Review Request'
         );
     }
 }
 
-if (!function_exists('notifyApprover')) {
+if (! function_exists('notifyApprover')) {
     function notifyApprover($leaveRequest, $approverRole, $approverId)
     {
         $roleNames = [
@@ -56,11 +56,11 @@ if (!function_exists('notifyApprover')) {
             'dean' => 'Dean',
             'dvca' => 'DVC Academic',
             'dvc_pfa' => 'DVC PFA',
-            'hr_logistics' => 'HR Officer'
+            'hr_logistics' => 'HR Officer',
         ];
-        
+
         $roleName = $roleNames[$approverRole] ?? ucfirst($approverRole);
-        
+
         sendNotification(
             $approverId,
             'approval_pending',
@@ -72,16 +72,16 @@ if (!function_exists('notifyApprover')) {
     }
 }
 
-if (!function_exists('notifyRequestStatus')) {
+if (! function_exists('notifyRequestStatus')) {
     function notifyRequestStatus($leaveRequest, $status)
     {
         $messages = [
-            'approved' => "Your leave request has been approved",
-            'rejected' => "Your leave request has been rejected",
-            'cancelled' => "Your leave request has been cancelled",
-            'fully_approved' => "Your leave request has been fully approved"
+            'approved' => 'Your leave request has been approved',
+            'rejected' => 'Your leave request has been rejected',
+            'cancelled' => 'Your leave request has been cancelled',
+            'fully_approved' => 'Your leave request has been fully approved',
         ];
-        
+
         sendNotification(
             $leaveRequest->staff_id,
             $status == 'approved' ? 'approval_granted' : 'approval_rejected',
@@ -97,7 +97,7 @@ if (!function_exists('notifyRequestStatus')) {
 // LETTER NOTIFICATIONS
 // ============================================
 
-if (!function_exists('notifyLetterApprover')) {
+if (! function_exists('notifyLetterApprover')) {
     function notifyLetterApprover($letter, $approverId, $level)
     {
         $levelNames = [
@@ -105,17 +105,17 @@ if (!function_exists('notifyLetterApprover')) {
             'dean' => 'Dean of Faculty',
             'dvca' => 'DVC Academic',
             'dvc-pfa' => 'DVC PFA',
-            'vice-chancellor' => 'Vice Chancellor'
+            'vice-chancellor' => 'Vice Chancellor',
         ];
-        
+
         $levelName = $levelNames[$level] ?? ucfirst($level);
         $isSignature = ($level === 'vice-chancellor');
-        
+
         sendNotification(
             $approverId,
             $isSignature ? 'letter_pending_signature' : 'letter_pending_approval',
             $isSignature ? '✍️ Letter Pending Your Signature' : '📨 Letter Pending Your Approval',
-            "Letter '{$letter->title}' from {$letter->sender->full_name} requires your " . ($isSignature ? 'digital signature' : 'approval') . " as {$levelName}.",
+            "Letter '{$letter->title}' from {$letter->sender->full_name} requires your ".($isSignature ? 'digital signature' : 'approval')." as {$levelName}.",
             $isSignature ? route('letters.pending.signature') : route('letters.pending.approval'),
             $isSignature ? 'Sign Letter' : 'Review Letter',
             ['letter_id' => $letter->id, 'level' => $level]
@@ -123,7 +123,7 @@ if (!function_exists('notifyLetterApprover')) {
     }
 }
 
-if (!function_exists('notifyLetterSender')) {
+if (! function_exists('notifyLetterSender')) {
     function notifyLetterSender($letter, $status, $level = null)
     {
         $messages = [
@@ -134,7 +134,7 @@ if (!function_exists('notifyLetterSender')) {
             'signed' => "🎉 Your letter '{$letter->title}' has been digitally signed by the Vice Chancellor. It is now official.",
             'rejected' => "❌ Your letter '{$letter->title}' has been rejected.",
         ];
-        
+
         $notificationTypes = [
             'submitted' => 'letter_progress_update',
             'hod_approved' => 'letter_progress_update',
@@ -143,7 +143,7 @@ if (!function_exists('notifyLetterSender')) {
             'signed' => 'letter_signed',
             'rejected' => 'letter_rejected',
         ];
-        
+
         sendNotification(
             $letter->sender_id,
             $notificationTypes[$status] ?? 'letter_progress_update',
@@ -156,7 +156,7 @@ if (!function_exists('notifyLetterSender')) {
     }
 }
 
-if (!function_exists('notifyLetterCompleted')) {
+if (! function_exists('notifyLetterCompleted')) {
     function notifyLetterCompleted($letter, $approverIds)
     {
         foreach ($approverIds as $approverId) {
@@ -179,7 +179,7 @@ if (!function_exists('notifyLetterCompleted')) {
 // GENERAL NOTIFICATION HELPERS
 // ============================================
 
-if (!function_exists('getUnreadNotificationsCount')) {
+if (! function_exists('getUnreadNotificationsCount')) {
     function getUnreadNotificationsCount($userId)
     {
         return Notification::where('user_id', $userId)
@@ -188,23 +188,24 @@ if (!function_exists('getUnreadNotificationsCount')) {
     }
 }
 
-if (!function_exists('markNotificationAsRead')) {
+if (! function_exists('markNotificationAsRead')) {
     function markNotificationAsRead($notificationId, $userId)
     {
         $notification = Notification::where('id', $notificationId)
             ->where('user_id', $userId)
             ->first();
-        
+
         if ($notification) {
             $notification->update(['is_read' => true, 'read_at' => now()]);
+
             return true;
         }
-        
+
         return false;
     }
 }
 
-if (!function_exists('markAllNotificationsAsRead')) {
+if (! function_exists('markAllNotificationsAsRead')) {
     function markAllNotificationsAsRead($userId)
     {
         return Notification::where('user_id', $userId)

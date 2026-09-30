@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('code', 50)->nullable();
             $table->enum('status', ['active', 'inactive'])->default('active');
             $table->timestamps();
-            
+
             $table->index('university_id');
             $table->index('status');
             $table->unique(['university_id', 'code']);

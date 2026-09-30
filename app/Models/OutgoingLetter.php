@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class OutgoingLetter extends Model
 {
@@ -103,7 +103,7 @@ class OutgoingLetter extends Model
      */
     public function getStatusBadgeClassAttribute()
     {
-        return match($this->status) {
+        return match ($this->status) {
             'draft' => 'bg-secondary',
             'pending_approval' => 'bg-warning',
             'approved' => 'bg-info',
@@ -118,7 +118,7 @@ class OutgoingLetter extends Model
      */
     public function getDispatchedViaBadgeClassAttribute()
     {
-        return match($this->dispatched_via) {
+        return match ($this->dispatched_via) {
             'email' => 'bg-primary',
             'post' => 'bg-warning',
             'hand' => 'bg-success',

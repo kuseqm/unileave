@@ -21,7 +21,7 @@ return new class extends Migration
             $table->enum('status', ['pending', 'approved', 'rejected', 'cancelled'])->default('pending');
             $table->string('rejection_reason', 191)->nullable();
             $table->timestamps();
-            
+
             $table->index('staff_id');
             $table->index('permission_type');
             $table->index('status');

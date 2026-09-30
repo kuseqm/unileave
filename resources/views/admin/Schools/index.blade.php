@@ -27,191 +27,168 @@
     </div>
     
     <!-- Alerts -->
-    @if(session('success'))
-    <div class="alert alert-success alert-dismissible fade show py-1 px-2 mb-2 rounded-sm" style="font-size: 0.7rem;" role="alert">
-        <i class="ti ti-check-circle me-1"></i> {{ session('success') }}
-        <button type="button" class="btn-close py-0" style="font-size: 0.6rem;" data-bs-dismiss="alert"></button>
-    </div>
-    @endif
+    <x-alert-success />
     
-    @if(session('error'))
-    <div class="alert alert-danger alert-dismissible fade show py-1 px-2 mb-2 rounded-sm" style="font-size: 0.7rem;" role="alert">
-        <i class="ti ti-alert-circle me-1"></i> {{ session('error') }}
-        <button type="button" class="btn-close py-0" style="font-size: 0.6rem;" data-bs-dismiss="alert"></button>
-    </div>
-    @endif
+    <x-alert-danger />
     
-    <!-- Custom Search Card -->
-    <div class="card rounded-sm mb-2">
-        <div class="card-header py-1 px-2 bg-light">
-            <div class="d-flex align-items-center">
-                <i class="ti ti-search text-muted me-1" style="font-size: 0.8rem;"></i>
-                <span style="font-size: 0.7rem; font-weight: 600;">Sophisticated Search</span>
-            </div>
-        </div>
-        <div class="card-body py-2 px-2">
-            <div class="row g-1 align-items-end">
-                <div class="col-md-4">
-                    <label class="form-label" style="font-size: 0.65rem;">Search</label>
-                    <input type="text" id="searchInput" class="form-control form-control-sm rounded-sm" placeholder="Search by school name or code..." style="font-size: 0.7rem; padding: 0.2rem 0.3rem;">
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label" style="font-size: 0.65rem;">Campus</label>
-                    <select id="campusFilter" class="form-select form-select-sm rounded-sm" style="font-size: 0.7rem; padding: 0.2rem 0.3rem;">
-                        <option value="">All Campuses</option>
-                        @php
-                            $uniqueCampuses = $schools->pluck('campus')->unique();
-                        @endphp
-                        @foreach($uniqueCampuses as $campus)
-                            @if($campus)
-                            <option value="{{ $campus->id }}">{{ $campus->name }}</option>
-                            @endif
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label" style="font-size: 0.65rem;">Status</label>
-                    <select id="statusFilter" class="form-select form-select-sm rounded-sm" style="font-size: 0.7rem; padding: 0.2rem 0.3rem;">
-                        <option value="">All</option>
-                        <option value="active">Active</option>
-                        <option value="inactive">Inactive</option>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <button id="resetFilters" class="btn btn-outline-secondary btn-sm w-100 rounded-sm" style="font-size: 0.65rem; padding: 0.25rem 0.3rem;">
-                        <i class="ti ti-refresh me-1"></i> Reset
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Schools Table -->
-    <div class="card rounded-sm">
-        <div class="card-header py-1 px-2 bg-light">
-            <div class="d-flex align-items-center">
-                <i class="ti ti-school text-primary me-1" style="font-size: 0.8rem;"></i>
-                <span style="font-size: 0.7rem; font-weight: 600;">Schools & Faculties List</span>
-            </div>
-        </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-sm mb-0" style="font-size: 0.75rem;" id="schoolsTable">
-                    <thead class="bg-light">
-                        <tr>
-                            <th class="ps-2 py-1" width="50">SN</th>
-                            <th class="py-1" width="80">Code</th>
-                            <th class="py-1">School/Faculty</th>
-                            <th class="py-1" width="150">Campus</th>
-                            <th class="py-1" width="150">Dean</th>
-                            <th class="py-1" width="80">Depts</th>
-                            <th class="py-1" width="80">Status</th>
-                            <th class="pe-2 py-1" width="80">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($schools as $index => $school)
-                        <tr data-name="{{ strtolower($school->name) }}" 
-                            data-code="{{ strtolower($school->code) }}" 
-                            data-campus="{{ $school->campus_id }}"
-                            data-status="{{ $school->status }}">
-                            <td class="ps-2 py-1">{{ $schools->firstItem() + $index }}</td>
-                            <td class="py-1"><strong>{{ $school->code }}</strong></td>
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    <div class="rounded-circle bg-light me-1 d-flex align-items-center justify-content-center" style="width: 24px; height: 24px;">
-                                        <i class="ti ti-school" style="font-size: 0.7rem;"></i>
-                                    </div>
-                                    <div>
-                                        <span class="fw-semibold">{{ $school->name }}</span>
-                                        <div class="text-muted" style="font-size: 0.6rem;">Created: {{ $school->created_at->format('d M Y') }}</div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                {{ $school->campus->name ?? 'N/A' }}
-                                @if($school->campus && $school->campus->university)
-                                <div class="text-muted" style="font-size: 0.6rem;">{{ $school->campus->university->name ?? '' }}</div>
-                                @endif
-                            </td>
-                            <td>
-                                @if($school->dean)
-                                    <span class="fw-semibold">{{ $school->dean->first_name }} {{ $school->dean->last_name }}</span>
-                                    <div class="text-muted" style="font-size: 0.6rem;">{{ $school->dean->staff_id }}</div>
-                                @else
-                                    <span class="text-muted">Not assigned</span>
-                                @endif
-                            </td>
-                            <td><span class="badge bg-info-subtle text-info rounded-sm" style="font-size: 0.6rem;">{{ $school->departments->count() }}</span></td>
-                            <td>
-                                @if($school->status == 'active')
-                                    <span class="badge bg-success-subtle text-success rounded-sm" style="font-size: 0.6rem;">Active</span>
-                                @else
-                                    <span class="badge bg-secondary-subtle text-secondary rounded-sm" style="font-size: 0.6rem;">Inactive</span>
-                                @endif
-                            </td>
-                            <td class="pe-2 py-1">
-                                <x-action-buttons 
-                                    editRoute="{{ route('admin.schools.edit', $school->id) }}"
-                                    deleteRoute="{{ route('admin.schools.destroy', $school->id) }}"
-                                    deleteId="{{ $school->id }}"
-                                    deleteName="{{ $school->name }}"
-                                />
-                            </td>
-                        </tr>
-                        @empty
-                        <tr>
-                            <td colspan="8" class="text-center py-3 text-muted" style="font-size: 0.7rem;">
-                                No schools or faculties found
-                            </td>
-                        </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        <div class="card-footer py-1 px-2">
-            <x-pagination :items="$schools" :perPageOptions="[10, 25, 50, 100]" />
-        </div>
-    </div>
-</div>
+    @php
+        $uniqueCampuses = $schools->pluck('campus')->unique();
+        $campusOptions = collect($uniqueCampuses)->filter()->mapWithKeys(fn($c) => [$c->id => $c->name])->all();
+    @endphp
 
-<!-- Delete Confirmation Modal -->
-<div class="modal fade" id="deleteModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content rounded-sm">
-            <div class="modal-header py-1 px-2">
-                <h5 class="modal-title" style="font-size: 0.8rem;">Confirm Delete</h5>
-                <button type="button" class="btn-close py-0" data-bs-dismiss="modal"></button>
+    <x-search-card
+        placeholder="Search by school name or code..."
+        :showCategoryFilter="true"
+        categoryLabel="Campus"
+        :categoryOptions="$campusOptions"
+        :showStatusFilter="true"
+        :statusOptions="['active' => 'Active', 'inactive' => 'Inactive']"
+    >
+        <div id="schoolsSearchStats" class="text-muted" style="font-size: 0.65rem;">
+            {{ $schools->total() }} schools
+        </div>
+    </x-search-card>
+    
+    <div class="row g-2">
+        <!-- Schools Table - main column -->
+        <div class="col-lg-8">
+            <div class="card rounded-sm">
+                <div class="card-header py-1 px-2 bg-light">
+                    <div class="d-flex align-items-center">
+                        <i class="ti ti-school text-primary me-1" style="font-size: 0.8rem;"></i>
+                        <span style="font-size: 0.7rem; font-weight: 600;">Schools & Faculties List</span>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-sm mb-0" style="font-size: 0.75rem;" id="schoolsTable">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="ps-2 py-1" width="50">SN</th>
+                                    <th class="py-1" width="80">Code</th>
+                                    <th class="py-1">School/Faculty</th>
+                                    <th class="py-1" width="150">Campus</th>
+                                    <th class="py-1" width="150">Dean</th>
+                                    <th class="py-1" width="80">Depts</th>
+                                    <th class="py-1" width="80">Status</th>
+                                    <th class="pe-2 py-1" width="80">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($schools as $index => $school)
+                                <tr data-name="{{ strtolower($school->name) }}"
+                                    data-code="{{ strtolower($school->code) }}"
+                                    data-campus="{{ $school->campus_id }}"
+                                    data-status="{{ $school->status }}">
+                                    <td class="ps-2 py-1">{{ $schools->firstItem() + $index }}</td>
+                                    <td class="py-1"><strong>{{ $school->code }}</strong></td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="rounded-circle bg-light me-1 d-flex align-items-center justify-content-center" style="width: 24px; height: 24px;">
+                                                <i class="ti ti-school" style="font-size: 0.7rem;"></i>
+                                            </div>
+                                            <div>
+                                                <span class="fw-semibold">{{ $school->name }}</span>
+                                                <div class="text-muted" style="font-size: 0.6rem;">Created: {{ $school->created_at->format('d M Y') }}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {{ $school->campus->name ?? 'N/A' }}
+                                        @if($school->campus && $school->campus->university)
+                                        <div class="text-muted" style="font-size: 0.6rem;">{{ $school->campus->university->name ?? '' }}</div>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if($school->dean)
+                                            <span class="fw-semibold">{{ $school->dean->first_name }} {{ $school->dean->last_name }}</span>
+                                            <div class="text-muted" style="font-size: 0.6rem;">{{ $school->dean->staff_id }}</div>
+                                        @else
+                                            <span class="text-muted">Not assigned</span>
+                                        @endif
+                                    </td>
+                                    <td><span class="badge bg-info-subtle text-info rounded-sm" style="font-size: 0.6rem;">{{ $school->departments->count() }}</span></td>
+                                    <td>
+                                        @if($school->status == 'active')
+                                            <span class="badge bg-success-subtle text-success rounded-sm" style="font-size: 0.6rem;">Active</span>
+                                        @else
+                                            <span class="badge bg-secondary-subtle text-secondary rounded-sm" style="font-size: 0.6rem;">Inactive</span>
+                                        @endif
+                                    </td>
+                                    <td class="pe-2 py-1">
+                                        <x-action-buttons
+                                            editRoute="{{ route('admin.schools.edit', $school->id) }}"
+                                            deleteRoute="{{ route('admin.schools.destroy', $school->id) }}"
+                                            deleteId="{{ $school->id }}"
+                                            deleteName="{{ $school->name }}"
+                                            :showDelete="true"
+                                            deleteType="school"
+                                        />
+                                    </td>
+                                </tr>
+                                @empty
+                                <tr>
+                                    <td colspan="8" class="text-center py-3 text-muted" style="font-size: 0.7rem;">
+                                        No schools or faculties found
+                                    </td>
+                                </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer py-1 px-2">
+                    <x-pagination :items="$schools" :perPageOptions="[10, 25, 50, 100]" />
+                </div>
             </div>
-            <div class="modal-body py-2 px-2">
-                <p style="font-size: 0.75rem;">Are you sure you want to delete <strong id="deleteItemName"></strong>?</p>
-                <p class="text-danger mb-0" style="font-size: 0.7rem;">This will also delete all associated departments. This action cannot be undone.</p>
-            </div>
-            <div class="modal-footer py-1 px-2">
-                <button type="button" class="btn btn-secondary btn-sm rounded-sm" data-bs-dismiss="modal" style="font-size: 0.7rem;">Cancel</button>
-                <a href="#" id="deleteConfirmBtn" class="btn btn-danger btn-sm rounded-sm" style="font-size: 0.7rem;">Delete</a>
+        </div>
+
+        <!-- Information - narrow column -->
+        <div class="col-lg-4">
+            <div class="card rounded-sm">
+                <div class="card-header py-1 px-2 bg-light">
+                    <div class="d-flex align-items-center">
+                        <i class="ti ti-info-circle text-info me-1" style="font-size: 0.8rem;"></i>
+                        <span style="font-size: 0.7rem; font-weight: 600;">Information</span>
+                    </div>
+                </div>
+                <div class="card-body py-2 px-2">
+                    <div class="mb-2">
+                        <div class="fw-semibold" style="font-size: 0.7rem;"><i class="ti ti-building-community me-1 text-primary"></i> About Schools & Faculties</div>
+                        <p class="mb-0" style="font-size: 0.65rem; color: #555;">A school/faculty sits under a campus and groups related departments together. Each can have a Dean assigned, who typically chairs Faculty/School Board results and admissions approval.</p>
+                    </div>
+
+                    <div class="mb-2">
+                        <div class="fw-semibold" style="font-size: 0.7rem;"><i class="ti ti-link me-1 text-primary"></i> Quick Links</div>
+                        <ul class="mb-0 ps-3" style="font-size: 0.65rem; color: #555;">
+                            <li><a href="{{ route('admin.campuses.index') }}">Campuses</a> - manage the parent campuses</li>
+                            <li><a href="{{ route('admin.departments.index') }}">Departments</a> - manage departments within schools</li>
+                            <li><a href="{{ route('admin.universities.index') }}">Universities</a> - top-level institutions</li>
+                        </ul>
+                    </div>
+
+                    <x-alert-light class="mb-0 py-1 px-2 rounded-sm">
+                        <div class="d-flex align-items-start gap-1">
+                            <i class="ti ti-tips text-warning mt-0" style="font-size: 0.7rem;"></i>
+                            <div>
+                                <strong class="d-block" style="font-size: 0.65rem;">Tips</strong>
+                                <small class="text-muted" style="font-size: 0.6rem;">&bull; Assign a Dean before enabling department-level approvals</small><br>
+                                <small class="text-muted" style="font-size: 0.6rem;">&bull; Deactivating a school does not delete its departments</small>
+                            </div>
+                        </div>
+                    </x-alert-light>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-let deleteId = '';
-let deleteName = '';
-
-function showDeleteModal(id, name) {
-    deleteId = id;
-    deleteName = name;
-    document.getElementById('deleteItemName').innerText = name;
-    document.getElementById('deleteConfirmBtn').href = '/admin/schools/' + id;
-    new bootstrap.Modal(document.getElementById('deleteModal')).show();
-}
 
 // Sophisticated Search and Filter Functionality
 document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('searchInput');
-    const campusFilter = document.getElementById('campusFilter');
+    const categoryFilter = document.getElementById('categoryFilter');
     const statusFilter = document.getElementById('statusFilter');
     const resetBtn = document.getElementById('resetFilters');
     const table = document.getElementById('schoolsTable');
@@ -223,7 +200,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function filterTable() {
         const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
-        const campusValue = campusFilter ? campusFilter.value : '';
+        const campusValue = categoryFilter ? categoryFilter.value : '';
         const statusValue = statusFilter ? statusFilter.value : '';
         
         let visibleCount = 0;
@@ -264,13 +241,13 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     if (searchInput) searchInput.addEventListener('keyup', filterTable);
-    if (campusFilter) campusFilter.addEventListener('change', filterTable);
+    if (categoryFilter) categoryFilter.addEventListener('change', filterTable);
     if (statusFilter) statusFilter.addEventListener('change', filterTable);
     
     if (resetBtn) {
         resetBtn.addEventListener('click', function() {
             if (searchInput) searchInput.value = '';
-            if (campusFilter) campusFilter.value = '';
+            if (categoryFilter) categoryFilter.value = '';
             if (statusFilter) statusFilter.value = '';
             filterTable();
         });

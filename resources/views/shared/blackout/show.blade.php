@@ -169,25 +169,27 @@
                 </div>
                 <div class="card-body py-2 px-2">
                     @if($isActive)
-                    <div class="alert alert-danger py-1 px-2 mb-2 rounded-sm" style="font-size: 0.65rem;">
-                        <i class="ti ti-alert-triangle me-1"></i>
-                        <strong>This blackout period is currently ACTIVE!</strong>
+                    <x-alert-danger :session="false">
+    <strong>This blackout period is currently ACTIVE!</strong>
                         <small class="d-block mt-1">Staff cannot apply for leave during this period.</small>
-                    </div>
+</x-alert-danger>
                     @endif
                     
-                    <div class="alert alert-light border mb-2 py-1 px-2 rounded-sm">
+                    <x-alert-light class="mb-2 py-1 px-2 rounded-sm">
+
                         <div class="d-flex align-items-start gap-1">
                             <i class="ti ti-users text-primary mt-0" style="font-size: 0.7rem;"></i>
                             <div>
                                 <strong class="d-block" style="font-size: 0.65rem;">Affected Staff</strong>
                                 <small class="text-muted" style="font-size: 0.6rem;">All staff members in the university are affected by this blackout period.</small>
                             </div>
-                        </div>
+                        
+</x-alert-light>
                     </div>
                     
                     @if($blackout->restriction_type == 'hard')
-                    <div class="alert alert-light border mb-2 py-1 px-2 rounded-sm">
+                    <x-alert-light class="mb-2 py-1 px-2 rounded-sm">
+
                         <div class="d-flex align-items-start gap-1">
                             <i class="ti ti-ban text-danger mt-0" style="font-size: 0.7rem;"></i>
                             <div>
@@ -196,10 +198,12 @@
                                 <small class="text-muted" style="font-size: 0.6rem;">• Pending requests may be affected</small><br>
                                 <small class="text-muted" style="font-size: 0.6rem;">• Only Admin/HR can override (if allowed)</small>
                             </div>
-                        </div>
+                        
+</x-alert-light>
                     </div>
                     @else
-                    <div class="alert alert-light border mb-2 py-1 px-2 rounded-sm">
+                    <x-alert-light class="mb-2 py-1 px-2 rounded-sm">
+
                         <div class="d-flex align-items-start gap-1">
                             <i class="ti ti-info-circle text-warning mt-0" style="font-size: 0.7rem;"></i>
                             <div>
@@ -208,19 +212,22 @@
                                 <small class="text-muted" style="font-size: 0.6rem;">• Leave applications are still allowed</small><br>
                                 <small class="text-muted" style="font-size: 0.6rem;">• Approvers are notified of the blackout</small>
                             </div>
-                        </div>
+                        
+</x-alert-light>
                     </div>
                     @endif
                     
                     @if($blackout->override_allowed)
-                    <div class="alert alert-light border mb-0 py-1 px-2 rounded-sm">
+                    <x-alert-light class="mb-0 py-1 px-2 rounded-sm">
+
                         <div class="d-flex align-items-start gap-1">
                             <i class="ti ti-user-check text-success mt-0" style="font-size: 0.7rem;"></i>
                             <div>
                                 <strong class="d-block" style="font-size: 0.65rem;">Override Available</strong>
                                 <small class="text-muted" style="font-size: 0.6rem;">Admin and HR officers can approve leave requests during this period if necessary.</small>
                             </div>
-                        </div>
+                        
+</x-alert-light>
                     </div>
                     @endif
                 </div>

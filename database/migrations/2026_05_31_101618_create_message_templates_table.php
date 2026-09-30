@@ -18,7 +18,7 @@ return new class extends Migration
             $table->json('placeholders')->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
-            
+
             $table->index('slug');
             $table->index('category');
         });

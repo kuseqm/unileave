@@ -1,4 +1,5 @@
 <?php
+
 // database/seeders/LeaveTypeSeeder.php
 
 namespace Database\Seeders;

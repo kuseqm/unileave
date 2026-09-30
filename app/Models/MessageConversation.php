@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class MessageConversation extends Model
 {
@@ -12,12 +12,12 @@ class MessageConversation extends Model
     protected $table = 'message_conversations';
 
     protected $fillable = [
-        'leave_request_id', 
-        'initiator_id', 
-        'participant_ids', 
+        'leave_request_id',
+        'initiator_id',
+        'participant_ids',
         'conversation_number',
         'subject',
-        'last_message_at', 
+        'last_message_at',
         'is_active',
         'status',
         'closed_by',
@@ -76,16 +76,19 @@ class MessageConversation extends Model
         $year = date('Y');
         $last = static::whereYear('created_at', $year)->max('id') ?? 0;
         $number = str_pad($last + 1, 4, '0', STR_PAD_LEFT);
+
         return "CONV/{$year}/{$number}";
     }
 
     public function getLastMessageText()
     {
         $last = $this->lastMessage;
-        if (!$last) return 'No messages';
-        
-        return strlen($last->message) > 50 
-            ? substr($last->message, 0, 50) . '...' 
+        if (! $last) {
+            return 'No messages';
+        }
+
+        return strlen($last->message) > 50
+            ? substr($last->message, 0, 50).'...'
             : $last->message;
     }
 }

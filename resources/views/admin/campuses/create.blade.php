@@ -148,17 +148,20 @@
                     </div>
                 </div>
                 <div class="card-body py-2 px-2">
-                    <div class="alert alert-light border mb-2 py-1 px-2 rounded-sm">
+                    <x-alert-light class="mb-2 py-1 px-2 rounded-sm">
+
                         <div class="d-flex align-items-start gap-1">
                             <i class="ti ti-building text-primary mt-0" style="font-size: 0.7rem;"></i>
                             <div>
                                 <strong class="d-block" style="font-size: 0.65rem;">What is a Campus?</strong>
                                 <small class="text-muted" style="font-size: 0.6rem;">A campus is a physical location where university activities take place. A university can have multiple campuses.</small>
                             </div>
-                        </div>
+                        
+</x-alert-light>
                     </div>
                     
-                    <div class="alert alert-light border mb-0 py-1 px-2 rounded-sm">
+                    <x-alert-light class="mb-0 py-1 px-2 rounded-sm">
+
                         <div class="d-flex align-items-start gap-1">
                             <i class="ti ti-tips text-warning mt-0" style="font-size: 0.7rem;"></i>
                             <div>
@@ -168,7 +171,8 @@
                                 • GPS coordinates help with location<br>
                                 • You can add departments after creating the campus</small>
                             </div>
-                        </div>
+                        
+</x-alert-light>
                     </div>
                 </div>
             </div>

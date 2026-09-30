@@ -23,102 +23,130 @@
         <x-stats-card value="{{ $pendingRequests->where('current_approval_level', 'dvca')->count() + $pendingRequests->where('current_approval_level', 'dvc_pfa')->count() }}" label="DVC Level" subtext="university review" color="success" />
     </div>
     
-    @if(session('success'))
-    <div class="alert alert-success alert-dismissible fade show py-1 px-2 mb-2 rounded-sm" style="font-size: 0.7rem;" role="alert">
-        <i class="ti ti-check-circle me-1"></i> {{ session('success') }}
-        <button type="button" class="btn-close py-0" style="font-size: 0.6rem;" data-bs-dismiss="alert"></button>
-    </div>
-    @endif
+    <x-alert-success />
     
-    @if(session('error'))
-    <div class="alert alert-danger alert-dismissible fade show py-1 px-2 mb-2 rounded-sm" style="font-size: 0.7rem;" role="alert">
-        <i class="ti ti-alert-circle me-1"></i> {{ session('error') }}
-        <button type="button" class="btn-close py-0" style="font-size: 0.6rem;" data-bs-dismiss="alert"></button>
-    </div>
-    @endif
+    <x-alert-danger />
     
-    <!-- Pending Approvals Table -->
-    <div class="card rounded-sm">
-        <div class="card-header py-1 px-2 bg-light">
-            <div class="d-flex align-items-center">
-                <i class="ti ti-clock text-primary me-1" style="font-size: 0.8rem;"></i>
-                <span style="font-size: 0.7rem; font-weight: 600;">Requests Awaiting Approval</span>
+    <div class="row g-2">
+        <!-- Pending Approvals Table - main column -->
+        <div class="col-lg-8">
+            <div class="card rounded-sm">
+                <div class="card-header py-1 px-2 bg-light">
+                    <div class="d-flex align-items-center">
+                        <i class="ti ti-clock text-primary me-1" style="font-size: 0.8rem;"></i>
+                        <span style="font-size: 0.7rem; font-weight: 600;">Requests Awaiting Approval</span>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-sm mb-0" style="font-size: 0.75rem;">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="ps-2 py-1">#</th>
+                                    <th class="py-1">Staff</th>
+                                    <th class="py-1">Leave Type</th>
+                                    <th class="py-1">Dates</th>
+                                    <th class="py-1">Days</th>
+                                    <th class="py-1">Reason</th>
+                                    <th class="py-1">Current Level</th>
+                                    <th class="pe-2 py-1">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($pendingRequests as $index => $request)
+                                <tr>
+                                    <td class="ps-2 py-1">{{ $pendingRequests->firstItem() + $index }}</td>
+                                    <td class="py-1">
+                                        <div class="d-flex align-items-center gap-1">
+                                            <div class="rounded-circle bg-light d-flex align-items-center justify-content-center" style="width: 24px; height: 24px;">
+                                                <span class="fw-semibold" style="font-size: 0.6rem;">{{ strtoupper(substr($request->staff->first_name, 0, 1)) }}{{ strtoupper(substr($request->staff->last_name, 0, 1)) }}</span>
+                                            </div>
+                                            <div>
+                                                <span class="fw-semibold">{{ $request->staff->first_name }} {{ $request->staff->last_name }}</span>
+                                                <div class="text-muted" style="font-size: 0.6rem;">{{ $request->staff->staff_id }}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="py-1">{{ $request->leaveType->name ?? 'N/A' }}<br><small class="text-muted">{{ $request->leaveType->code ?? '' }}</small></td>
+                                    <td class="py-1">{{ \Carbon\Carbon::parse($request->start_date)->format('d M Y') }}<br><small>to</small><br>{{ \Carbon\Carbon::parse($request->end_date)->format('d M Y') }}</td>
+                                    <td class="py-1">{{ $request->days }} day(s)</td>
+                                    <td class="py-1">{{ \Str::limit($request->reason, 50) }}</td>
+                                    <td class="py-1">
+                                        @if($request->current_approval_level == 'hod')
+                                            <span class="badge bg-info-subtle text-info rounded-sm" style="font-size: 0.6rem;">HOD</span>
+                                        @elseif($request->current_approval_level == 'dean')
+                                            <span class="badge bg-primary-subtle text-primary rounded-sm" style="font-size: 0.6rem;">Dean</span>
+                                        @elseif($request->current_approval_level == 'dvca')
+                                            <span class="badge bg-success-subtle text-success rounded-sm" style="font-size: 0.6rem;">DVCA</span>
+                                        @elseif($request->current_approval_level == 'dvc_pfa')
+                                            <span class="badge bg-success-subtle text-success rounded-sm" style="font-size: 0.6rem;">DVC-PFA</span>
+                                        @elseif($request->current_approval_level == 'hr_logistics')
+                                            <span class="badge bg-secondary-subtle text-secondary rounded-sm" style="font-size: 0.6rem;">HR Logistics</span>
+                                        @else
+                                            <span class="badge bg-secondary-subtle text-secondary rounded-sm" style="font-size: 0.6rem;">{{ ucfirst($request->current_approval_level) }}</span>
+                                        @endif
+                                    </td>
+                                    <td class="pe-2 py-1">
+                                        <button type="button" class="btn btn-sm btn-success rounded-sm" onclick="openApproveModal({{ $request->id }})" title="Approve" style="padding: 0.15rem 0.3rem;">
+                                            <i class="ti ti-check" style="font-size: 0.7rem;"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-danger rounded-sm" onclick="openRejectModal({{ $request->id }})" title="Reject" style="padding: 0.15rem 0.3rem;">
+                                            <i class="ti ti-x" style="font-size: 0.7rem;"></i>
+                                        </button>
+                                        <a href="{{ route('admin.leave-requests.show', $request->id) }}" class="btn btn-sm btn-outline-info rounded-sm" title="View Details" style="padding: 0.15rem 0.3rem;">
+                                            <i class="ti ti-eye" style="font-size: 0.7rem;"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                @empty
+                                <tr>
+                                    <td colspan="8" class="text-center py-3 text-muted" style="font-size: 0.7rem;">
+                                        No pending approvals
+                                    </td>
+                                </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer py-1 px-2">
+                    <x-pagination :items="$pendingRequests" :perPageOptions="[10, 25, 50, 100]" />
+                </div>
             </div>
         </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-sm mb-0" style="font-size: 0.75rem;">
-                    <thead class="bg-light">
-                        <tr>
-                            <th class="ps-2 py-1">#</th>
-                            <th class="py-1">Staff</th>
-                            <th class="py-1">Leave Type</th>
-                            <th class="py-1">Dates</th>
-                            <th class="py-1">Days</th>
-                            <th class="py-1">Reason</th>
-                            <th class="py-1">Current Level</th>
-                            <th class="pe-2 py-1">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($pendingRequests as $index => $request)
-                        <tr>
-                            <td class="ps-2 py-1">{{ $pendingRequests->firstItem() + $index }}</td>
-                            <td class="py-1">
-                                <div class="d-flex align-items-center gap-1">
-                                    <div class="rounded-circle bg-light d-flex align-items-center justify-content-center" style="width: 24px; height: 24px;">
-                                        <span class="fw-semibold" style="font-size: 0.6rem;">{{ strtoupper(substr($request->staff->first_name, 0, 1)) }}{{ strtoupper(substr($request->staff->last_name, 0, 1)) }}</span>
-                                    </div>
-                                    <div>
-                                        <span class="fw-semibold">{{ $request->staff->first_name }} {{ $request->staff->last_name }}</span>
-                                        <div class="text-muted" style="font-size: 0.6rem;">{{ $request->staff->staff_id }}</div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="py-1">{{ $request->leaveType->name ?? 'N/A' }}<br><small class="text-muted">{{ $request->leaveType->code ?? '' }}</small></td>
-                            <td class="py-1">{{ \Carbon\Carbon::parse($request->start_date)->format('d M Y') }}<br><small>to</small><br>{{ \Carbon\Carbon::parse($request->end_date)->format('d M Y') }}</td>
-                            <td class="py-1">{{ $request->days }} day(s)</td>
-                            <td class="py-1">{{ \Str::limit($request->reason, 50) }}</td>
-                            <td class="py-1">
-                                @if($request->current_approval_level == 'hod')
-                                    <span class="badge bg-info-subtle text-info rounded-sm" style="font-size: 0.6rem;">HOD</span>
-                                @elseif($request->current_approval_level == 'dean')
-                                    <span class="badge bg-primary-subtle text-primary rounded-sm" style="font-size: 0.6rem;">Dean</span>
-                                @elseif($request->current_approval_level == 'dvca')
-                                    <span class="badge bg-success-subtle text-success rounded-sm" style="font-size: 0.6rem;">DVCA</span>
-                                @elseif($request->current_approval_level == 'dvc_pfa')
-                                    <span class="badge bg-success-subtle text-success rounded-sm" style="font-size: 0.6rem;">DVC-PFA</span>
-                                @elseif($request->current_approval_level == 'hr_logistics')
-                                    <span class="badge bg-secondary-subtle text-secondary rounded-sm" style="font-size: 0.6rem;">HR Logistics</span>
-                                @else
-                                    <span class="badge bg-secondary-subtle text-secondary rounded-sm" style="font-size: 0.6rem;">{{ ucfirst($request->current_approval_level) }}</span>
-                                @endif
-                            </td>
-                            <td class="pe-2 py-1">
-                                <button type="button" class="btn btn-sm btn-success rounded-sm" onclick="openApproveModal({{ $request->id }})" title="Approve" style="padding: 0.15rem 0.3rem;">
-                                    <i class="ti ti-check" style="font-size: 0.7rem;"></i>
-                                </button>
-                                <button type="button" class="btn btn-sm btn-danger rounded-sm" onclick="openRejectModal({{ $request->id }})" title="Reject" style="padding: 0.15rem 0.3rem;">
-                                    <i class="ti ti-x" style="font-size: 0.7rem;"></i>
-                                </button>
-                                <a href="{{ route('admin.leave-requests.show', $request->id) }}" class="btn btn-sm btn-outline-info rounded-sm" title="View Details" style="padding: 0.15rem 0.3rem;">
-                                    <i class="ti ti-eye" style="font-size: 0.7rem;"></i>
-                                </a>
-                            </td>
-                        </tr>
-                        @empty
-                        <tr>
-                            <td colspan="8" class="text-center py-3 text-muted" style="font-size: 0.7rem;">
-                                No pending approvals
-                            </td>
-                        </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+
+        <!-- Information - narrow column -->
+        <div class="col-lg-4">
+            <div class="card rounded-sm">
+                <div class="card-header py-1 px-2 bg-light">
+                    <div class="d-flex align-items-center">
+                        <i class="ti ti-info-circle text-info me-1" style="font-size: 0.8rem;"></i>
+                        <span style="font-size: 0.7rem; font-weight: 600;">Information</span>
+                    </div>
+                </div>
+                <div class="card-body py-2 px-2">
+                    <div class="mb-2">
+                        <div class="fw-semibold" style="font-size: 0.7rem;"><i class="ti ti-route me-1 text-primary"></i> Approval Chain</div>
+                        <ul class="mb-0 ps-3" style="font-size: 0.65rem; color: #555;">
+                            <li><span class="badge bg-info-subtle text-info rounded-sm">HOD</span> - department review</li>
+                            <li><span class="badge bg-primary-subtle text-primary rounded-sm">Dean</span> - school/faculty review</li>
+                            <li><span class="badge bg-success-subtle text-success rounded-sm">DVCA / DVC-PFA</span> - university-level review</li>
+                            <li><span class="badge bg-secondary-subtle text-secondary rounded-sm">HR Logistics</span> - final processing</li>
+                        </ul>
+                    </div>
+
+                    <x-alert-light class="mb-0 py-1 px-2 rounded-sm">
+                        <div class="d-flex align-items-start gap-1">
+                            <i class="ti ti-tips text-warning mt-0" style="font-size: 0.7rem;"></i>
+                            <div>
+                                <strong class="d-block" style="font-size: 0.65rem;">Tips</strong>
+                                <small class="text-muted" style="font-size: 0.6rem;">&bull; Rejecting a request requires a reason - it is shown to the requester</small><br>
+                                <small class="text-muted" style="font-size: 0.6rem;">&bull; Use the eye icon to review full details before deciding</small>
+                            </div>
+                        </div>
+                    </x-alert-light>
+                </div>
             </div>
-        </div>
-        <div class="card-footer py-1 px-2">
-            <x-pagination :items="$pendingRequests" :perPageOptions="[10, 25, 50, 100]" />
         </div>
     </div>
 </div>

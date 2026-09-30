@@ -3,13 +3,14 @@
 namespace App\Console\Commands;
 
 use App\Models\LeaveRequest;
-use App\Models\User;
 use App\Models\Notification;
+use App\Models\User;
 use Illuminate\Console\Command;
 
 class EscalateUnresponsiveActingStaff extends Command
 {
     protected $signature = 'leave:escalate-unresponsive';
+
     protected $description = 'Escalate leave requests where acting staff has not responded within 48 hours';
 
     public function handle()
@@ -34,10 +35,9 @@ class EscalateUnresponsiveActingStaff extends Command
                 ]);
                 $this->info("Escalated request #{$request->id} to HOD");
             }
-            
-            // Notify HR
-            $hrOfficer = User::role('hr-officer')->first();
-            if ($hrOfficer) {
+
+            // Notify every HR Officer, not just one.
+            foreach (User::role('hr-officer')->get() as $hrOfficer) {
                 Notification::create([
                     'user_id' => $hrOfficer->id,
                     'type' => 'escalated_unresponsive',
@@ -52,7 +52,8 @@ class EscalateUnresponsiveActingStaff extends Command
             }
         }
 
-        $this->info("Processed " . $unresponsiveRequests->count() . " unresponsive requests.");
+        $this->info('Processed '.$unresponsiveRequests->count().' unresponsive requests.');
+
         return Command::SUCCESS;
     }
 }

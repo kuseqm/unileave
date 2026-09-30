@@ -14,7 +14,7 @@ return new class extends Migration
             $table->enum('type', [
                 'acting_request', 'approval_pending', 'approval_granted', 'approval_rejected',
                 'hold_accepted', 'hold_declined', 'leave_cancelled', 'document_uploaded',
-                'leave_approved_final', 'balance_updated', 'reminder'
+                'leave_approved_final', 'balance_updated', 'reminder',
             ]);
             $table->string('title', 255);
             $table->text('message');
@@ -24,7 +24,7 @@ return new class extends Migration
             $table->boolean('is_read')->default(false);
             $table->timestamp('read_at')->nullable();
             $table->timestamps();
-            
+
             $table->index(['user_id', 'is_read']);
             $table->foreign('user_id')->references('id')->on('staff')->onDelete('cascade');
         });

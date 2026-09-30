@@ -18,10 +18,12 @@ return new class extends Migration
             $table->timestamp('read_at')->nullable();
             $table->json('attachments')->nullable();
             $table->timestamps();
-            
+
             $table->index('conversation_id');
             $table->index(['receiver_id', 'is_read']);
-            $table->foreign('conversation_id')->references('id')->on('message_conversations')->onDelete('cascade');
+            // conversation_id -> message_conversations is added in a later migration:
+            // that table is created AFTER this one runs, so the constraint can't be
+            // defined here without breaking a fresh install.
             $table->foreign('sender_id')->references('id')->on('staff');
             $table->foreign('receiver_id')->references('id')->on('staff');
         });

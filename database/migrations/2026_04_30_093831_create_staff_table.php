@@ -32,10 +32,10 @@ return new class extends Migration
             $table->string('avatar', 255)->nullable();  // ✅ ADDED
             $table->rememberToken();
             $table->timestamps();
-            
+
             // Foreign key for reporting_to
             $table->foreign('reporting_to')->references('id')->on('staff')->onDelete('set null');
-            
+
             $table->index('university_id');
             $table->index('campus_id');
             $table->index('department_id');

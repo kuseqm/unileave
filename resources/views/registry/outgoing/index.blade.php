@@ -18,103 +18,96 @@
         </a>
     </x-page-header>
     
-    <!-- Filter Card -->
-    <div class="card rounded-sm mb-2">
-        <div class="card-header py-1 px-2 bg-light">
-            <div class="d-flex align-items-center">
-                <i class="ti ti-filter text-primary me-1" style="font-size: 0.8rem;"></i>
-                <span style="font-size: 0.7rem; font-weight: 600;">Filter Letters</span>
+    <!-- Search Card -->
+    <x-search-card
+        placeholder="Search by ref number, recipient, subject..."
+        id="outgoingSearchInput"
+        name="search"
+        :value="request('search')"
+        :showStatusFilter="true"
+        :statusOptions="['draft' => 'Draft', 'pending_approval' => 'Pending Approval', 'approved' => 'Approved', 'dispatched' => 'Dispatched']"
+    >
+        <div id="outgoingSearchStats" class="text-muted" style="font-size: 0.65rem;">
+            {{ $letters->total() }} letters total
+        </div>
+    </x-search-card>
+
+    <div class="row g-2">
+        <!-- Letters Table Card - main column -->
+        <div class="col-lg-8">
+            <div class="card rounded-sm">
+                <div class="card-header py-1 px-2 bg-light">
+                    <div class="d-flex align-items-center">
+                        <i class="ti ti-mail-forward text-primary me-1" style="font-size: 0.8rem;"></i>
+                        <span style="font-size: 0.7rem; font-weight: 600;">Outgoing Letters List</span>
+                    </div>
+                </div>
+                <div id="outgoingResults">
+                    @include('registry.outgoing._results')
+                </div>
             </div>
         </div>
-        <div class="card-body py-2 px-2">
-            <form method="GET" class="row g-1">
-                <div class="col-md-3">
-                    <select name="status" class="form-select form-select-sm" style="font-size: 0.7rem;">
-                        <option value="">All Status</option>
-                        <option value="draft" {{ request('status') == 'draft' ? 'selected' : '' }}>Draft</option>
-                        <option value="pending_approval" {{ request('status') == 'pending_approval' ? 'selected' : '' }}>Pending Approval</option>
-                        <option value="approved" {{ request('status') == 'approved' ? 'selected' : '' }}>Approved</option>
-                        <option value="dispatched" {{ request('status') == 'dispatched' ? 'selected' : '' }}>Dispatched</option>
-                    </select>
+
+        <!-- Information - narrow column -->
+        <div class="col-lg-4">
+            <div class="card rounded-sm">
+                <div class="card-header py-1 px-2 bg-light">
+                    <div class="d-flex align-items-center">
+                        <i class="ti ti-info-circle text-info me-1" style="font-size: 0.8rem;"></i>
+                        <span style="font-size: 0.7rem; font-weight: 600;">Information</span>
+                    </div>
                 </div>
-                <div class="col-md-7">
-                    <input type="text" name="search" class="form-control form-control-sm" placeholder="Search by ref number, recipient, subject..." value="{{ request('search') }}" style="font-size: 0.7rem;">
+                <div class="card-body py-2 px-2">
+                    <div class="mb-2">
+                        <div class="fw-semibold" style="font-size: 0.7rem;"><i class="ti ti-flag me-1 text-primary"></i> Understanding Status</div>
+                        <ul class="mb-0 ps-3" style="font-size: 0.65rem; color: #555;">
+                            <li><span class="badge bg-secondary-subtle text-secondary rounded-sm">Draft</span> - still being written</li>
+                            <li><span class="badge bg-warning-subtle text-warning rounded-sm">Pending Approval</span> - awaiting sign-off</li>
+                            <li><span class="badge bg-info-subtle text-info rounded-sm">Approved</span> - cleared to send</li>
+                            <li><span class="badge bg-success-subtle text-success rounded-sm">Dispatched</span> - sent or printed</li>
+                        </ul>
+                    </div>
+
+                    <div class="mb-2">
+                        <div class="fw-semibold" style="font-size: 0.7rem;"><i class="ti ti-link me-1 text-primary"></i> Quick Links</div>
+                        <ul class="mb-0 ps-3" style="font-size: 0.65rem; color: #555;">
+                            <li><a href="{{ route('registry.outgoing.create') }}">New Outgoing Letter</a> - draft a new letter</li>
+                            <li><a href="{{ route('registry.print-queue.index') }}">Print Queue</a> - track printing and dispatch</li>
+                        </ul>
+                    </div>
+
+                    <x-alert-light class="mb-0 py-1 px-2 rounded-sm">
+                        <div class="d-flex align-items-start gap-1">
+                            <i class="ti ti-tips text-warning mt-0" style="font-size: 0.7rem;"></i>
+                            <div>
+                                <strong class="d-block" style="font-size: 0.65rem;">Tips</strong>
+                                <small class="text-muted" style="font-size: 0.6rem;">&bull; Letters marked "Requires physical printing" appear in the Print Queue once approved</small><br>
+                                <small class="text-muted" style="font-size: 0.6rem;">&bull; Replying to an incoming letter auto-fills the subject line</small>
+                            </div>
+                        </div>
+                    </x-alert-light>
                 </div>
-                <div class="col-md-2">
-                    <button type="submit" class="btn btn-primary btn-sm w-100" style="font-size: 0.7rem; padding: 0.2rem 0.5rem;">Filter</button>
-                </div>
-            </form>
-        </div>
-    </div>
-    
-    <!-- Letters Table Card -->
-    <div class="card rounded-sm">
-        <div class="card-header py-1 px-2 bg-light">
-            <div class="d-flex align-items-center">
-                <i class="ti ti-mail-forward text-primary me-1" style="font-size: 0.8rem;"></i>
-                <span style="font-size: 0.7rem; font-weight: 600;">Outgoing Letters List</span>
-            </div>
-        </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-sm mb-0" style="font-size: 0.7rem;">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Ref Number</th>
-                            <th>Recipient</th>
-                            <th>Subject</th>
-                            <th>Status</th>
-                            <th>Dispatched Via</th>
-                            <th>Date</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($letters as $letter)
-                        <tr>
-                            <td><strong>{{ $letter->ref_number }}</strong></td>
-                            <td>{{ \Illuminate\Support\Str::limit($letter->recipient, 25) }}</td>
-                            <td>{{ \Illuminate\Support\Str::limit($letter->subject, 30) }}</td>
-                            <td>
-                                @if($letter->status == 'draft')
-                                    <span class="badge bg-secondary-subtle text-secondary rounded-sm" style="font-size: 0.6rem;">Draft</span>
-                                @elseif($letter->status == 'pending_approval')
-                                    <span class="badge bg-warning-subtle text-warning rounded-sm" style="font-size: 0.6rem;">Pending</span>
-                                @elseif($letter->status == 'approved')
-                                    <span class="badge bg-info-subtle text-info rounded-sm" style="font-size: 0.6rem;">Approved</span>
-                                @elseif($letter->status == 'dispatched')
-                                    <span class="badge bg-success-subtle text-success rounded-sm" style="font-size: 0.6rem;">Dispatched</span>
-                                @endif
-                            </td>
-                            <td>
-                                @if($letter->dispatched_via == 'email')
-                                    <span class="badge bg-primary-subtle text-primary rounded-sm" style="font-size: 0.6rem;">Email</span>
-                                @else
-                                    <span class="badge bg-warning-subtle text-warning rounded-sm" style="font-size: 0.6rem;">Print</span>
-                                @endif
-                            </td>
-                            <td>{{ $letter->created_at->format('d/m/Y') }}</td>
-                            <td>
-                                <a href="{{ route('registry.outgoing.show', $letter->id) }}" class="btn btn-primary btn-sm rounded-sm" style="font-size: 0.6rem; padding: 0.15rem 0.4rem;">
-                                    <i class="ti ti-eye"></i> View
-                                </a>
-                            </td>
-                        </tr>
-                        @empty
-                        <tr>
-                            <td colspan="7" class="text-center py-3 text-muted" style="font-size: 0.7rem;">No outgoing letters found. <a href="{{ route('registry.outgoing.create') }}">Create one</a></td>
-                        </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        <div class="card-footer py-1 px-2 bg-light">
-            <div class="d-flex justify-content-between align-items-center">
-                <div class="text-muted" style="font-size: 0.6rem;">Showing {{ $letters->firstItem() ?? 0 }} to {{ $letters->lastItem() ?? 0 }} of {{ $letters->total() }} entries</div>
-                <div>{{ $letters->appends(request()->query())->links('pagination::bootstrap-4') }}</div>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    initLiveSearch({
+        url: '{{ route('registry.outgoing.index') }}',
+        resultsSelector: '#outgoingResults',
+        statsSelector: '#outgoingSearchStats',
+        searchInputSelector: '#outgoingSearchInput',
+        suggestionsSelector: '#outgoingSearchInputSuggestions',
+        recentSearchesKey: 'outgoingRecentSearches',
+        statLabel: 'letters',
+        perPage: 15,
+        filterSelectors: ['#statusFilter'],
+        extraParams: () => ({
+            status: document.getElementById('statusFilter')?.value || '',
+        }),
+    });
+});
+</script>
 @endsection

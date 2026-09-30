@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers\Registry;
 
+use App\Helpers\AuditLogHelper;
 use App\Http\Controllers\Controller;
 use App\Models\IncomingLetter;
 use App\Models\Office;
 use App\Models\User;
-use App\Helpers\AuditLogHelper;
 use App\Traits\PerPageTrait;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -23,36 +23,44 @@ class IncomingLetterController extends Controller
     public function index(Request $request)
     {
         $perPage = $this->getPerPage($request, 15);
-        
+
         $query = IncomingLetter::with(['office', 'assignedTo', 'createdBy']);
-        
+
         // Filters
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
-        
+
         if ($request->filled('priority')) {
             $query->where('priority', $request->priority);
         }
-        
+
         if ($request->filled('office_id')) {
             $query->where('office_id', $request->office_id);
         }
-        
+
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('ref_number', 'like', "%{$search}%")
-                  ->orWhere('sender', 'like', "%{$search}%")
-                  ->orWhere('subject', 'like', "%{$search}%");
+                    ->orWhere('sender', 'like', "%{$search}%")
+                    ->orWhere('subject', 'like', "%{$search}%");
             });
         }
-        
-        $letters = $query->orderBy('date_received', 'desc')->paginate($perPage);
-        
+
+        $letters = $query->orderBy('date_received', 'desc')->paginate($perPage)->appends($request->query());
+
         // For filter dropdowns
         $offices = Office::where('is_active', true)->orderBy('name')->get();
-        
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'html' => view('registry.incoming._results', compact('letters'))->render(),
+                'total' => $letters->total(),
+                'grand_total' => IncomingLetter::count(),
+            ]);
+        }
+
         return view('registry.incoming.index', compact('letters', 'offices'));
     }
 
@@ -65,7 +73,7 @@ class IncomingLetterController extends Controller
             ->where('receives_letters', true)
             ->orderBy('name')
             ->get();
-        
+
         return view('registry.incoming.create', compact('offices'));
     }
 
@@ -104,8 +112,8 @@ class IncomingLetterController extends Controller
             $pdfPath = null;
             if ($request->hasFile('pdf_file')) {
                 $file = $request->file('pdf_file');
-                $filename = $refNumber . '.pdf';
-                $pdfPath = $file->storeAs('incoming_letters/' . $year, $filename, 'public');
+                $filename = $refNumber.'.pdf';
+                $pdfPath = $file->storeAs('incoming_letters/'.$year, $filename, 'local');
             }
 
             // Create letter
@@ -132,8 +140,9 @@ class IncomingLetterController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error('Incoming letter creation failed: ' . $e->getMessage());
-            return back()->with('error', 'Failed to create letter: ' . $e->getMessage())->withInput();
+            \Log::error('Incoming letter creation failed: '.$e->getMessage());
+
+            return back()->with('error', 'Failed to create letter: '.$e->getMessage())->withInput();
         }
     }
 
@@ -144,12 +153,12 @@ class IncomingLetterController extends Controller
     {
         $letter = IncomingLetter::with(['office', 'assignedTo', 'createdBy', 'outgoingLetters'])
             ->findOrFail($id);
-        
+
         $availableOfficers = User::where('status', 'active')
             ->orderBy('first_name')
             ->take(50)
             ->get();
-        
+
         return view('registry.incoming.show', compact('letter', 'availableOfficers'));
     }
 
@@ -160,7 +169,7 @@ class IncomingLetterController extends Controller
     {
         $letter = IncomingLetter::findOrFail($id);
         $offices = Office::where('is_active', true)->orderBy('name')->get();
-        
+
         return view('registry.incoming.edit', compact('letter', 'offices'));
     }
 
@@ -207,8 +216,8 @@ class IncomingLetterController extends Controller
         $letter = IncomingLetter::findOrFail($id);
 
         // Delete PDF if exists
-        if ($letter->pdf_path && Storage::disk('public')->exists($letter->pdf_path)) {
-            Storage::disk('public')->delete($letter->pdf_path);
+        if ($letter->pdf_path && Storage::disk('local')->exists($letter->pdf_path)) {
+            Storage::disk('local')->delete($letter->pdf_path);
         }
 
         $letter->delete();
@@ -236,8 +245,8 @@ class IncomingLetterController extends Controller
             'status' => 'assigned',
         ]);
 
-        AuditLogHelper::log('assign', 'incoming_letter', $letter->id, 
-            ['assigned_to' => $oldAssignedTo, 'status' => 'received'], 
+        AuditLogHelper::log('assign', 'incoming_letter', $letter->id,
+            ['assigned_to' => $oldAssignedTo, 'status' => 'received'],
             ['assigned_to' => $request->assigned_to, 'status' => 'assigned']
         );
 
@@ -262,12 +271,32 @@ class IncomingLetterController extends Controller
             'closed_at' => $request->status === 'closed' ? now() : $letter->closed_at,
         ]);
 
-        AuditLogHelper::log('status_update', 'incoming_letter', $letter->id, 
-            ['status' => $oldStatus], 
+        AuditLogHelper::log('status_update', 'incoming_letter', $letter->id,
+            ['status' => $oldStatus],
             ['status' => $request->status]
         );
 
         return redirect()->route('registry.incoming.show', $letter->id)
             ->with('success', "Status updated to {$request->status}.");
+    }
+
+    /**
+     * Download/stream the incoming letter's PDF.
+     * Authorization mirrors show(): gated by the 'role:admin|registry-officer'
+     * middleware applied to this whole route group.
+     */
+    public function downloadPdf($id)
+    {
+        $letter = IncomingLetter::findOrFail($id);
+
+        if (! $letter->pdf_path) {
+            abort(404);
+        }
+
+        if (! Storage::disk('local')->exists($letter->pdf_path)) {
+            abort(404, 'File not found.');
+        }
+
+        return Storage::disk('local')->response($letter->pdf_path, $letter->ref_number.'.pdf');
     }
 }

@@ -3,22 +3,26 @@
 namespace App\Models;
 
 use App\Traits\Auditable;
+use App\Traits\LetterTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Traits\LetterTrait;
 
 class LeaveRequest extends Model
 {
-    use HasFactory, LetterTrait, Auditable;
+    use Auditable, HasFactory, LetterTrait;
 
     // ============================================
     // APPROVAL LEVEL CONSTANTS
     // ============================================
-    
+
     const LEVEL_HOD = 1;
+
     const LEVEL_DEAN = 2;
+
     const LEVEL_HR = 3;
+
     const LEVEL_DVC = 4;
+
     const LEVEL_HR_LOGISTICS = 5;
 
     protected $table = 'leave_requests';
@@ -26,6 +30,8 @@ class LeaveRequest extends Model
     protected $fillable = [
         'staff_id',
         'acting_staff_id',
+        'is_escalation_holder',
+        'acting_dean_id',
         'leave_type_id',
         'start_date',
         'end_date',
@@ -34,11 +40,15 @@ class LeaveRequest extends Model
         'status',
         'acting_status',
         'acting_token',
+        'acting_requested_at',
         'acting_responded_at',
+        'acting_escalation_dismissed_at',
+        'acting_escalation_dismissed_by',
+        'acting_escalation_dismissal_reason',
         'current_approval_level',
         'letter_content',
         'rejection_reason',
-        
+
         // Enhanced fields
         'half_day',
         'expected_return_date',
@@ -50,27 +60,41 @@ class LeaveRequest extends Model
         'travel_destination',
         'handover_notes',
 
-        //added
+        // added
         'benefit_to_university',
         'cost_coverage',
         'is_first_time_applicant',
         'approval_history',
 
-        //paid of unpaid leave 
+        // paid of unpaid leave
         'payment_status',
         'payment_percentage',
         'payment_notes',
         'payment_decision_at',
         'payment_decided_by',
+
+        // travel/subsistence allowance, decided by HR alongside the payment status
+        'travel_allowance_granted',
+        'travel_allowance_amount',
+        'travel_allowance_notes',
+        'travel_allowance_decided_at',
+        'travel_allowance_decided_by',
     ];
 
     protected $casts = [
         'start_date' => 'date',
         'end_date' => 'date',
         'expected_return_date' => 'date',
+        'acting_requested_at' => 'datetime',
         'acting_responded_at' => 'datetime',
-        'days' => 'decimal:2',
+        'acting_escalation_dismissed_at' => 'datetime',
+        // 'decimal:2' forces a string like "6.00" everywhere the value is
+        // printed - reads like a price next to whole-day counts. A plain
+        // float still handles genuine fractions (6.5) but prints "6" instead
+        // of "6.00" for whole numbers.
+        'days' => 'float',
         'approval_history' => 'array', // Cast approval history as array
+        'is_escalation_holder' => 'boolean',
     ];
 
     // ============================================
@@ -91,6 +115,23 @@ class LeaveRequest extends Model
     public function actingStaff()
     {
         return $this->belongsTo(User::class, 'acting_staff_id');
+    }
+
+    /**
+     * HOD standing in as acting Dean, when the requester is their own
+     * school's Dean and would otherwise have to approve their own leave.
+     */
+    public function actingDean()
+    {
+        return $this->belongsTo(User::class, 'acting_dean_id');
+    }
+
+    /**
+     * Who dismissed this from the "Unresponsive Acting Staff" escalation list, if anyone.
+     */
+    public function dismissedBy()
+    {
+        return $this->belongsTo(User::class, 'acting_escalation_dismissed_by');
     }
 
     /**
@@ -212,79 +253,19 @@ class LeaveRequest extends Model
     /**
      * Get payment or no payment decision
      */
-      public function paymentDecidedBy()
-        {
-            return $this->belongsTo(User::class, 'payment_decided_by');
-        }   
-     
-     
+    public function paymentDecidedBy()
+    {
+        return $this->belongsTo(User::class, 'payment_decided_by');
+    }
+
+    public function travelAllowanceDecidedBy()
+    {
+        return $this->belongsTo(User::class, 'travel_allowance_decided_by');
+    }
+
     // ============================================
     // APPROVAL WORKFLOW METHODS
     // ============================================
-
-    /**
-     * Get the approval workflow for this leave type
-     */
-    public function getWorkflow()
-    {
-        $leaveTypeName = $this->leaveType ? $this->leaveType->name : '';
-        $staffCategory = $this->staff ? $this->staff->staff_category : 'academic';
-        
-        $workflows = [
-            'Short Permission' => [self::LEVEL_HOD, self::LEVEL_DEAN],
-            'Travel Permission' => [self::LEVEL_HOD, self::LEVEL_DEAN, self::LEVEL_HR, self::LEVEL_DVC, self::LEVEL_HR_LOGISTICS],
-            'Annual Leave' => $staffCategory == 'academic' 
-                ? [self::LEVEL_HOD, self::LEVEL_DEAN, self::LEVEL_DVC, self::LEVEL_HR]
-                : [self::LEVEL_HOD, self::LEVEL_DEAN, self::LEVEL_DVC, self::LEVEL_HR],
-            'Sick Leave' => [self::LEVEL_HOD, self::LEVEL_DEAN, self::LEVEL_HR, self::LEVEL_DVC, self::LEVEL_HR_LOGISTICS],
-            'Study Leave' => [self::LEVEL_HOD, self::LEVEL_DEAN, self::LEVEL_HR, self::LEVEL_DVC, self::LEVEL_HR_LOGISTICS],
-        ];
-        
-        // Find matching workflow
-        foreach ($workflows as $key => $workflow) {
-            if (str_contains($leaveTypeName, $key)) {
-                return $workflow;
-            }
-        }
-        
-        // Default workflow for other leave types
-        return [self::LEVEL_HOD, self::LEVEL_DEAN, self::LEVEL_HR];
-    }
-
-    /**
-     * Get the next approval level
-     */
-    public function getNextApprovalLevel()
-    {
-        $workflow = $this->getWorkflow();
-        $currentLevel = $this->current_approval_level ?? self::LEVEL_HOD;
-        $currentIndex = array_search($currentLevel, $workflow);
-        
-        if ($currentIndex !== false && isset($workflow[$currentIndex + 1])) {
-            return $workflow[$currentIndex + 1];
-        }
-        
-        return null; // No more levels - approval complete
-    }
-
-    /**
-     * Get the current approver role name
-     */
-    public function getCurrentApproverRole()
-    {
-        $level = $this->current_approval_level ?? self::LEVEL_HOD;
-        $staffCategory = $this->staff ? $this->staff->staff_category : 'academic';
-        
-        $roles = [
-            self::LEVEL_HOD => 'hod',
-            self::LEVEL_DEAN => 'dean',
-            self::LEVEL_HR => 'hr-officer',
-            self::LEVEL_DVC => $staffCategory == 'academic' ? 'dvca' : 'dvc-pfa',
-            self::LEVEL_HR_LOGISTICS => 'hr-officer',
-        ];
-        
-        return $roles[$level] ?? null;
-    }
 
     /**
      * Get level name for display
@@ -293,7 +274,7 @@ class LeaveRequest extends Model
     {
         $level = $level ?? $this->current_approval_level;
         $staffCategory = $this->staff ? $this->staff->staff_category : 'academic';
-        
+
         $names = [
             self::LEVEL_HOD => 'Head of Department',
             self::LEVEL_DEAN => 'Dean of Faculty',
@@ -301,51 +282,8 @@ class LeaveRequest extends Model
             self::LEVEL_DVC => $staffCategory == 'academic' ? 'DVC Academic' : 'DVC PFA',
             self::LEVEL_HR_LOGISTICS => 'HR Logistics',
         ];
-        
+
         return $names[$level] ?? 'Unknown';
-    }
-
-    /**
-     * Check if user can approve this request at current level
-     */
-    public function canUserApprove($user)
-    {
-        $requiredRole = $this->getCurrentApproverRole();
-        $userRole = $user->getRoleNames()->first();
-        
-        // Admin can approve anything
-        if ($userRole == 'admin') {
-            return true;
-        }
-        
-        // Check role match
-        if ($userRole != $requiredRole) {
-            return false;
-        }
-        
-        // Additional checks based on role
-        switch ($requiredRole) {
-            case 'hod':
-                return $user->department_id == $this->staff->department_id;
-            case 'dean':
-                return $user->department && $user->department->school_id == $this->staff->department->school_id;
-            case 'hr-officer':
-                return true;
-            case 'dvca':
-                return $this->staff->staff_category == 'academic';
-            case 'dvc-pfa':
-                return $this->staff->staff_category != 'academic';
-            default:
-                return false;
-        }
-    }
-
-    /**
-     * Get the current approval level display name
-     */
-    public function getCurrentApprovalLevelNameAttribute()
-    {
-        return $this->getLevelName();
     }
 
     /**
@@ -370,23 +308,6 @@ class LeaveRequest extends Model
     public function isRejected()
     {
         return $this->status == 'rejected';
-    }
-
-    /**
-     * Get the approval progress percentage
-     */
-    public function getApprovalProgressAttribute()
-    {
-        $workflow = $this->getWorkflow();
-        $currentLevel = $this->current_approval_level ?? self::LEVEL_HOD;
-        $currentIndex = array_search($currentLevel, $workflow);
-        $totalLevels = count($workflow);
-        
-        if ($totalLevels == 0) return 100;
-        if ($this->status == 'approved') return 100;
-        if ($this->status == 'rejected') return 0;
-        
-        return round(($currentIndex / $totalLevels) * 100);
     }
 
     // ============================================
@@ -419,7 +340,7 @@ class LeaveRequest extends Model
             'morning' => 'Half Day - Morning',
             'afternoon' => 'Half Day - Afternoon',
         ];
-        
+
         return $options[$this->half_day] ?? 'Full Day';
     }
 
@@ -431,6 +352,7 @@ class LeaveRequest extends Model
         if ($this->latestLetter && $this->latestLetter->secure_code) {
             return route('verify.letter', $this->latestLetter->secure_code);
         }
+
         return null;
     }
 
@@ -469,7 +391,31 @@ class LeaveRequest extends Model
     {
         return $query->where('acting_status', 'accepted');
     }
-    
+
+    /**
+     * Requests still waiting on the designated acting staff to respond, for
+     * longer than $hours. Uses acting_requested_at when set (reassignment resets
+     * the clock for the new person) and falls back to created_at otherwise.
+     *
+     * Single source of truth for this calculation — the dashboard widget, sidebar
+     * badge, and the "Unresponsive Acting Staff" page all use this scope so their
+     * counts can never drift apart the way they previously did.
+     */
+    public function scopeActingOverdue($query, $hours = 48)
+    {
+        return $query->where('acting_status', 'pending')
+            ->whereRaw('COALESCE(acting_requested_at, created_at) < ?', [now()->subHours($hours)]);
+    }
+
+    /**
+     * scopeActingOverdue() further narrowed to exclude requests an HOD/HR/admin
+     * has dismissed from the escalation list (see acting_escalation_dismissed_at).
+     */
+    public function scopeActingOverdueVisible($query, $hours = 48)
+    {
+        return $query->actingOverdue($hours)->whereNull('acting_escalation_dismissed_at');
+    }
+
     /**
      * Scope for requests at specific approval level
      */
@@ -477,7 +423,7 @@ class LeaveRequest extends Model
     {
         return $query->where('current_approval_level', $level);
     }
-    
+
     /**
      * Scope for requests that have letters generated
      */
@@ -485,7 +431,7 @@ class LeaveRequest extends Model
     {
         return $query->has('letters');
     }
-    
+
     /**
      * Scope for requests that need action from a specific role
      */

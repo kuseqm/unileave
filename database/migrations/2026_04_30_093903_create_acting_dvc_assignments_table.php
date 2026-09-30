@@ -18,7 +18,7 @@ return new class extends Migration
             $table->foreignId('approved_by')->constrained('staff')->onDelete('cascade');
             $table->enum('status', ['active', 'expired', 'cancelled'])->default('active');
             $table->timestamps();
-            
+
             $table->index('staff_id');
             $table->index(['start_date', 'end_date']);
             $table->index('role');

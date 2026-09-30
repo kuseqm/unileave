@@ -114,10 +114,9 @@
                         <p class="text-muted small mt-1 mb-0">All approvals, rejections, and code usage are logged for compliance and non-repudiation purposes.</p>
                     </div>
                     
-                    <div class="alert alert-warning small py-2 px-2 mb-0">
-                        <i class="ti ti-alert-triangle me-1"></i>
-                        <strong>Important:</strong> Only approve requests with valid disciplinary or legal justification. One-time codes are single-use only.
-                    </div>
+                    <x-alert-warning>
+    <strong>Important:</strong> Only approve requests with valid disciplinary or legal justification. One-time codes are single-use only.
+</x-alert-warning>
                 </div>
             </div>
         </div>
@@ -142,10 +141,9 @@
                         <strong>From:</strong> {{ $req->message->sender->first_name ?? 'System' }}<br>
                         <strong>Reason:</strong> {{ $req->reason }}
                     </div>
-                    <div class="alert alert-info" style="font-size: 0.7rem;">
-                        <i class="ti ti-info-circle me-1"></i>
-                        A one-time code will be generated and shown to you. Share this code with the HR officer. Valid for 24 hours, single use.
-                    </div>
+                    <x-alert-info>
+    A one-time code will be generated and shown to you. Share this code with the HR officer. Valid for 24 hours, single use.
+</x-alert-info>
                 </div>
                 <div class="modal-footer py-1 px-2">
                     <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>

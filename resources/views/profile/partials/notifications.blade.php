@@ -13,12 +13,7 @@
     <x-page-header title="NOTIFICATION SETTINGS" description="Configure how you receive notifications">
     </x-page-header>
     
-    @if(session('success'))
-    <div class="alert alert-success alert-dismissible fade show py-1 px-2 mb-2 rounded-sm" role="alert">
-        <i class="ti ti-check-circle me-1"></i> {{ session('success') }}
-        <button type="button" class="btn-close py-0" data-bs-dismiss="alert"></button>
-    </div>
-    @endif
+    <x-alert-success />
     
     <div class="row">
         <div class="col-md-6">

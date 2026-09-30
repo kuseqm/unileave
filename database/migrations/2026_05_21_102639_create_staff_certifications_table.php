@@ -19,7 +19,7 @@ return new class extends Migration
             $table->boolean('is_renewable')->default(false);
             $table->string('certificate_file', 500)->nullable();
             $table->timestamps();
-            
+
             $table->index('staff_id');
         });
     }

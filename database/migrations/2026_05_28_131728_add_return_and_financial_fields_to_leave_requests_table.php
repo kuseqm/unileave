@@ -14,12 +14,12 @@ return new class extends Migration
             $table->integer('late_return_days')->default(0)->after('actual_return_date');
             $table->decimal('late_return_penalty', 10, 2)->default(0)->after('late_return_days');
             $table->text('late_return_reason')->nullable()->after('late_return_penalty');
-            
+
             // Financial fields
             $table->boolean('is_paid_leave')->default(true)->after('late_return_reason');
             $table->decimal('salary_impact', 10, 2)->default(0)->after('is_paid_leave');
             $table->text('allowances')->nullable()->after('salary_impact');
-            
+
             // Dependents fields
             $table->integer('dependents_count')->default(0)->after('allowances');
             $table->text('dependents_info')->nullable()->after('dependents_count');
@@ -38,7 +38,7 @@ return new class extends Migration
                 'salary_impact',
                 'allowances',
                 'dependents_count',
-                'dependents_info'
+                'dependents_info',
             ]);
         });
     }

@@ -29,26 +29,34 @@
     </div>
     
     <!-- Alerts -->
-    @if(session('success'))
-    <div class="alert alert-success alert-dismissible fade show py-1 px-2 mb-2 rounded-sm" style="font-size: 0.7rem;" role="alert">
-        <i class="ti ti-check-circle me-1"></i> {{ session('success') }}
-        <button type="button" class="btn-close py-0" style="font-size: 0.6rem;" data-bs-dismiss="alert"></button>
-    </div>
-    @endif
+    <x-alert-success />
     
-    @if(session('error'))
-    <div class="alert alert-danger alert-dismissible fade show py-1 px-2 mb-2 rounded-sm" style="font-size: 0.7rem;" role="alert">
-        <i class="ti ti-alert-circle me-1"></i> {{ session('error') }}
-        <button type="button" class="btn-close py-0" style="font-size: 0.6rem;" data-bs-dismiss="alert"></button>
-    </div>
-    @endif
+    <x-alert-danger />
     
+    <div class="row g-2">
+        <!-- Tables - main column -->
+        <div class="col-lg-8">
     <!-- Roles Table -->
     <div class="card rounded-sm mb-2">
         <div class="card-header py-1 px-2 bg-light">
             <div class="d-flex align-items-center">
                 <i class="ti ti-shield text-primary me-1" style="font-size: 0.8rem;"></i>
                 <span style="font-size: 0.7rem; font-weight: 600;">System Roles</span>
+            </div>
+        </div>
+        <div class="card-body py-2 px-2 border-bottom">
+            <div class="row g-1 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label" style="font-size: 0.65rem;">Search Roles</label>
+                    <input type="text" id="roleSearchInput" value="{{ request('role_search') }}" autocomplete="off" class="form-control form-control-sm rounded-sm" placeholder="Search by role name..." style="font-size: 0.7rem; padding: 0.2rem 0.3rem;">
+                </div>
+                @if(request('role_search'))
+                <div class="col-md-2">
+                    <a href="{{ route('admin.roles.index', array_diff_key(request()->query(), ['role_search' => '', 'page' => ''])) }}" class="btn btn-outline-secondary btn-sm w-100 rounded-sm" style="font-size: 0.65rem; padding: 0.25rem 0.3rem;">
+                        <i class="ti ti-refresh me-1"></i> Reset
+                    </a>
+                </div>
+                @endif
             </div>
         </div>
         <div class="card-body p-0">
@@ -63,7 +71,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($roles as $role)
+                        @forelse($roles as $role)
                         <tr>
                             <td class="ps-2 py-1">
                                 <div class="d-flex align-items-center gap-1">
@@ -81,14 +89,20 @@
                                         <i class="ti ti-edit" style="font-size: 0.7rem;"></i>
                                     </a>
                                     @if(!in_array($role->name, ['admin', 'staff', 'hod', 'dean', 'dvca', 'dvc-pfa', 'acting-dvc', 'hr-officer', 'hr-manager']))
-                                    <button type="button" class="btn btn-sm btn-outline-danger rounded-sm" onclick="showDeleteModal('{{ $role->name }}', {{ $role->id }})" title="Delete Role" style="padding: 0.15rem 0.3rem;">
+                                    <button type="button" class="btn btn-sm btn-outline-danger rounded-sm" onclick="showDeleteModal({{ $role->id }}, '{{ addslashes($role->name) }}', null, '{{ route('admin.roles.delete', $role->id) }}')" title="Delete Role" style="padding: 0.15rem 0.3rem;">
                                         <i class="ti ti-trash" style="font-size: 0.7rem;"></i>
                                     </button>
                                     @endif
                                 </div>
                             </td>
                         </tr>
-                        @endforeach
+                        @empty
+                        <tr>
+                            <td colspan="4" class="text-center py-3 text-muted" style="font-size: 0.7rem;">
+                                No roles match your search
+                            </td>
+                        </tr>
+                        @endforelse
                     </tbody>
                 </table>
             </div>
@@ -106,6 +120,21 @@
                 <span style="font-size: 0.7rem; font-weight: 600;">Users by Role</span>
             </div>
         </div>
+        <div class="card-body py-2 px-2 border-bottom">
+            <x-search-card
+                id="userSearchInput"
+                name="user_search"
+                placeholder="Search by name, email or staff ID..."
+                :value="request('user_search')"
+                :showCategoryFilter="true"
+                categoryLabel="Role"
+                :categoryOptions="$allRoles->pluck('name', 'name')->map(fn($n) => ucfirst($n))->all()"
+            >
+                <div id="usersSearchStats" class="text-muted" style="font-size: 0.65rem;">
+                    {{ $users->total() }} users
+                </div>
+            </x-search-card>
+        </div>
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-sm mb-0" style="font-size: 0.75rem;">
@@ -119,7 +148,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($users as $user)
+                        @forelse($users as $user)
                         <tr>
                             <td class="ps-2 py-1">
                                 <div class="d-flex align-items-center gap-1">
@@ -144,9 +173,58 @@
                                 </button>
                             </td>
                         </tr>
-                        @endforeach
+                        @empty
+                        <tr>
+                            <td colspan="5" class="text-center py-3 text-muted" style="font-size: 0.7rem;">
+                                No users match your search
+                            </td>
+                        </tr>
+                        @endforelse
                     </tbody>
                 </table>
+            </div>
+        </div>
+        <div class="card-footer py-1 px-2">
+            <x-pagination :items="$users" :perPageOptions="[10, 25, 50, 100]" id="users" page-param="users_page" per-page-param="users_per_page" />
+        </div>
+    </div>
+        </div>
+
+        <!-- Information - narrow column -->
+        <div class="col-lg-4">
+            <div class="card rounded-sm">
+                <div class="card-header py-1 px-2 bg-light">
+                    <div class="d-flex align-items-center">
+                        <i class="ti ti-info-circle text-info me-1" style="font-size: 0.8rem;"></i>
+                        <span style="font-size: 0.7rem; font-weight: 600;">Information</span>
+                    </div>
+                </div>
+                <div class="card-body py-2 px-2">
+                    <div class="mb-2">
+                        <div class="fw-semibold" style="font-size: 0.7rem;"><i class="ti ti-shield me-1 text-primary"></i> About Roles</div>
+                        <p class="mb-0" style="font-size: 0.65rem; color: #555;">Roles control what a user can see and do across the system. Core roles (admin, hod, dean, dvca, etc.) are protected and cannot be deleted, only their permissions edited.</p>
+                    </div>
+
+                    <div class="mb-2">
+                        <div class="fw-semibold" style="font-size: 0.7rem;"><i class="ti ti-link me-1 text-primary"></i> Quick Links</div>
+                        <ul class="mb-0 ps-3" style="font-size: 0.65rem; color: #555;">
+                            <li><a href="{{ route('admin.roles.create') }}">Create Role</a> - add a new custom role</li>
+                            <li><a href="{{ route('admin.roles.assign') }}">Assign Role</a> - assign a role to a user</li>
+                            <li><a href="{{ route('staff.index') }}">Staff</a> - manage staff members</li>
+                        </ul>
+                    </div>
+
+                    <x-alert-light class="mb-0 py-1 px-2 rounded-sm">
+                        <div class="d-flex align-items-start gap-1">
+                            <i class="ti ti-tips text-warning mt-0" style="font-size: 0.7rem;"></i>
+                            <div>
+                                <strong class="d-block" style="font-size: 0.65rem;">Tips</strong>
+                                <small class="text-muted" style="font-size: 0.6rem;">&bull; Use the Users by Role table to change one user's role quickly</small><br>
+                                <small class="text-muted" style="font-size: 0.6rem;">&bull; Deleting a role is disabled while any user still holds it</small>
+                            </div>
+                        </div>
+                    </x-alert-light>
+                </div>
             </div>
         </div>
     </div>
@@ -183,38 +261,7 @@
     </div>
 </div>
 
-<!-- Delete Role Modal -->
-<div class="modal fade" id="deleteRoleModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content rounded-sm">
-            <div class="modal-header py-1 px-2">
-                <h5 class="modal-title" style="font-size: 0.8rem;">Confirm Delete</h5>
-                <button type="button" class="btn-close py-0" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body py-2 px-2">
-                <p style="font-size: 0.75rem;">Are you sure you want to delete the role <strong id="deleteRoleName"></strong>?</p>
-                <p class="text-danger mb-0" style="font-size: 0.7rem;">This action cannot be undone.</p>
-            </div>
-            <div class="modal-footer py-1 px-2">
-                <button type="button" class="btn btn-secondary btn-sm rounded-sm" data-bs-dismiss="modal" style="font-size: 0.7rem;">Cancel</button>
-                <a href="#" id="deleteRoleConfirmBtn" class="btn btn-danger btn-sm rounded-sm" style="font-size: 0.7rem;">Delete</a>
-            </div>
-        </div>
-    </div>
-</div>
-
 <script>
-let deleteRoleId = '';
-let deleteRoleName = '';
-
-function showDeleteModal(roleName, roleId) {
-    deleteRoleId = roleId;
-    deleteRoleName = roleName;
-    document.getElementById('deleteRoleName').innerText = roleName;
-    document.getElementById('deleteRoleConfirmBtn').href = `/admin/roles/delete/${roleId}`;
-    new bootstrap.Modal(document.getElementById('deleteRoleModal')).show();
-}
-
 // Change Role Modal
 const changeRoleModal = document.getElementById('changeRoleModal');
 if (changeRoleModal) {
@@ -237,6 +284,50 @@ if (changeRoleModal) {
                 }
             }
         }
+    });
+}
+
+// Debounced search: types into either box update the URL and reload,
+// without disturbing the other table's own page/per-page state.
+function debounce(fn, delay) {
+    let timer;
+    return function (...args) {
+        clearTimeout(timer);
+        timer = setTimeout(() => fn.apply(this, args), 500);
+    };
+}
+
+function navigateWithParam(key, value, resetPageKey) {
+    const url = new URL(window.location.href);
+    if (value) {
+        url.searchParams.set(key, value);
+    } else {
+        url.searchParams.delete(key);
+    }
+    if (resetPageKey) {
+        url.searchParams.delete(resetPageKey);
+    }
+    window.location.href = url.toString();
+}
+
+document.getElementById('userSearchInput')?.addEventListener('keyup', debounce(function (e) {
+    if (e.key === 'Enter') return;
+    navigateWithParam('user_search', this.value, 'users_page');
+}));
+
+document.getElementById('categoryFilter')?.addEventListener('change', function () {
+    navigateWithParam('role_filter', this.value, 'users_page');
+});
+
+const resetFilters = document.getElementById('resetFilters');
+if (resetFilters) {
+    resetFilters.addEventListener('click', function () {
+        const userSearch = document.getElementById('userSearchInput');
+        const categoryFilter = document.getElementById('categoryFilter');
+        if (userSearch) userSearch.value = '';
+        if (categoryFilter) categoryFilter.value = '';
+        navigateWithParam('user_search', '', 'users_page');
+        navigateWithParam('role_filter', '', 'users_page');
     });
 }
 </script>

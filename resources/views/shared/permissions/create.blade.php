@@ -2,6 +2,29 @@
 
 @section('title', 'Apply for Permission')
 
+@push('styles')
+<style>
+/* Same convention as Leave/Travel - each part of the form reads as its own
+   card, colored by a thin left accent rather than a heavy filled header. */
+.form-section-card {
+    background: #fff;
+    border: 1px solid #E5E3DB;
+    border-left-width: 3px;
+    border-left-color: var(--section-accent, #94A3B8);
+    border-radius: 8px;
+    margin-bottom: 0.6rem;
+    overflow: hidden;
+}
+.form-section-card__header {
+    padding: 0.45rem 0.65rem 0.35rem;
+    border-bottom: 1px solid #EFEDE6;
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+.form-section-card__body { padding: 0.55rem 0.65rem 0.6rem; }
+</style>
+@endpush
+
 @section('content')
 <div class="container-fluid px-2">
     
@@ -23,24 +46,26 @@
         <x-stats-card value="Same Day" label="Processing Time" subtext="typically approved within 24hrs" color="info" />
         <x-stats-card value="No Balance" label="Leave Balance" subtext="permissions don't affect balance" color="success" />
         <x-stats-card value="HOD → HR" label="Approval Flow" subtext="simple 2-step approval" color="warning" />
+        <x-stats-card value="{{ $thisMonthCount }}" label="Requests This Month" subtext="submitted by you" color="primary" />
     </div>
     
     @if($errors->any())
-    <div class="alert alert-danger alert-dismissible fade show py-1 px-2 mb-2 rounded-sm" style="font-size: 0.7rem;" role="alert">
-        <i class="ti ti-alert-circle me-1"></i>
-        <strong>Please fix the following errors:</strong>
+    <x-alert-danger :session="false">
+    <strong>Please fix the following errors:</strong>
         <ul class="mb-0 mt-1 ps-3">
             @foreach($errors->all() as $error)
                 <li>{{ $error }}</li>
             @endforeach
         </ul>
         <button type="button" class="btn-close py-0" style="font-size: 0.6rem;" data-bs-dismiss="alert"></button>
-    </div>
+</x-alert-danger>
     @endif
+
+    <x-alert-danger />
     
     <div class="row g-2">
         <!-- Main Form Column -->
-        <div class="col-lg-7">
+        <div class="col-lg-8">
             <div class="card rounded-sm">
                 <div class="card-header py-1 px-2 bg-light">
                     <div class="d-flex align-items-center">
@@ -51,7 +76,16 @@
                 <div class="card-body py-2 px-2">
                     <form action="{{ route('permissions.store') }}" method="POST" id="permissionForm">
                         @csrf
-                        
+
+                        <!-- ============================================ -->
+                        <!-- PERMISSION DETAILS: type, dates, duration -->
+                        <!-- ============================================ -->
+                        <div class="form-section-card" style="--section-accent: #5B84C4;">
+                        <div class="form-section-card__header">
+                            <i class="ti ti-clock text-primary me-1"></i> Permission Details
+                        </div>
+                        <div class="form-section-card__body">
+
                         <!-- Permission Type -->
                         <div class="mb-1">
                             <label class="form-label" style="font-size: 0.65rem;">Permission Type <span class="text-danger">*</span></label>
@@ -67,7 +101,7 @@
                                 <div class="invalid-feedback" style="font-size: 0.65rem;">{{ $message }}</div>
                             @enderror
                         </div>
-                        
+
                         <!-- Date & Time Range -->
                         <div class="row g-1">
                             <div class="col-md-6 mb-1">
@@ -85,15 +119,14 @@
                                 @enderror
                             </div>
                         </div>
-                        
+
                         <!-- Duration Display -->
                         <div class="mb-1">
-                            <div class="alert alert-info py-1 px-2 rounded-sm mb-1" style="font-size: 0.65rem;">
-                                <i class="ti ti-info-circle me-1"></i>
-                                <strong>Duration:</strong> <span id="duration_display">0</span> hour(s)
-                            </div>
+                            <x-alert-info>
+    <strong>Duration:</strong> <span id="duration_display">0</span> hour(s)
+</x-alert-info>
                         </div>
-                        
+
                         <!-- Official Duty Description (shown when official_duty selected) -->
                         <div id="official_duty_block" class="mb-1" style="display: none;">
                             <label class="form-label" style="font-size: 0.65rem;">Official Duty Description <span class="text-danger">*</span></label>
@@ -103,16 +136,44 @@
                                 <div class="invalid-feedback" style="font-size: 0.65rem;">{{ $message }}</div>
                             @enderror
                         </div>
-                        
-                        <!-- Reason -->
+
+                        <!-- Acting HOD (only shown to an HOD applying for their own permission) -->
+                        @if(isset($actingHodOptions) && $actingHodOptions->isNotEmpty())
                         <div class="mb-1">
-                            <label class="form-label" style="font-size: 0.65rem;">Reason <span class="text-danger">*</span></label>
+                            <label class="form-label" style="font-size: 0.65rem;">Who will act as HOD to review this request? <span class="text-danger">*</span></label>
+                            <select name="acting_hod_id" id="acting_hod_id" class="form-select form-select-sm rounded-sm @error('acting_hod_id') is-invalid @enderror" style="font-size: 0.7rem;" required>
+                                <option value="">Select Colleague</option>
+                                @foreach($actingHodOptions as $colleague)
+                                <option value="{{ $colleague->id }}" {{ old('acting_hod_id') == $colleague->id ? 'selected' : '' }}>
+                                    {{ $colleague->title ? $colleague->title . ' ' : '' }}{{ $colleague->first_name }} {{ $colleague->last_name }} ({{ $colleague->staff_id }})
+                                </option>
+                                @endforeach
+                            </select>
+                            @error('acting_hod_id')
+                                <div class="invalid-feedback" style="font-size: 0.65rem;">{{ $message }}</div>
+                            @enderror
+                            <small class="text-muted" style="font-size: 0.6rem;">As HOD, your own request needs someone else to review it - pick a colleague in your department to stand in.</small>
+                        </div>
+                        @endif
+
+                        </div><!-- /.form-section-card__body -->
+                        </div><!-- /Permission Details -->
+
+                        <!-- ============================================ -->
+                        <!-- REASON -->
+                        <!-- ============================================ -->
+                        <div class="form-section-card" style="--section-accent: #212529;">
+                        <div class="form-section-card__header">
+                            <i class="ti ti-message-2 text-dark me-1"></i> Reason <span class="text-danger">*</span>
+                        </div>
+                        <div class="form-section-card__body">
                             <textarea name="reason" rows="3" class="form-control form-control-sm rounded-sm @error('reason') is-invalid @enderror" style="font-size: 0.7rem;" required>{{ old('reason') }}</textarea>
                             @error('reason')
                                 <div class="invalid-feedback" style="font-size: 0.65rem;">{{ $message }}</div>
                             @enderror
-                        </div>
-                        
+                        </div><!-- /.form-section-card__body -->
+                        </div><!-- /Reason -->
+
                         <div class="d-flex justify-content-end gap-1 mt-2">
                             <a href="{{ route('permissions.my-requests') }}" class="btn btn-secondary btn-sm rounded-sm" style="font-size: 0.7rem;">Cancel</a>
                             <button type="submit" class="btn btn-primary btn-sm rounded-sm" style="font-size: 0.7rem;">
@@ -125,7 +186,7 @@
         </div>
         
         <!-- Info Column -->
-        <div class="col-lg-5">
+        <div class="col-lg-4">
             <div class="card rounded-sm">
                 <div class="card-header py-1 px-2 bg-light">
                     <div class="d-flex align-items-center">
@@ -134,17 +195,20 @@
                     </div>
                 </div>
                 <div class="card-body py-2 px-2">
-                    <div class="alert alert-light border mb-2 py-1 px-2 rounded-sm">
+                    <x-alert-light class="mb-2 py-1 px-2 rounded-sm">
+
                         <div class="d-flex align-items-start gap-1">
                             <i class="ti ti-tips text-warning mt-0" style="font-size: 0.7rem;"></i>
                             <div>
                                 <strong class="d-block" style="font-size: 0.65rem;">What is a Permission?</strong>
                                 <small class="text-muted" style="font-size: 0.6rem;">A permission is short time off (hours) for late arrival, early departure, or official duty.</small>
                             </div>
-                        </div>
+                        
+</x-alert-light>
                     </div>
                     
-                    <div class="alert alert-light border mb-2 py-1 px-2 rounded-sm">
+                    <x-alert-light class="mb-2 py-1 px-2 rounded-sm">
+
                         <div class="d-flex align-items-start gap-1">
                             <i class="ti ti-hierarchy text-primary mt-0" style="font-size: 0.7rem;"></i>
                             <div>
@@ -154,10 +218,12 @@
                                 <small class="text-muted" style="font-size: 0.6rem;">• <strong>Short Leave</strong> - Time off during working hours</small><br>
                                 <small class="text-muted" style="font-size: 0.6rem;">• <strong>Official Duty</strong> - University business outside office</small>
                             </div>
-                        </div>
+                        
+</x-alert-light>
                     </div>
                     
-                    <div class="alert alert-light border mb-2 py-1 px-2 rounded-sm">
+                    <x-alert-light class="mb-2 py-1 px-2 rounded-sm">
+
                         <div class="d-flex align-items-start gap-1">
                             <i class="ti ti-chart-line text-success mt-0" style="font-size: 0.7rem;"></i>
                             <div>
@@ -166,10 +232,12 @@
                                 <small class="text-muted" style="font-size: 0.6rem;">2. Head of Department reviews</small><br>
                                 <small class="text-muted" style="font-size: 0.6rem;">3. HR Officer final approval</small>
                             </div>
-                        </div>
+                        
+</x-alert-light>
                     </div>
                     
-                    <div class="alert alert-light border mb-0 py-1 px-2 rounded-sm">
+                    <x-alert-light class="mb-0 py-1 px-2 rounded-sm">
+
                         <div class="d-flex align-items-start gap-1">
                             <i class="ti ti-calendar text-danger mt-0" style="font-size: 0.7rem;"></i>
                             <div>
@@ -178,7 +246,8 @@
                                 <small class="text-muted" style="font-size: 0.6rem;">• Official duty may require supporting documents</small><br>
                                 <small class="text-muted" style="font-size: 0.6rem;">• Submit at least 24 hours in advance when possible</small>
                             </div>
-                        </div>
+                        
+</x-alert-light>
                     </div>
                 </div>
             </div>

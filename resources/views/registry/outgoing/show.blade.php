@@ -131,9 +131,9 @@
                     @endif
                     
                     @if($letter->requires_print && $letter->status == 'approved')
-                        <div class="alert alert-warning py-1 px-2 mt-2 rounded-sm" style="font-size: 0.6rem;">
-                            <i class="ti ti-printer me-1"></i> This letter requires physical printing.
-                        </div>
+                        <x-alert-warning>
+    This letter requires physical printing.
+</x-alert-warning>
                     @endif
                 </div>
             </div>

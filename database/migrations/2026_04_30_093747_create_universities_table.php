@@ -21,7 +21,7 @@ return new class extends Migration
             $table->string('email', 255)->nullable();
             $table->enum('status', ['active', 'inactive'])->default('active');
             $table->timestamps();
-            
+
             $table->index('status');
             $table->index('code');
         });

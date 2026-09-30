@@ -2,11 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use App\Models\User;
-use App\Models\IncomingLetter;
-use App\Models\LeaveRequest;
 
 class PortalController extends Controller
 {
@@ -16,16 +12,16 @@ class PortalController extends Controller
     public function index()
     {
         $user = auth()->user();
-        
+
         // Get available systems based on user role
         $systems = $this->getAvailableSystems($user);
-        
+
         return view('portal.dashboard', compact('user', 'systems'));
     }
-    
+
     /**
      * Determine which systems this user can access based on role
-     * 
+     *
      * TO ADD A NEW SYSTEM:
      * 1. Add a new entry to the $systems array below
      * 2. Specify the conditions under which it should appear (role check)
@@ -34,7 +30,7 @@ class PortalController extends Controller
     private function getAvailableSystems($user)
     {
         $systems = [];
-        
+
         // ============================================
         // 1. LEAVE MANAGEMENT SYSTEM
         // ============================================
@@ -47,14 +43,14 @@ class PortalController extends Controller
             'color' => 'primary',
             'coming_soon' => false,
         ];
-        
+
         // ============================================
         // 2. CENTRAL REGISTRY SYSTEM
         // ============================================
         // Only users with specific roles can access
-        if ($user && ($user->hasRole('admin') || 
-                      $user->hasRole('registry-officer') || 
-                      $user->hasRole('registrar') || 
+        if ($user && ($user->hasRole('admin') ||
+                      $user->hasRole('registry-officer') ||
+                      $user->hasRole('registrar') ||
                       $user->hasRole('hod'))) {
             $systems[] = [
                 'name' => 'Central Registry',
@@ -65,12 +61,12 @@ class PortalController extends Controller
                 'coming_soon' => false,
             ];
         }
-        
+
         // ============================================
         // 3. EXAMINATIONS SYSTEM (Future)
         // ============================================
-        if ($user && ($user->hasRole('admin') || 
-                      $user->hasRole('examinations') || 
+        if ($user && ($user->hasRole('admin') ||
+                      $user->hasRole('examinations') ||
                       $user->hasRole('academic-staff'))) {
             $systems[] = [
                 'name' => 'Examinations',
@@ -81,12 +77,12 @@ class PortalController extends Controller
                 'coming_soon' => true,
             ];
         }
-        
+
         // ============================================
         // 4. SENATE MEETINGS SYSTEM (Future)
         // ============================================
-        if ($user && ($user->hasRole('admin') || 
-                      $user->hasRole('senate-member') || 
+        if ($user && ($user->hasRole('admin') ||
+                      $user->hasRole('senate-member') ||
                       $user->hasRole('registrar'))) {
             $systems[] = [
                 'name' => 'Senate Meetings',
@@ -97,7 +93,7 @@ class PortalController extends Controller
                 'coming_soon' => true,
             ];
         }
-        
+
         // ============================================
         // 5. ADMINISTRATION PANEL
         // ============================================
@@ -111,7 +107,7 @@ class PortalController extends Controller
                 'coming_soon' => false,
             ];
         }
-        
+
         // ============================================
         // 6. ADD YOUR NEW SYSTEM HERE
         // ============================================
@@ -128,7 +124,7 @@ class PortalController extends Controller
             ];
         }
         */
-        
+
         return $systems;
     }
 }

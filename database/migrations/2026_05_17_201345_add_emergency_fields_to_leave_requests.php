@@ -15,18 +15,18 @@ return new class extends Migration
             $table->string('travel_destination', 255)->nullable();
             $table->date('expected_return_date')->nullable();
             $table->enum('half_day', ['full', 'morning', 'afternoon'])->default('full');
-            
+
             // Emergency contact for this leave period (can be linked or temporary)
             $table->unsignedBigInteger('emergency_contact_id')->nullable();
             $table->string('emergency_contact_name', 100)->nullable();
             $table->string('emergency_contact_phone', 50)->nullable();
             $table->text('handover_notes')->nullable();
-            
+
             // Foreign key to emergency contacts table
             $table->foreign('emergency_contact_id')
-                  ->references('id')
-                  ->on('staff_emergency_contacts')
-                  ->onDelete('set null');
+                ->references('id')
+                ->on('staff_emergency_contacts')
+                ->onDelete('set null');
         });
     }
 
@@ -43,7 +43,7 @@ return new class extends Migration
                 'emergency_contact_id',
                 'emergency_contact_name',
                 'emergency_contact_phone',
-                'handover_notes'
+                'handover_notes',
             ]);
         });
     }

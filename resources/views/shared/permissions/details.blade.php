@@ -3,53 +3,60 @@
 @section('title', 'Permission Request Details')
 
 @section('content')
-<div class="container-fluid px-3 py-2">
-    
+<div class="container-fluid px-2">
+
     <!-- Breadcrumb -->
     <x-breadcrumb :items="[
         ['name' => 'Permissions', 'url' => route('permissions.my-requests')],
         ['name' => 'Request #' . $permissionRequest->id, 'url' => '#']
 
     ]" />
-    
+
     <!-- Page Header -->
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <div>
-            <h4 class="mb-0" style="font-size: 1.1rem; font-weight: 600;">
-                <i class="ti ti-file-description me-2 text-primary"></i>
-                Permission Request Details
-            </h4>
-            <p class="text-muted mb-0" style="font-size: 0.75rem;">
-                Request ID: #{{ $permissionRequest->id }} | Submitted: {{ $permissionRequest->created_at->format('d M Y, H:i') }}
-            </p>
-        </div>
-        <div>
-            @if($permissionRequest->status === 'pending')
-                <span class="badge bg-warning rounded-sm px-3 py-1" style="font-size: 0.7rem;">
-                    <i class="ti ti-clock me-1"></i> Pending
-                </span>
-            @elseif($permissionRequest->status === 'approved')
-                <span class="badge bg-success rounded-sm px-3 py-1" style="font-size: 0.7rem;">
-                    <i class="ti ti-check-circle me-1"></i> Approved
-                </span>
-            @elseif($permissionRequest->status === 'rejected')
-                <span class="badge bg-danger rounded-sm px-3 py-1" style="font-size: 0.7rem;">
-                    <i class="ti ti-x-circle me-1"></i> Rejected
-                </span>
-            @elseif($permissionRequest->status === 'cancelled')
-                <span class="badge bg-secondary rounded-sm px-3 py-1" style="font-size: 0.7rem;">
-                    <i class="ti ti-ban me-1"></i> Cancelled
-                </span>
-            @endif
-            
-            @if($permissionRequest->hod_status === 'approved' && $permissionRequest->hr_status === 'pending')
-                <span class="badge bg-info rounded-sm px-3 py-1 ms-1" style="font-size: 0.7rem;">
-                    <i class="ti ti-building"></i> Awaiting HR
-                </span>
-            @endif
-        </div>
+    <x-page-header title="PERMISSION REQUEST DETAILS" description="View complete permission request information and approval timeline">
+        <a href="{{ url()->previous() }}" class="btn btn-outline-secondary btn-sm rounded-sm" style="font-size: 0.7rem; padding: 0.2rem 0.5rem;">
+            <i class="ti ti-arrow-left me-1"></i> Back
+        </a>
+    </x-page-header>
+
+    <!-- Status Alert -->
+    <x-alert-light class="mb-3 py-1 px-2 rounded-sm" style="font-size: 0.7rem;">
+
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+                <i class="ti ti-info-circle me-1 text-primary"></i>
+                <strong>Request ID:</strong> #{{ $permissionRequest->id }} |
+                <strong>Submitted:</strong> {{ $permissionRequest->created_at->format('d M Y, H:i') }}
+            </div>
+            <div class="d-flex gap-2">
+                @if($permissionRequest->status === 'pending')
+                    <span class="badge bg-warning rounded-sm px-2 py-1">
+                        <i class="ti ti-clock me-1"></i> Pending
+                    </span>
+                @elseif($permissionRequest->status === 'approved')
+                    <span class="badge bg-success rounded-sm px-2 py-1">
+                        <i class="ti ti-check-circle me-1"></i> Approved
+                    </span>
+                @elseif($permissionRequest->status === 'rejected')
+                    <span class="badge bg-danger rounded-sm px-2 py-1">
+                        <i class="ti ti-x-circle me-1"></i> Rejected
+                    </span>
+                @elseif($permissionRequest->status === 'cancelled')
+                    <span class="badge bg-secondary rounded-sm px-2 py-1">
+                        <i class="ti ti-ban me-1"></i> Cancelled
+                    </span>
+                @endif
+
+                @if($permissionRequest->hod_status === 'approved' && $permissionRequest->hr_status === 'pending')
+                    <span class="badge bg-info rounded-sm px-2 py-1">
+                        <i class="ti ti-building"></i> Awaiting HR
+                    </span>
+                @endif
+            </div>
+        
+</x-alert-light>
     </div>
-    
+
     <div class="row g-3">
         <!-- LEFT COLUMN - Staff & Permission Info -->
         <div class="col-md-5">
@@ -346,23 +353,26 @@
             </div>
             
             <!-- Action Buttons (for approvers) -->
-            <div class="mt-3 d-flex justify-content-between align-items-center">
-                <a href="{{ url()->previous() }}" class="btn btn-secondary btn-sm rounded-sm" style="font-size: 0.7rem;">
-                    <i class="ti ti-arrow-left me-1"></i> Back
-                </a>
-                
+            <div class="mt-3 d-flex justify-content-end align-items-center">
                 <div>
-                    @if(auth()->user()->hasRole('hod') && $permissionRequest->hod_status === 'pending')
-                        @if($permissionRequest->staff->department->hod_staff_id == auth()->id())
-                            <!-- Approve Button -->
-                            <button type="button" class="btn btn-success btn-sm rounded-sm me-2" style="font-size: 0.7rem;" data-bs-toggle="modal" data-bs-target="#approveModal">
-                                <i class="ti ti-check me-1"></i> Approve
-                            </button>
-                            <!-- Reject Button -->
-                            <button type="button" class="btn btn-danger btn-sm rounded-sm" style="font-size: 0.7rem;" data-bs-toggle="modal" data-bs-target="#rejectModal">
-                                <i class="ti ti-x me-1"></i> Reject
-                            </button>
-                        @endif
+                    @php
+                        $realHodId = $permissionRequest->staff->department->hod_staff_id ?? null;
+                        // Self-collision: the applicant IS their own department's
+                        // HOD, so it's the acting HOD they picked who reviews it,
+                        // not necessarily anyone holding the 'hod' role.
+                        $canReviewAsHod = $realHodId == $permissionRequest->staff_id
+                            ? $permissionRequest->acting_hod_id == auth()->id()
+                            : $realHodId == auth()->id();
+                    @endphp
+                    @if($canReviewAsHod && $permissionRequest->hod_status === 'pending')
+                        <!-- Approve Button -->
+                        <button type="button" class="btn btn-success btn-sm rounded-sm me-2" style="font-size: 0.7rem;" data-bs-toggle="modal" data-bs-target="#approveModal">
+                            <i class="ti ti-check me-1"></i> Approve
+                        </button>
+                        <!-- Reject Button -->
+                        <button type="button" class="btn btn-danger btn-sm rounded-sm" style="font-size: 0.7rem;" data-bs-toggle="modal" data-bs-target="#rejectModal">
+                            <i class="ti ti-x me-1"></i> Reject
+                        </button>
                     @endif
                     
                     @if((auth()->user()->hasRole('hr-officer') || auth()->user()->hasRole('hr-manager')) && $permissionRequest->hod_status === 'approved' && $permissionRequest->hr_status === 'pending')
@@ -407,9 +417,9 @@
                     <p class="text-muted mb-2" style="font-size: 0.75rem;">
                         Approve permission request from <strong>{{ $permissionRequest->staff->full_name }}</strong>
                     </p>
-                    <div class="alert alert-info py-1 px-2" style="font-size: 0.7rem;">
-                        <i class="ti ti-info-circle"></i> This will send the request to HR for final approval.
-                    </div>
+                    <x-alert-info>
+    This will send the request to HR for final approval.
+</x-alert-info>
                 </div>
                 <div class="modal-footer py-2 px-3">
                     <button type="button" class="btn btn-secondary btn-sm rounded-sm" data-bs-dismiss="modal" style="font-size: 0.7rem;">Cancel</button>
@@ -555,9 +565,11 @@
 
 <script>
 function confirmCancel() {
-    if (confirm('Are you sure you want to cancel this permission request? This action cannot be undone.')) {
+    confirmAction('Are you sure you want to cancel this permission request? This action cannot be undone.', function () {
         document.getElementById('cancel-form').submit();
-    }
+    });
 }
 </script>
+
+<x-live-refresh :url="route('permissions.show.heartbeat', $permissionRequest->id)" />
 @endsection

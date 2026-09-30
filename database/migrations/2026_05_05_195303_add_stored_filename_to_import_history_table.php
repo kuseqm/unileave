@@ -9,7 +9,7 @@ return new class extends Migration
     public function up()
     {
         Schema::table('import_history', function (Blueprint $table) {
-            if (!Schema::hasColumn('import_history', 'stored_filename')) {
+            if (! Schema::hasColumn('import_history', 'stored_filename')) {
                 $table->string('stored_filename')->nullable()->after('original_filename');
             }
         });

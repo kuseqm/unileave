@@ -1,23 +1,26 @@
 @props([
-    'value', 
-    'label', 
-    'subtext' => null, 
+    'value',
+    'label',
+    'subtext' => null,
     'color' => 'primary',
     'icon' => null,
     'trend' => null,
     'trendValue' => null,
-    'link' => null
+    'link' => null,
+    // Lets a page update the value live via JS (e.g. a stat that's re-fetched
+    // when a filter changes) without needing its own bespoke card markup.
+    'valueId' => null,
 ])
 
 <div class="col-6 col-md-3">
-    <div class="card rounded-sm text-center h-100" style="background: white; transition: transform 0.2s ease, box-shadow 0.2s ease; {{ $link ? 'cursor: pointer;' : '' }}">
+    <div class="card rounded-sm text-center h-100" style="background: white; border-left: 3px solid #A3C4E8; transition: transform 0.2s ease, box-shadow 0.2s ease; {{ $link ? 'cursor: pointer;' : '' }}">
         <div class="card-body py-2 px-2">
             @if($icon)
             <div class="mb-1">
                 <i class="ti ti-{{ $icon }} text-{{ $color }}" style="font-size: 1.2rem;"></i>
             </div>
             @endif
-            <div class="text-{{ $color }} fw-bold" style="font-size: 1.2rem;">{{ $value }}</div>
+            <div @if($valueId) id="{{ $valueId }}" @endif class="text-{{ $color }} fw-bold" style="font-size: 1.2rem;">{{ $value }}</div>
             <div class="text-muted" style="font-size: 0.65rem;">{{ $label }}</div>
             @if($subtext)
             <div class="small mt-1"><span class="text-muted" style="font-size: 0.6rem;">{{ $subtext }}</span></div>

@@ -126,10 +126,9 @@
                         <p class="text-muted small mt-1 mb-0">Audit records are retained for 7 years as required by law.</p>
                     </div>
                     
-                    <div class="alert alert-warning small py-2 px-2 mb-0">
-                        <i class="ti ti-alert-triangle me-1"></i>
-                        <strong>Legal Notice:</strong> Tampering with audit logs is prohibited and constitutes a criminal offense.
-                    </div>
+                    <x-alert-warning>
+    <strong>Legal Notice:</strong> Tampering with audit logs is prohibited and constitutes a criminal offense.
+</x-alert-warning>
                 </div>
             </div>
         </div>

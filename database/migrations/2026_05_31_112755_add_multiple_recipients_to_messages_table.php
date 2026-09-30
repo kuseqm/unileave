@@ -10,14 +10,14 @@ return new class extends Migration
     {
         Schema::table('messages', function (Blueprint $table) {
             // Add JSON column for multiple recipients
-            if (!Schema::hasColumn('messages', 'recipient_ids')) {
+            if (! Schema::hasColumn('messages', 'recipient_ids')) {
                 $table->json('recipient_ids')->nullable()->after('receiver_id');
             }
-            
+
             // Make receiver_id nullable (since we'll use recipient_ids)
             $table->unsignedBigInteger('receiver_id')->nullable()->change();
         });
-        
+
         // REMOVED: $table->index('recipient_ids'); - MySQL doesn't support JSON column indexing
     }
 

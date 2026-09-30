@@ -175,21 +175,21 @@
                     </div>
                     
                     @if($permissionRequest->status == 'approved')
-                    <div class="alert alert-success mx-2 mb-2 py-1 px-2 rounded-sm" style="font-size: 0.65rem;">
-                        <i class="ti ti-check-circle me-1"></i> Request has been fully approved.
-                    </div>
+                    <x-alert-success>
+    Request has been fully approved.
+</x-alert-success>
                     @elseif($permissionRequest->status == 'rejected')
-                    <div class="alert alert-danger mx-2 mb-2 py-1 px-2 rounded-sm" style="font-size: 0.65rem;">
-                        <i class="ti ti-x-circle me-1"></i> Request has been rejected.
-                    </div>
+                    <x-alert-danger :session="false">
+    Request has been rejected.
+</x-alert-danger>
                     @elseif($currentLevel == 'hod')
-                    <div class="alert alert-warning mx-2 mb-2 py-1 px-2 rounded-sm" style="font-size: 0.65rem;">
-                        <i class="ti ti-clock me-1"></i> Waiting for Head of Department approval.
-                    </div>
+                    <x-alert-warning>
+    Waiting for Head of Department approval.
+</x-alert-warning>
                     @elseif($currentLevel == 'hr_final')
-                    <div class="alert alert-warning mx-2 mb-2 py-1 px-2 rounded-sm" style="font-size: 0.65rem;">
-                        <i class="ti ti-clock me-1"></i> Waiting for HR Officer final approval.
-                    </div>
+                    <x-alert-warning>
+    Waiting for HR Officer final approval.
+</x-alert-warning>
                     @endif
                 </div>
             </div>

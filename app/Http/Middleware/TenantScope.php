@@ -2,9 +2,9 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Tenant;
 use Closure;
 use Illuminate\Http\Request;
-use App\Models\Tenant;
 
 class TenantScope
 {
@@ -14,12 +14,12 @@ class TenantScope
         $domain = $request->getHost();
         $tenant = Tenant::where('domain', $domain)->first();
 
-        if (!$tenant && $request->user()) {
+        if (! $tenant && $request->user()) {
             // Fallback to user's tenant
             $tenant = $request->user()->tenant;
         }
 
-        if (!$tenant) {
+        if (! $tenant) {
             abort(403, 'Tenant not found.');
         }
 

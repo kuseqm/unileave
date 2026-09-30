@@ -32,21 +32,37 @@
     $isHrCurrent = ($isDeanCompleted && $currentLevelInt == 3 && !$isHrCompleted && !$isFullyApproved);
     $isDvcCurrent = ($isHrCompleted && $currentLevelInt == 4 && !$isDvcCompleted && !$isFullyApproved);
     $isHrFinalCurrent = ($isDvcCompleted && $currentLevelInt == 5 && !$isHrFinalCompleted && !$isFullyApproved);
-    
+
+    // Some stages don't apply to every request, and showing them anyway
+    // reads as "still waiting on this person" when nobody will ever act on
+    // it: the VC's own leave skips straight to HR Logistics; an HOD's own
+    // leave has nobody else to review the HOD stage, so it's skipped; a
+    // Dean's own leave (or a school with no Dean assigned at all) skips
+    // the Dean stage the same way; HR staff sit administratively parallel
+    // to HOD/Dean, so their own leave skips both of those stages too, even
+    // when the real HOD/Dean is a totally different, unrelated person.
+    $isVC = $leaveRequest->staff->hasRole('vice-chancellor');
+    $isOwnHr = $leaveRequest->staff->hasRole('hr-officer') || $leaveRequest->staff->hasRole('hr-manager');
+    $isOwnHod = ($leaveRequest->staff->department->hod_staff_id ?? null) == $leaveRequest->staff_id;
+    $isOwnDean = ($leaveRequest->staff->department->school->dean_staff_id ?? null) == $leaveRequest->staff_id;
+    $hasDean = (bool) ($leaveRequest->staff->department->school->dean_staff_id ?? null);
+
     $stages = [
-        ['completed' => $isActingCompleted, 'current' => $isActingCurrent, 'label' => 'Act'],
-        ['completed' => $isHodCompleted, 'current' => $isHodCurrent, 'label' => 'HOD'],
-        ['completed' => $isDeanCompleted, 'current' => $isDeanCurrent, 'label' => 'Dean'],
-        ['completed' => $isHrCompleted, 'current' => $isHrCurrent, 'label' => 'HR'],
-        ['completed' => $isDvcCompleted, 'current' => $isDvcCurrent, 'label' => 'DVC'],
-        ['completed' => $isHrFinalCompleted, 'current' => $isHrFinalCurrent, 'label' => 'Fin'],
+        ['completed' => $isActingCompleted, 'current' => $isActingCurrent, 'label' => 'Act', 'applicable' => true],
+        ['completed' => $isHodCompleted, 'current' => $isHodCurrent, 'label' => 'HOD', 'applicable' => ! $isVC && ! $isOwnHr && ! $isOwnHod],
+        ['completed' => $isDeanCompleted, 'current' => $isDeanCurrent, 'label' => 'Dean', 'applicable' => ! $isVC && ! $isOwnHr && ! $isOwnDean && $hasDean],
+        ['completed' => $isHrCompleted, 'current' => $isHrCurrent, 'label' => 'HR', 'applicable' => ! $isVC],
+        ['completed' => $isDvcCompleted, 'current' => $isDvcCurrent, 'label' => 'DVC', 'applicable' => ! $isVC],
+        ['completed' => $isHrFinalCompleted, 'current' => $isHrFinalCurrent, 'label' => 'Final Logistics', 'applicable' => true],
     ];
+
+    $stages = array_values(array_filter($stages, fn ($stage) => $stage['applicable']));
 @endphp
 
 <div class="approval-tracker-mini">
     @foreach($stages as $index => $stage)
         <div class="mini-step-wrapper">
-            <div class="mini-step 
+            <div class="mini-step
                 {{ $stage['completed'] ? 'completed' : '' }}
                 {{ $stage['current'] ? 'current' : '' }}
                 {{ (!$stage['completed'] && !$stage['current']) ? 'pending' : '' }}">
@@ -70,24 +86,24 @@
 .approval-tracker-mini {
     display: inline-flex;
     align-items: center;
-    gap: 0.25rem;
+    gap: 0.15rem;
     background: transparent;
 }
 
 .mini-step-wrapper {
     display: inline-flex;
     align-items: center;
-    gap: 0.25rem;
+    gap: 0.15rem;
 }
 
 .mini-step {
-    width: 24px;
-    height: 24px;
+    width: 15px;
+    height: 15px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.7rem;
+    font-size: 0.5rem;
     transition: all 0.2s ease;
 }
 
@@ -108,8 +124,8 @@
 }
 
 .mini-line {
-    width: 20px;
-    height: 2px;
+    width: 10px;
+    height: 1.5px;
     background: #E2E8F0;
     transition: all 0.3s ease;
 }
@@ -119,10 +135,10 @@
 }
 
 .mini-step-label {
-    font-size: 0.6rem;
+    font-size: 0.55rem;
     font-weight: 500;
     color: #64748B;
-    margin-left: 0.2rem;
+    margin-left: 0.1rem;
 }
 
 @keyframes miniPulse {
@@ -132,7 +148,7 @@
     }
     70% {
         transform: scale(1.1);
-        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0);
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0);
     }
     100% {
         transform: scale(1);
@@ -140,21 +156,33 @@
     }
 }
 
-.mini-step:hover {
-    transform: scale(1.05);
-}
-
 @media (max-width: 576px) {
+    /* Icon glyphs need enough circle size to stay legible, which fights
+       against actually being small - on a phone, drop to plain color-coded
+       dots instead (no icon, no connecting line) so the whole row can
+       shrink to something genuinely pocket-sized. */
+    .approval-tracker-mini {
+        gap: 9px;
+    }
+    .mini-step-wrapper {
+        gap: 0;
+    }
     .mini-step-label {
         display: none;
     }
     .mini-line {
-        width: 12px;
+        display: none;
     }
     .mini-step {
-        width: 20px;
-        height: 20px;
-        font-size: 0.55rem;
+        width: 9px;
+        height: 9px;
+    }
+    .mini-step i {
+        display: none;
+    }
+    .mini-step.current {
+        animation: none;
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
     }
 }
 </style>

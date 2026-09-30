@@ -17,12 +17,16 @@
                 <i class="ti ti-arrow-left me-1"></i> Back
             </a>
             @if($assignment->status === 'pending')
-            <a href="{{ route('admin.acting-dvc.approve', $assignment->id) }}" class="btn btn-success btn-sm rounded-sm" onclick="return confirm('Approve this assignment?')">
-                <i class="ti ti-check me-1"></i> Approve
-            </a>
-            <button type="button" class="btn btn-danger btn-sm rounded-sm" onclick="rejectAssignment({{ $assignment->id }})">
-                <i class="ti ti-x me-1"></i> Reject
-            </button>
+                @can('approve_acting_dvc')
+                <a href="{{ route('admin.acting-dvc.approve', $assignment->id) }}" class="btn btn-success btn-sm rounded-sm" onclick="confirmNavigate(this, 'Approve this assignment?', { danger: false, confirmText: 'Approve' }); return false;">
+                    <i class="ti ti-check me-1"></i> Approve
+                </a>
+                @endcan
+                @can('manage_acting_dvc')
+                <button type="button" class="btn btn-danger btn-sm rounded-sm" onclick="rejectAssignment({{ $assignment->id }})">
+                    <i class="ti ti-x me-1"></i> Reject
+                </button>
+                @endcan
             @endif
         </div>
     </x-page-header>
@@ -90,14 +94,14 @@
 
 <script>
 function rejectAssignment(id) {
-    if(confirm('Reject this assignment?')) {
+    confirmAction('Reject this assignment?', function () {
         const form = document.createElement('form');
         form.method = 'POST';
         form.action = `/admin/acting-dvc/${id}`;
         form.innerHTML = `@csrf @method('DELETE') <input type="hidden" name="status" value="rejected">`;
         document.body.appendChild(form);
         form.submit();
-    }
+    }, { confirmText: 'Reject' });
 }
 </script>
 @endsection

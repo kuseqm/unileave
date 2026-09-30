@@ -18,7 +18,7 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->string('certificate_file', 500)->nullable();
             $table->timestamps();
-            
+
             $table->index('staff_id');
         });
     }

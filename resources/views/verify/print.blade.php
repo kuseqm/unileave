@@ -6,7 +6,7 @@
     <style>
         body { font-family: DejaVu Sans, sans-serif; padding: 30px; }
         .header { text-align: center; margin-bottom: 30px; }
-        .title { color: #2c3e50; font-size: 24px; }
+        .title { color: #1B2F6B; font-size: 24px; }
         .content { margin-top: 30px; }
         .code { font-size: 20px; letter-spacing: 2px; background: #f0f0f0; display: inline-block; padding: 10px 20px; border-radius: 5px; }
         .footer { margin-top: 50px; text-align: center; font-size: 10px; color: #7f8c8d; }

@@ -1,10 +1,12 @@
 @php
     $user = Auth::user();
     $role = $user->getRoleNames()->first() ?? 'Staff';
-    
-    // Display logic for university name
-    if ($role == 'admin') {
-        $displayUniversity = 'UniLeave';
+
+    // Only the true cross-institute super-admin has no single institute to
+    // show - every institute-scoped admin (and everyone else) should see
+    // their real institute name here, not the generic app name.
+    if ($user->hasRole('super-admin')) {
+        $displayUniversity = 'Staff Management System';
     } else {
         $displayUniversity = $user->university->name ?? 'Not Assigned';
     }

@@ -12,31 +12,13 @@
     ]" />
     
     <!-- Page Header -->
-    <div class="card rounded-sm mb-3">
-        <div class="card-body py-2 px-3">
-            <div class="d-flex align-items-center justify-content-between">
-                <div>
-                    <h1 class="h5 mb-0" style="color: #3B82F6; font-weight: 700;">STAFF DETAILS</h1>
-                    <p class="text-muted mb-0" style="font-size: 0.7rem;">View complete staff information</p>
-                </div>
-                <div class="d-flex gap-2">
-                    <a href="{{ route('staff.index') }}" class="btn btn-outline-secondary btn-sm rounded-sm" style="font-size: 0.7rem; padding: 0.2rem 0.5rem;">
-                        <i class="ti ti-arrow-left me-1"></i> Back
-                    </a>
-                    <a href="{{ route('staff.edit', $staff->id) }}" class="btn btn-primary btn-sm rounded-sm" style="font-size: 0.7rem; padding: 0.2rem 0.5rem;">
-                        <i class="ti ti-edit me-1"></i> Edit Staff
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
+    <x-page-header title="STAFF DETAILS" description="View complete staff information" backUrl="{{ route('staff.index') }}">
+        <a href="{{ route('staff.edit', $staff->id) }}" class="btn btn-primary btn-sm rounded-sm" style="font-size: 0.7rem; padding: 0.2rem 0.5rem;">
+            <i class="ti ti-edit me-1"></i> Edit Staff
+        </a>
+    </x-page-header>
     
-    @if(session('success'))
-    <div class="alert alert-success alert-dismissible fade show py-1 px-2 mb-2 rounded-sm" style="font-size: 0.7rem;" role="alert">
-        <i class="ti ti-check-circle me-1"></i> {{ session('success') }}
-        <button type="button" class="btn-close py-0" style="font-size: 0.6rem;" data-bs-dismiss="alert"></button>
-    </div>
-    @endif
+    <x-alert-success />
     
     <div class="row">
         <!-- Left Column - Profile Picture & Quick Info -->
@@ -313,7 +295,7 @@
                                                     </thead>
                                                     <tbody>
                                                         @foreach($staff->qualifications as $qual)
-                                                        <td><td class="ps-2 py-1">{{ $qual->qualification_name }}</td><td>{{ $qual->institution ?? '-' }}</td><td>{{ $qual->year_obtained ?? '-' }}</td><td><span class="badge bg-secondary-subtle text-secondary">{{ strtoupper($qual->qualification_type ?? 'N/A') }}</span></td></table>
+                                                        <tr><td class="ps-2 py-1">{{ $qual->qualification_name }}</td><td>{{ $qual->institution ?? '-' }}</td><td>{{ $qual->year_obtained ?? '-' }}</td><td><span class="badge bg-secondary-subtle text-secondary">{{ strtoupper($qual->qualification_type ?? 'N/A') }}</span></td></tr>
                                                         @endforeach
                                                     </tbody>
                                                 </table>
@@ -559,7 +541,7 @@
                                                     </thead>
                                                     <tbody>
                                                         @foreach($staff->emergencyContacts as $contact)
-                                                        <tr><td class="ps-2 py-1">{{ $contact->name }}</td><td>{{ $contact->relationship }}</td><td>{{ $contact->phone }}</td><td>@if($contact->is_primary)<span class="badge bg-success-subtle text-success">Primary</span>@endif</td></td>
+                                                        <tr><td class="ps-2 py-1">{{ $contact->name }}</td><td>{{ $contact->relationship }}</td><td>{{ $contact->phone }}</td><td>@if($contact->is_primary)<span class="badge bg-success-subtle text-success">Primary</span>@endif</td></tr>
                                                         @endforeach
                                                     </tbody>
                                                 </table>
@@ -632,7 +614,7 @@
                                             <table class="table table-sm mb-0" style="font-size: 0.7rem;">
                                                 <tr><td width="35%"><strong>Account Created</strong></td><td>{{ $staff->created_at ? $staff->created_at->format('d M Y, h:i A') : 'N/A' }}</td></tr>
                                                 <tr><td><strong>Last Updated</strong></td><td>{{ $staff->updated_at ? $staff->updated_at->format('d M Y, h:i A') : 'N/A' }}</td></tr>
-                                                <tr><td><strong>Last Login</strong></td><td>{{ $staff->last_login_at ? \Carbon\Carbon::parse($staff->last_login_at)->format('d M Y, h:i A') : 'Never' }}<\/td></tr>
+                                                <tr><td><strong>Last Login</strong></td><td>{{ $staff->last_login_at ? \Carbon\Carbon::parse($staff->last_login_at)->format('d M Y, h:i A') : 'Never' }}</td></tr>
                                             </table>
                                         </div>
                                     </div>
@@ -684,9 +666,9 @@
             </div>
             <div class="modal-body py-2 px-2">
                 <p style="font-size: 0.75rem;">Are you sure you want to reset the password for <strong id="resetStaffName"></strong>?</p>
-                <div class="alert alert-info py-1 px-2 rounded-sm" style="font-size: 0.7rem;">
-                    <i class="ti ti-info-circle me-1"></i> Temporary password will be: <code>Temp@123</code>
-                </div>
+                <x-alert-info>
+    Temporary password will be: <code>Temp@123</code>
+</x-alert-info>
             </div>
             <div class="modal-footer py-1 px-2">
                 <button type="button" class="btn btn-secondary btn-sm rounded-sm" data-bs-dismiss="modal" style="font-size: 0.7rem;">Cancel</button>

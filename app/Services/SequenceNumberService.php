@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Models\ImportSequence;
-use Illuminate\Support\Facades\Cache;
 
 class SequenceNumberService
 {
@@ -19,18 +18,18 @@ class SequenceNumberService
             ['role_code' => $roleCode],
             ['last_sequence' => 0]
         );
-        
+
         // Increment sequence (never resets)
         $sequence->increment('last_sequence');
         $sequence->refresh();
-        
+
         $seqNumber = str_pad($sequence->last_sequence, 4, '0', STR_PAD_LEFT);
         $date = now()->format('ymd');
         $hour = now()->format('H');
-        
-        return $roleCode . $date . $hour . $seqNumber;
+
+        return $roleCode.$date.$hour.$seqNumber;
     }
-    
+
     /**
      * Get role code from user's role
      */
@@ -43,6 +42,7 @@ class SequenceNumberService
         } elseif ($user->hasRole('hr-officer')) {
             return 'HRO';
         }
+
         return 'STA';
     }
 }
